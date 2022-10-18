@@ -1,0 +1,9 @@
+[submodule "thirdparty/mio"]
+	path = thirdparty/mio
+	url = https://github.com/mandreyel/mio
+[submodule "thirdparty/kseqpp"]
+	path = thirdparty/kseqpp
+	url = https://github.com/cartoonist/kseqpp
+[submodule "thirdparty/bcli"]
+	path = thirdparty/bcli
+	url = https://github.com/tlemane/bcli

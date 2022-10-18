@@ -1,0 +1,88 @@
+#include <fstream>
+#include <filesystem>
+#include <algorithm>
+
+#include <kmindex/index/index_infos.hpp>
+#include <kmindex/utils.hpp>
+#include <fmt/format.h>
+
+namespace kmq {
+
+  std::shared_ptr<km::HashWindow> index_infos::get_hash_w() const
+  {
+    return std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
+  }
+
+  std::shared_ptr<km::Repartition> index_infos::get_repartition() const
+  {
+    return std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
+  }
+
+  std::string index_infos::get_partition(std::size_t partition) const
+  {
+    return fmt::format("{}/matrices/matrix_{}.cmbf", m_path, partition);
+  }
+
+  void index_infos::init()
+  {
+    auto hw = get_hash_w();
+
+    m_bloom_size = hw->bloom_size();
+
+    auto d = fs::directory_iterator(fmt::format("{}/matrices", m_path));
+    m_nb_partitions = [&](){
+      std::size_t c = 0;
+      for (auto& f : d)
+      {
+        if (f.is_regular_file())
+          ++c;
+      }
+      return c;
+    }();
+
+    std::ifstream in_opt(fmt::format("{}/options.txt", m_path));
+
+    std::string line; std::getline(in_opt, line);
+
+    auto v = split(line, ',');
+    for (auto& e : v)
+    {
+      auto ss = split(e, '=');
+      if (trim(ss[0]) == "kmer_size")
+        m_smer_size = std::stoull(trim(ss[1]));
+      else if (trim(ss[0]) == "minim_size")
+        m_minim_size = std::stoull(trim(ss[1]));
+    }
+
+    std::string kmfof = fmt::format("{}/kmtricks.fof", m_path);
+
+    std::ifstream in(kmfof, std::ios::in);
+    check_fstream_good(kmfof, in);
+
+    for (std::string line; std::getline(in, line);)
+    {
+      if (!line.empty())
+      {
+        m_nb_samples++;
+        m_samples.push_back(trim(split(line, ':')[0]));
+      }
+    }
+
+    m_index_size = directory_size(fmt::format("{}/matrices", m_path));
+
+  }
+
+  void index_infos::init(const json& data)
+  {
+    m_path = fs::read_symlink(fmt::format("{}/{}", data["path"], m_name)).string();
+    m_nb_partitions = data["index"][m_name]["nb_partitions"];
+    m_bloom_size  = data["index"][m_name]["bloom_size"];
+    m_nb_samples  = data["index"][m_name]["nb_samples"];
+    m_smer_size   = data["index"][m_name]["smer_size"];
+    m_minim_size  = data["index"][m_name]["minim_size"];
+    m_index_size  = data["index"][m_name]["index_size"];
+    m_samples     = data["index"][m_name]["samples"];
+  }
+
+}
+

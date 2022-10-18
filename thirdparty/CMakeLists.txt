@@ -1,0 +1,43 @@
+set(THIRD_DIR ${CMAKE_SOURCE_DIR}/thirdparty)
+
+set(EXT_INSTALL_DIR ${CMAKE_BINARY_DIR}/ext-install)
+
+include(FetchContent)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_BINARY_DIR}/ext-src")
+
+
+add_library(BCLI_LIB INTERFACE)
+target_include_directories(BCLI_LIB SYSTEM INTERFACE ${THIRD_DIR}/bcli/include)
+
+add_subdirectory(fmt)
+add_subdirectory(kmtricks)
+add_subdirectory(nlohmann_json)
+
+add_library(mio_mmap INTERFACE)
+add_subdirectory(mio)
+target_link_libraries(mio_mmap INTERFACE mio::mio)
+
+add_subdirectory(gtest)
+add_subdirectory(xxhash)
+
+
+add_subdirectory(zlib)
+
+add_library(kseqpp INTERFACE)
+include(ExternalProject)
+
+
+ExternalProject_Add(
+  KSEQPP
+  PREFIX KSEQPP
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/kseqpp
+  INSTALL_COMMAND ""
+  LOG_CONFIGURE ON
+  LOG_BUILD ON
+)
+
+target_include_directories(kseqpp INTERFACE ${THIRD_DIR}/kseqpp/include ${THIRD_DIR}/kseqpp/include/kseq++)
+
+add_subdirectory(spdlog)
+
+

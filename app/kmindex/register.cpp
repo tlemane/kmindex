@@ -10,13 +10,16 @@ namespace kmq {
   {
     auto cmd = parser->add_command("register", "register a new index.");
 
-    cmd->add_param("--name", "index name")
+    cmd->add_param("--name", "index name(s), comma separated")
+       ->meta("STR")
        ->setter(options->index_name);
 
     cmd->add_param("--global-index", "global index path")
+      ->meta("STR")
       ->setter(options->global_index_path);
 
     cmd->add_param("--index", "index path")
+       ->meta("STR")
        ->setter(options->index_path);
 
     add_common_options(cmd, options);

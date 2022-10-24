@@ -26,7 +26,7 @@ namespace kmq {
 
   using parser_t = std::shared_ptr<bc::Parser<1>>;
 
-  void add_common_options(bc::cmd_t cmd, kmq_options_t options);
+  void add_common_options(bc::cmd_t cmd, kmq_options_t options, bool with_threads = false);
 
 }
 

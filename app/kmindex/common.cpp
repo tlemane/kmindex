@@ -3,14 +3,19 @@
 
 namespace kmq {
 
-  void add_common_options(bc::cmd_t cmd, kmq_options_t options)
+  void add_common_options(bc::cmd_t cmd, kmq_options_t options, bool with_threads)
   {
     cmd->add_group("common", "");
-    cmd->add_param("-t/--threads", "number of threads.")
-      ->def(std::to_string(std::thread::hardware_concurrency()))
-      ->meta("INT")
-      ->setter(options->nb_threads)
-      ->checker(bc::check::is_number);
+
+    if (with_threads)
+    {
+      cmd->add_param("-t/--threads", "number of threads.")
+        ->def(std::to_string(std::thread::hardware_concurrency()))
+        ->meta("INT")
+        ->setter(options->nb_threads)
+        ->checker(bc::check::is_number);
+    }
+
     cmd->add_param("-h/--help", "show this message and exit.")
       ->as_flag()
       ->action(bc::Action::ShowHelp);

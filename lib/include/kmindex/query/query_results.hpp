@@ -26,12 +26,12 @@ namespace kmq {
       {
         const uint8_t* data = m_q->response_block(0);
 
-        std::vector<uint8_t> kres(m_q->block_size(), 1);
+        std::vector<uint8_t> kres(m_q->block_size(), 255);
         std::vector<std::uint32_t> count(m_ratios.size(), 0);
 
         std::size_t block_size_z = m_q->block_size() * m_z;
 
-        for (std::size_t i = 0; i < m_q->size() * m_q->block_size(); i += m_q->block_size())
+        for (std::size_t i = 0; i < m_q->ksize() * m_q->block_size(); i += m_q->block_size())
         {
           for (std::size_t j = i; j <= i + block_size_z; j += m_q->block_size())
           {
@@ -43,21 +43,17 @@ namespace kmq {
 
           for (std::size_t s = 0; s < m_ratios.size(); ++s)
           {
-            count[s] += BITCHECK(kres, s);
+            count[s] += static_cast<bool>(BITCHECK(kres, s));
           }
 
-          std::fill(kres.begin(), kres.end(), 1);
+          std::fill(kres.begin(), kres.end(), 255);
         }
 
         for (std::size_t i = 0; i < m_ratios.size(); ++i)
-          m_ratios[i] = count[i] / static_cast<double>(m_q->ksize());
-
-        std::cout << "KN " << m_q->ksize() << std::endl;
-        for (auto& c : count)
         {
-          std::cout << c << " ";
+          m_ratios[i] = count[i] / static_cast<double>(m_q->ksize());
         }
-        std::cout << std::endl;
+
       }
 
       const std::vector<double>& ratios() const { return m_ratios; }

@@ -2,7 +2,7 @@ add_library(fmt INTERFACE)
 
 option(FORCE_BUILD_FMT "Always build, instead of using the system version." OFF)
 option(FMT_HEADER_ONLY "Use header only version of fmt." OFF)
-set(FMT_MIN_REQUIRED_VERSION "7.0")
+set(FMT_MIN_REQUIRED_VERSION "9.1.0")
 
 if (NOT FORCE_BUILD_FMT AND NOT FORCE_BUILD_ALL)
 
@@ -38,8 +38,8 @@ if (NOT FORCE_BUILD_FMT AND NOT FORCE_BUILD_ALL)
 
 endif()
 
-set(FMT_URL "https://github.com/fmtlib/fmt/archive/refs/tags/8.1.1.tar.gz")
-set(FMT_HASH "fe7f1585844b14c647bd332ad5562832")
+set(FMT_URL "https://github.com/fmtlib/fmt/archive/refs/tags/9.1.0.tar.gz")
+set(FMT_HASH "21fac48cae8f3b4a5783ae06b443973a")
 set(FMT_DIR ${EXT_INSTALL_DIR}/fmt)
 
 include(ExternalProject)

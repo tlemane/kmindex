@@ -21,6 +21,9 @@ namespace fs = std::filesystem;
 
 namespace kmq {
 
+  template<typename... Args>
+  void unused(Args&&...) {}
+
   const std::string WHITECHAR = " \n\r\t\f\v";
 
   template<typename T>

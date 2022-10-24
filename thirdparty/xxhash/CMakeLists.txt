@@ -24,8 +24,9 @@ include(ExternalProject)
 ExternalProject_Add(
   XXHASH-external
   PREFIX XXHASH-external
-  URL ${XXHASH_URL}
-  URL_MD5 ${XXHASH_HASH}
+  #URL ${XXHASH_URL}
+  #URL_MD5 ${XXHASH_HASH}
+  GIT_REPOSITORY "https://github.com/Cyan4973/xxHash"
   EXCLUDE_FROM_ALL
   LOG_DOWNLOAD ON
   LOG_CONFIGURE ON

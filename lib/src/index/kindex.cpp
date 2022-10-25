@@ -20,7 +20,7 @@ namespace kmq {
 
   void partition::query(std::uint64_t pos, std::uint8_t* dest)
   {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    //std::unique_lock<std::mutex> lock(m_mutex);
     std::memcpy(dest, m_mapped.begin() + (m_bytes * pos) + 49, m_bytes);
   }
 

@@ -7,3 +7,6 @@
 [submodule "thirdparty/bcli"]
 	path = thirdparty/bcli
 	url = https://github.com/tlemane/bcli
+[submodule "thirdparty/Simple-Web-Server"]
+	path = thirdparty/Simple-Web-Server
+	url = https://gitlab.com/eidheim/Simple-Web-Server

@@ -15,8 +15,10 @@ namespace kmq {
         : m_q(q), m_z(q->zsize())
       {
         m_ratios.resize(nb_samples, 0);
+        m_counts.resize(nb_samples, 0);
         m_name = m_q->name();
         m_threshold = m_q->threshold();
+        m_nbk = m_q->ksize();
 
         compute_ratios();
       }
@@ -43,7 +45,7 @@ namespace kmq {
 
           for (std::size_t s = 0; s < m_ratios.size(); ++s)
           {
-            count[s] += static_cast<bool>(BITCHECK(kres, s));
+            m_counts[s] += static_cast<bool>(BITCHECK(kres, s));
           }
 
           std::fill(kres.begin(), kres.end(), 255);
@@ -51,11 +53,13 @@ namespace kmq {
 
         for (std::size_t i = 0; i < m_ratios.size(); ++i)
         {
-          m_ratios[i] = count[i] / static_cast<double>(m_q->ksize());
+          m_ratios[i] = m_counts[i] / static_cast<double>(m_q->ksize());
         }
 
       }
 
+      std::size_t nbk() const { return m_nbk; }
+      const std::vector<std::uint32_t>& counts() const { return m_counts; }
       const std::vector<double>& ratios() const { return m_ratios; }
       const std::string& name() const { return m_name; }
       double threshold() const { return m_threshold; }
@@ -64,8 +68,10 @@ namespace kmq {
       query* m_q;
       std::size_t m_z;
       std::vector<double> m_ratios;
+      std::vector<std::uint32_t> m_counts;
       double m_threshold;
       std::string m_name;
+      std::size_t m_nbk;
   };
 
   class query_result_agg
@@ -77,6 +83,7 @@ namespace kmq {
       m_results.push_back(std::move(r));
     }
 
+    std::size_t size() const { return m_results.size(); }
     auto begin() const { return m_results.begin(); }
     auto end() const { return m_results.end(); }
 

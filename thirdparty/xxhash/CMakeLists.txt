@@ -27,6 +27,7 @@ ExternalProject_Add(
   #URL ${XXHASH_URL}
   #URL_MD5 ${XXHASH_HASH}
   GIT_REPOSITORY "https://github.com/Cyan4973/xxHash"
+  GIT_TAG dev
   EXCLUDE_FROM_ALL
   LOG_DOWNLOAD ON
   LOG_CONFIGURE ON

@@ -6,8 +6,8 @@ include(FetchContent)
 set(FETCHCONTENT_BASE_DIR "${CMAKE_BINARY_DIR}/ext-src")
 
 
-add_library(BCLI_LIB INTERFACE)
-target_include_directories(BCLI_LIB SYSTEM INTERFACE ${THIRD_DIR}/bcli/include)
+add_library(bcli_lib INTERFACE)
+target_include_directories(bcli_lib SYSTEM INTERFACE ${THIRD_DIR}/bcli/include)
 
 add_subdirectory(fmt)
 add_subdirectory(kmtricks)
@@ -26,7 +26,6 @@ add_subdirectory(zlib)
 add_library(kseqpp INTERFACE)
 include(ExternalProject)
 
-
 ExternalProject_Add(
   KSEQPP
   PREFIX KSEQPP
@@ -40,4 +39,14 @@ target_include_directories(kseqpp INTERFACE ${THIRD_DIR}/kseqpp/include ${THIRD_
 
 add_subdirectory(spdlog)
 
+add_library(sws INTERFACE)
+ExternalProject_Add(
+  SWS
+  PREFIX SWS
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/Simple-Web-Server
+  INSTALL_COMMAND ""
+  LOG_CONFIGURE ON
+  LOG_BUILD ON
+)
 
+target_include_directories(sws SYSTEM INTERFACE ${THIRD_DIR}/Simple-Web-Server/)

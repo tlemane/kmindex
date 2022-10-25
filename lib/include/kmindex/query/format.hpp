@@ -9,6 +9,8 @@
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/query/query.hpp>
 
+#include <spdlog/spdlog.h>
+
 using json = nlohmann::json;
 
 namespace kmq {
@@ -76,24 +78,48 @@ namespace kmq {
                                const std::vector<std::string>& sample_ids,
                                const query_result_agg& queries) override
     {
+      return jformat(name, sample_ids, queries).dump(4);
+    }
+
+    json jformat(const std::string& name,
+                               const std::vector<std::string>& sample_ids,
+                               const query_result_agg& queries,
+                               bool merge = false)
+    {
       nlohmann::json data;
       data[name] = json({});
+
+      std::vector<std::uint32_t> global(merge ? sample_ids.size() : 0, 0);
+      std::size_t nb_k = 0;
 
       for (auto& qr : queries)
       {
         data[name][qr.name()] = json({});
 
         const auto& ratios = qr.ratios();
+        const auto& counts = qr.counts();
+        nb_k += qr.nbk();
 
         for (std::size_t i = 0; i < sample_ids.size(); ++i)
         {
-          data[name][qr.name()][sample_ids[i]] = ratios[i];
+          if (!merge)
+            data[name][qr.name()][sample_ids[i]] = ratios[i];
+          else
+            global[i] += counts[i];
         }
       }
 
-      return data.dump(4);
-    }
+      if (merge)
+      {
+        for (std::size_t i = 0; i < sample_ids.size(); ++i)
+        {
+          data[name][(*queries.begin()).name()][sample_ids[i]] =
+            global[i] / static_cast<double>(nb_k);
+        }
+      }
 
+      return data;
+    }
   };
 
   inline std::shared_ptr<query_formatter_base> get_formatter(enum format f)

@@ -5,6 +5,8 @@
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/index/kindex.hpp>
 
+#include <kmindex/exceptions.hpp>
+
 namespace kmq {
 
   class index
@@ -18,7 +20,13 @@ namespace kmq {
       auto begin() { return std::begin(m_indexes); }
       auto end() { return std::end(m_indexes); }
 
-      index_infos& get(const std::string& name) { return m_indexes.at(name); }
+      const index_infos& get(const std::string& name) const
+      {
+        if (m_indexes.count(name))
+          return m_indexes.at(name);
+        throw kmq_invalid_index(fmt::format("'{}' is not registered by this instance", name));
+      }
+
     private:
       void init(const std::string& ipath);
 

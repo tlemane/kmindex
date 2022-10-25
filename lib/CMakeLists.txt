@@ -1,4 +1,4 @@
-configure_file("${CMAKE_SOURCE_DIR}/lib/config.hpp.in" "${CMAKE_BINARY_DIR}/include/${KMINDEX_LIB}/config.hpp")
+configure_file("${CMAKE_SOURCE_DIR}/lib/config.hpp.in" "${CMAKE_BINARY_DIR}/include/kmindex/config.hpp")
 
 set(KMINDEX_LIB "kmindex-lib")
 if (NOT APPLE)
@@ -80,8 +80,8 @@ install (TARGETS ${KMINDEX_LIB}
 )
 
 install(
-  DIRECTORY "${CMAKE_SOURCE_DIR}/lib/include/${KMINDEX_LIB}"
-            "${CMAKE_BINARY_DIR}/include/${KMINDEX_LIB}"
+  DIRECTORY "${CMAKE_SOURCE_DIR}/lib/include/kmindex"
+            "${CMAKE_BINARY_DIR}/include/kmindex"
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT ${KMINDEX_LIB}_Development
   FILES_MATCHING PATTERN "*.hpp"

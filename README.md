@@ -6,7 +6,7 @@ kmindex is a tool allowing to perform queries on Bloom filters matrices from [km
 
 ### Releases
 
-  Coming soon.
+Portable binary releases are available at [kmindex/releases](https://github.com/tlemane/kmindex/releases).
 
 ### From sources
 

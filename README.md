@@ -208,6 +208,6 @@ Response example:
 ```
 
 
-See [6_post_request.sh](./examples/data/5_post_request.sh).
+See [6_post_request.sh](./examples/data/6_post_request.sh).
 
 

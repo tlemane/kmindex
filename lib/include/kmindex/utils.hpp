@@ -39,27 +39,6 @@ namespace kmq {
     }
   }
 
-  inline std::string rtrim(const std::string& s, const std::string& v = WHITECHAR)
-  {
-    size_t end = s.find_last_not_of(v);
-    if (end == std::string::npos)
-      return "";
-    return s.substr(0, end+1);
-  }
-
-  inline std::string ltrim(const std::string& s, const std::string& v = WHITECHAR)
-  {
-    size_t beg = s.find_first_not_of(v);
-    if (beg == std::string::npos)
-      return "";
-    return s.substr(beg);
-  }
-
-  inline std::string trim(const std::string& s, const std::string& v = WHITECHAR)
-  {
-    return ltrim(rtrim(s, v), v);
-  }
-
   template<typename Formatter = std::function<std::string(const std::string&)>>
   inline std::vector<std::string> split(const std::string& s, char delim, Formatter format)
   {
@@ -70,30 +49,22 @@ namespace kmq {
     return ret;
   }
 
-  inline std::vector<std::string> split(const std::string& s, char delim)
-  {
-    return split(s, delim, [](const std::string& s) -> std::string {return s;});
-  }
+  std::string rtrim(const std::string& s, const std::string& v = WHITECHAR);
 
-  inline std::size_t directory_size(const std::string& p)
-  {
-    std::size_t size = 0;
-    for (auto& e : fs::directory_iterator(p))
-    {
-      if (e.is_regular_file())
-        size += fs::file_size(e);
-    }
+  std::string ltrim(const std::string& s, const std::string& v = WHITECHAR);
 
-    return size / 1024 / 1024;
-  }
+  std::string trim(const std::string& s, const std::string& v = WHITECHAR);
 
+  std::vector<std::string> split(const std::string& s, char delim);
+
+  std::size_t directory_size(const std::string& p);
   class Timer
   {
     using time_point_t = std::chrono::time_point<std::chrono::steady_clock>;
     using days = std::chrono::duration<int, std::ratio<86400>>;
 
    public:
-    Timer() {start();}
+    Timer();
 
     template <typename Unit>
     auto elapsed()
@@ -102,25 +73,7 @@ namespace kmq {
       return std::chrono::duration_cast<Unit>(m_end_time - m_start_time);
     }
 
-    std::string formatted()
-    {
-      if (m_running) end();
-      std::chrono::seconds seconds(std::chrono::duration_cast<std::chrono::seconds>(m_end_time - m_start_time));
-      auto d = std::chrono::duration_cast<days>(seconds); seconds -= d;
-      auto h = std::chrono::duration_cast<std::chrono::hours>(seconds); seconds -= h;
-      auto m = std::chrono::duration_cast<std::chrono::minutes>(seconds); seconds -= m;
-      auto s = std::chrono::duration_cast<std::chrono::seconds>(seconds);
-
-      std::stringstream ss; ss.fill('0');
-      if (d.count())
-        ss << std::setw(2) << d.count() << "d";
-      if (h.count())
-        ss << std::setw(2) << h.count() << "h";
-      if (m.count())
-        ss << std::setw(2) << m.count() << "m";
-      ss << std::setw(2) << s.count() << "s";
-      return ss.str();
-    }
+    std::string formatted();
 
     template <typename Unit>
     static auto time_it(std::function<void()> func)
@@ -140,16 +93,9 @@ namespace kmq {
     }
 
    private:
-    void start()
-    {
-      m_running = true;
-      m_start_time = std::chrono::steady_clock::now();
-    }
-    void end()
-    {
-      m_running = false;
-      m_end_time = std::chrono::steady_clock::now();
-    }
+    void start();
+
+    void end();
 
    private:
     time_point_t m_start_time{};

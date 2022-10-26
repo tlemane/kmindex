@@ -105,8 +105,20 @@ namespace kmq {
         agg.add(ki.resolve(q));
       }
 
-      std::string resp = f->format(infos.name(), infos.samples(), agg, o->single);
-      write_result(resp, infos.name(), o->output, o->format);
+      if (o->single.size() > 0)
+      {
+        write_result(f->merge_format(infos.name(), infos.samples(), agg, o->single),
+                     infos.name(),
+                     o->output,
+                     o->format);
+      }
+      else
+      {
+        write_result(f->format(infos.name(), infos.samples(), agg),
+                     infos.name(),
+                     o->output,
+                     o->format);
+      }
 
       spdlog::info("Results dumped at {}/{}.{} ({})",
                  o->output,

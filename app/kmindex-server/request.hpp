@@ -41,7 +41,7 @@ namespace kmq {
             query q(m_name, s, infos.smer_size(), m_z, infos.nb_samples(), 0.0);
             agg.add(ki.resolve(q));
           }
-          responses.push_back(jformat.jformat(infos.name(), infos.samples(), agg, m_name));
+          responses.push_back(jformat.jmerge_format(infos.name(), infos.samples(), agg, m_name));
         }
 
         json response;

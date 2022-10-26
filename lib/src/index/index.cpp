@@ -64,12 +64,12 @@ namespace kmq {
     out << std::setw(4) << data << std::endl;
   }
 
-  auto index::begin()
+  index::iterator index::begin()
   {
     return std::begin(m_indexes);
   }
 
-  auto index::end()
+  index::iterator index::end()
   {
     return std::end(m_indexes);
   }

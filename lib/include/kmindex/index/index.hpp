@@ -9,14 +9,18 @@ namespace kmq {
 
   class index
   {
+    using map_t = std::map<std::string, index_infos>;
+    using iterator = map_t::iterator;
+
     public:
       index(const std::string& index_path);
 
       void add_index(const std::string& name, const std::string& km_path);
       void save() const;
 
-      auto begin();
-      auto end();
+
+      iterator begin();
+      iterator end();
 
       const index_infos& get(const std::string& name) const;
 
@@ -25,7 +29,7 @@ namespace kmq {
 
     private:
       std::string m_index_path;
-      std::map<std::string, index_infos> m_indexes;
+      map_t m_indexes;
   };
 
 }

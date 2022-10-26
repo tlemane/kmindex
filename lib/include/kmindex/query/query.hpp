@@ -20,18 +20,11 @@ namespace kmq {
   class query_response
   {
     public:
-      query_response(std::size_t n, std::size_t nbits, std::size_t width = 1)
-        : m_block_size(((nbits * width) + 7) / 8)
-      {
-        m_responses.resize(n * m_block_size, 0);
-      }
+      query_response(std::size_t n, std::size_t nbits, std::size_t width = 1);
 
-      std::size_t block_size() const { return m_block_size; }
+      std::size_t block_size() const;
 
-      std::uint8_t* get(std::size_t mer_pos)
-      {
-        return m_responses.data() + (mer_pos * m_block_size);
-      }
+      std::uint8_t* get(std::size_t mer_pos);
 
     private:
       std::vector<std::uint8_t> m_responses;
@@ -49,37 +42,23 @@ namespace kmq {
             std::size_t z_size,
             std::size_t nb_samples,
             double threshold,
-            std::size_t width = 1)
-        : m_name(name),
-          m_seq(seq),
-          m_size(m_seq.size() - smer_size + 1),
-          m_ksize(m_seq.size() - (smer_size + z_size) + 1),
-          m_zsize(z_size),
-          m_threshold(threshold)
-      {
-        m_responses = std::make_unique<query_response>(size(), nb_samples, width);
-      }
+            std::size_t width = 1);
 
-      std::uint8_t* response_block(std::size_t mer_pos)
-      {
-        return m_responses->get(mer_pos);
-      }
+      std::uint8_t* response_block(std::size_t mer_pos);
 
-      std::size_t block_size() const
-      {
-        return m_responses->block_size();
-      }
+      std::size_t block_size() const;
 
-      std::size_t size() const { return m_size; }
-      std::size_t ksize() const { return m_ksize; }
-      std::size_t zsize() const  { return m_zsize; }
-      std::string name() const { return m_name; }
-      double threshold() const { return m_threshold; }
+      std::size_t size() const;
 
-      smer_iterator iterate(std::size_t smer_size, smer_hasher* h)
-      {
-        return smer_iterator(m_seq, smer_size, h);
-      }
+      std::size_t ksize() const;
+
+      std::size_t zsize() const;
+
+      std::string name() const;
+
+      double threshold() const;
+
+      smer_iterator iterate(std::size_t smer_size, smer_hasher* h);
 
     private:
       std::string m_name;

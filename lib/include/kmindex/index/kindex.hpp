@@ -44,6 +44,7 @@ namespace kmq {
       std::string directory() const;
 
       query_result resolve(query& q);
+      query_result resolve(query& q, std::size_t nbt);
 
       index_infos& infos() { return m_infos; }
     private:

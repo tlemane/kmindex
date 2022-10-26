@@ -77,7 +77,6 @@ namespace kmq {
 
     spdlog::info("Query '{}' ({} samples)", infos.name(), infos.nb_samples());
 
-    kindex ki(infos);
 
     query_result_agg agg;
 
@@ -86,13 +85,17 @@ namespace kmq {
 
     ThreadPool pool(o->nb_threads);
 
+    kindex ki(infos);
     while (iss >> record)
     {
-      pool.add_task([record=record, &infos, &agg, &o, &ki](int i){
-        unused(i);
         query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0);
-        agg.add(ki.resolve(q));
-      });
+        agg.add(ki.resolve(q, opt->nb_threads));
+      //pool.add_task([record=record, &infos, &agg, &o](int i){
+      //  kindex ki(infos);
+      //  unused(i);
+      //  query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0);
+      //  agg.add(ki.resolve(q));
+      //});
     }
 
     pool.join_all();

@@ -75,5 +75,43 @@ namespace kmq {
     return query_result(&q, m_infos.nb_samples());
   }
 
+  query_result kindex::resolve(query& q, std::size_t nbt)
+  {
+    smer_hasher sh(m_infos.get_repartition(), m_infos.get_hash_w(), m_infos.minim_size());
+
+    std::vector<std::vector<smer>> smers(m_infos.nb_partitions());
+
+    for (auto& e : q.iterate(m_infos.smer_size(), &sh))
+    {
+      smers[e.p].push_back(e);
+    }
+
+    ThreadPool p(nbt);
+    for (auto& v : smers)
+    {
+      if (v.size())
+      {
+        p.add_task([this, &v, &q](int i){
+          unused(i);
+          init(v[0].p);
+          for (auto& e : v)
+          {
+            m_partitions[e.p]->query(e.h, q.response_block(e.i));
+          }
+          unmap(v[0].p);
+
+          std::vector<smer> d;
+          v.swap(d);
+        });
+      }
+    }
+
+    p.join_all();
+
+    return query_result(&q, m_infos.nb_samples());
+  }
+
+
+
 
 }

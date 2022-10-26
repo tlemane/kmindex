@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include <cassert>
+#include <limits>
 #include <kmtricks/repartition.hpp>
 #include <kmtricks/hash.hpp>
 #include <kmtricks/kmer.hpp>

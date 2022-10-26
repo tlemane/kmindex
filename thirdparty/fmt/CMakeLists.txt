@@ -63,7 +63,7 @@ target_include_directories(fmt SYSTEM INTERFACE
 
 if (NOT FMT_HEADER_ONLY)
   target_link_libraries(fmt INTERFACE
-    "${FMT_DIR}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}fmt${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${FMT_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}fmt${CMAKE_STATIC_LIBRARY_SUFFIX}"
   )
 else()
   target_compile_definitions(fmt INTERFACE FMT_HEADER_ONLY)

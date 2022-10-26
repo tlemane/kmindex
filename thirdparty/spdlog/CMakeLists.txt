@@ -67,7 +67,7 @@ if (SPDLOG_HEADER_ONLY)
   target_compile_definitions(spdlog INTERFACE SPDLOG_HEADER_ONLY)
 else()
   target_link_libraries(spdlog INTERFACE
-    "${SPDLOG_DIR}/lib64/${CMAKE_STATIC_LIBRARY_PREFIX}spdlog${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${SPDLOG_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}spdlog${CMAKE_STATIC_LIBRARY_SUFFIX}"
   )
 endif()
 

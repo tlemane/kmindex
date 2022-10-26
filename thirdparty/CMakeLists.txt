@@ -5,6 +5,7 @@ set(EXT_INSTALL_DIR ${CMAKE_BINARY_DIR}/ext-install)
 include(FetchContent)
 set(FETCHCONTENT_BASE_DIR "${CMAKE_BINARY_DIR}/ext-src")
 
+include(GNUInstallDirs)
 
 add_library(bcli_lib INTERFACE)
 target_include_directories(bcli_lib SYSTEM INTERFACE ${THIRD_DIR}/bcli/include)

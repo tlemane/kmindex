@@ -26,7 +26,7 @@ namespace kmq {
   kindex::kindex() {}
 
   kindex::kindex(const index_infos& i)
-    : m_infos(i), m_mutex(m_infos.nb_partitions())
+    : m_infos(i)
   {
     m_partitions.resize(m_infos.nb_partitions());
   }
@@ -59,15 +59,12 @@ namespace kmq {
     {
       if (v.size())
       {
+        init(v[0].p);
+        for (auto& e : v)
         {
-          std::unique_lock<std::mutex> lock(m_mutex[v[0].p]);
-          init(v[0].p);
-          for (auto& e : v)
-          {
-            m_partitions[e.p]->query(e.h, q.response_block(e.i));
-          }
-          unmap(v[0].p);
-          }
+          m_partitions[e.p]->query(e.h, q.response_block(e.i));
+        }
+        unmap(v[0].p);
 
         std::vector<smer> d;
         v.swap(d);

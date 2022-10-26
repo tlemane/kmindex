@@ -50,8 +50,6 @@ namespace kmq {
     private:
       index_infos m_infos;
       std::vector<std::unique_ptr<partition>> m_partitions;
-      std::vector<std::mutex> m_mutex;
-
   };
 }
 

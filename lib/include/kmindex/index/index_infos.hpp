@@ -27,6 +27,9 @@ namespace kmq {
       std::size_t m_index_size {0};
       std::vector<std::string> m_samples;
 
+      std::shared_ptr<km::HashWindow> m_hashw {nullptr};
+      std::shared_ptr<km::Repartition> m_repart {nullptr};
+
     public:
 
       index_infos() {}

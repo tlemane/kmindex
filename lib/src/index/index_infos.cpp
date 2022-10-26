@@ -10,12 +10,12 @@ namespace kmq {
 
   std::shared_ptr<km::HashWindow> index_infos::get_hash_w() const
   {
-    return std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
+    return m_hashw;
   }
 
   std::shared_ptr<km::Repartition> index_infos::get_repartition() const
   {
-    return std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
+    return m_repart;
   }
 
   std::string index_infos::get_partition(std::size_t partition) const
@@ -82,6 +82,9 @@ namespace kmq {
     m_minim_size  = data["index"][m_name]["minim_size"];
     m_index_size  = data["index"][m_name]["index_size"];
     m_samples     = data["index"][m_name]["samples"];
+
+    m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
+    m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
   }
 
 }

@@ -17,10 +17,11 @@ namespace kmq {
 
   kmq_options_t kmq_query_cli(parser_t parser, kmq_query_options_t options)
   {
-    auto cmd = parser->add_command("query", "query");
+    auto cmd = parser->add_command("query", "Query index.");
 
     cmd->add_param("--index", "global index path.")
        ->meta("STR")
+       ->checker(bc::check::is_dir)
        ->setter(options->global_index_path);
 
     auto name_setter = [options](const std::string& v) {
@@ -31,13 +32,15 @@ namespace kmq {
        ->meta("STR")
        ->setter_c(name_setter);
 
-    cmd->add_param("--z", "size of k-mers: (s+z)-mers. ")
-       ->meta("FLOAT")
+    cmd->add_param("--z", "index s-mers and query (s+z)-mers (findere algorithm).")
+       ->meta("INT")
        ->def("0")
+       ->checker(bc::check::f::range(0, 8))
        ->setter(options->z);
 
     cmd->add_param("--threshold", "shared k-mers threshold.")
        ->def("0")
+       ->checker(bc::check::f::range(0.0, 1.0))
        ->setter(options->sk_threshold);
 
     cmd->add_param("--output", "output directory.")
@@ -45,9 +48,10 @@ namespace kmq {
        ->def("output")
        ->setter(options->output);
 
-    cmd->add_param("--fastx", "fasta/q file containing the sequence(s) to query.")
+    cmd->add_param("--fastx", "fasta/q file (supports gz/bzip2) containing the sequence(s) to query.")
        ->meta("STR")
-       ->checker(bc::check::seems_fastx)
+       ->checker(bc::check::f::ext(
+         "fa|fq|fasta|fastq|fna|fa.gz|fq.gz|fasta.gz|fastq.gz|fna.gz|fa.bz2|fq.bz2|fasta.bz2|fastq.bz2|fna.bz2"))
        ->setter(options->input);
 
     cmd->add_param("--single-query", "query id. All sequences are considered as a unique query.")
@@ -65,7 +69,6 @@ namespace kmq {
        ->def("json")
        ->checker(bc::check::f::in("json|matrix"))
        ->setter_c(format_setter);
-
 
     add_common_options(cmd, options, true);
 

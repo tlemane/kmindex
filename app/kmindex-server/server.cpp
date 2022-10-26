@@ -22,34 +22,46 @@ namespace kmq {
 
   kmq_server_options_t kmq_server_cli(parser_t parser, kmq_server_options_t options)
   {
-    parser->add_param("--index", "index path")
+    parser->add_param("--index", "index path.")
        ->meta("STR")
        ->setter(options->index_path);
 
-    parser->add_param("--address", "address")
+    parser->add_param("--address", "address.")
           ->meta("STR")
           ->def("127.0.0.1")
           ->setter(options->address);
 
-    parser->add_param("--port", "port")
+    parser->add_param("--port", "port.")
        ->meta("INT")
        ->def("8080")
        ->setter(options->port);
 
-    parser->add_param("--log-directory", "directory for daily logging")
+    parser->add_param("--log-directory", "directory for daily logging.")
           ->meta("STR")
           ->def("kmindex_logs")
           ->setter(options->log_directory);
 
-    parser->add_param("--verbose", "verbosity level [debug|info|warning|error]")
+    parser->add_group("common", "");
+
+    parser->add_param("-t/--threads", "max number of simultaneous connections.")
+      ->meta("INT")
+      ->def("1")
+      ->setter(options->nb_threads);
+
+    parser->add_param("-h/--help", "show this message and exit.")
+          ->as_flag()
+          ->action(bc::Action::ShowHelp);
+
+    parser->add_param("--version", "show version and exit.")
+           ->as_flag()
+           ->action(bc::Action::ShowVersion);
+
+    parser->add_param("--verbose", "verbosity level [debug|info|warning|error].")
       ->meta("STR")
       ->def("info")
       ->checker(bc::check::f::in("debug|info|warning|error"))
       ->setter(options->verbosity);
 
-    parser->add_param("-h/--help", "Show this message and exit")
-          ->as_flag()
-          ->action(bc::Action::ShowHelp);
 
     return options;
   }
@@ -59,9 +71,11 @@ namespace kmq {
   using response_t = std::shared_ptr<http_server_t::Response>;
   using request_t = std::shared_ptr<http_server_t::Request>;
 
-  std::thread start_server(http_server_t& s, const std::string& address, std::size_t port)
+  std::thread start_server(http_server_t& s, const std::string& address, std::size_t port, std::size_t n)
   {
+
     spdlog::info("server running on {}:{}.", address, port);
+    s.config.thread_pool_size = n;
     s.config.address = address;
     s.config.port = port;
     return std::thread([&s](){
@@ -133,7 +147,7 @@ namespace kmq {
       accept_get_request(response, request, opt->index_path);
     };
 
-    auto s = start_server(server, opt->address, opt->port);
+    auto s = start_server(server, opt->address, opt->port, opt->nb_threads);
     s.join();
 
   }

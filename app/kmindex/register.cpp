@@ -10,17 +10,17 @@ namespace kmq {
 
   kmq_options_t kmq_register_cli(parser_t parser, kmq_register_options_t options)
   {
-    auto cmd = parser->add_command("register", "register a new index.");
+    auto cmd = parser->add_command("register", "Register index.");
 
-    cmd->add_param("--name", "index name(s), comma separated")
-       ->meta("STR")
-       ->setter(options->index_name);
-
-    cmd->add_param("--global-index", "global index path")
+    cmd->add_param("--global-index", "global index path.")
       ->meta("STR")
       ->setter(options->global_index_path);
 
-    cmd->add_param("--index", "index path")
+    cmd->add_param("--name", "index name")
+       ->meta("STR")
+       ->setter(options->index_name);
+
+    cmd->add_param("--index", "kmtricks index path.")
        ->meta("STR")
        ->setter(options->index_path);
 

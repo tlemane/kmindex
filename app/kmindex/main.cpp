@@ -1,3 +1,5 @@
+#include <kmindex/config.hpp>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -5,7 +7,8 @@
 
 int main(int argc, char* argv[])
 {
-  kmq::kmq_cli cli("kmindex", "Index kmtricks matrices", "0.0.1");
+  kmq::kmq_cli cli("kmindex", "Index kmtricks bf matrices", KMQ_PROJECT_TAG);
+
   auto [cmd, options] = cli.parse(argc, argv);
 
   if (options->verbosity == "debug")

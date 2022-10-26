@@ -1,3 +1,5 @@
+#include <kmindex/config.hpp>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/daily_file_sink.h>
@@ -8,7 +10,8 @@
 int main(int argc, char* argv[])
 {
   auto options = std::make_shared<struct kmq::kmq_server_options>();
-  auto cli_parser = std::make_shared<bc::Parser<0>>("kmindex-server", "kmindex REST server", "0.0.1", "");
+  auto cli_parser = std::make_shared<bc::Parser<0>>(
+      "kmindex-server", "kmindex REST server", KMQ_PROJECT_TAG, "");
   kmq::kmq_server_cli(cli_parser, options);
 
   try {

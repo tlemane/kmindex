@@ -15,6 +15,7 @@ namespace kmq {
     std::size_t port;
     std::string address;
     std::string log_directory;
+    std::size_t nb_threads;
   };
 
   using kmq_server_options_t = std::shared_ptr<struct kmq_server_options>;

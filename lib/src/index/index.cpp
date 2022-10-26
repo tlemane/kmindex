@@ -1,5 +1,6 @@
 #include <kmindex/index/index.hpp>
 #include <kmindex/index/index_infos.hpp>
+#include <kmindex/exceptions.hpp>
 #include <kmindex/utils.hpp>
 
 #include <nlohmann/json.hpp>
@@ -62,4 +63,23 @@ namespace kmq {
 
     out << std::setw(4) << data << std::endl;
   }
+
+  auto index::begin()
+  {
+    return std::begin(m_indexes);
+  }
+
+  auto index::end()
+  {
+    return std::end(m_indexes);
+  }
+
+  const index_infos& index::get(const std::string& name) const
+  {
+    if (m_indexes.count(name))
+      return m_indexes.at(name);
+    throw kmq_invalid_index(fmt::format("'{}' is not registered by this instance", name));
+  }
+
+
 }

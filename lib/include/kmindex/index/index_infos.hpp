@@ -33,33 +33,23 @@ namespace kmq {
     public:
 
       index_infos() {}
-      index_infos(const std::string& name, const std::string& km_dir)
-       : m_name(name), m_path(km_dir)
-      {
-        init();
-      }
+      index_infos(const std::string& name, const std::string& km_dir);
+      index_infos(const std::string& name, const json& jdata);
 
-      index_infos(const std::string& name, const json& jdata)
-       : m_name(name)
-      {
-        init(jdata);
-      }
 
       std::shared_ptr<km::HashWindow> get_hash_w() const;
       std::shared_ptr<km::Repartition> get_repartition() const;
       std::string get_partition(std::size_t partition) const;
 
-
-      std::string name() const { return m_name; }
-      std::size_t bloom_size() const { return m_bloom_size; }
-      std::size_t nb_partitions() const { return m_nb_partitions; }
-      std::size_t nb_samples() const { return m_nb_samples; }
-      std::size_t smer_size() const { return m_smer_size; }
-      std::size_t minim_size() const { return m_minim_size; }
-      std::size_t index_size() const { return m_index_size; }
-      std::string path() const { return m_path; };
-      const std::vector<std::string>& samples() const { return m_samples; }
-
+      std::string name() const;
+      std::size_t bloom_size() const;
+      std::size_t nb_partitions() const;
+      std::size_t nb_samples() const;
+      std::size_t smer_size() const;
+      std::size_t minim_size() const;
+      std::size_t index_size() const;
+      std::string path() const;
+      const std::vector<std::string>& samples() const;
 
     private:
       void init();

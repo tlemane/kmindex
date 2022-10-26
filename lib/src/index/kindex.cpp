@@ -41,8 +41,15 @@ namespace kmq {
     m_partitions[p] = nullptr;
   }
 
-  std::string kindex::name() const { return m_infos.name(); }
-  std::string kindex::directory() const { return m_infos.path(); }
+  std::string kindex::name() const
+  {
+    return m_infos.name();
+  }
+
+  std::string kindex::directory() const
+  {
+    return m_infos.path();
+  }
 
   query_result kindex::resolve(query& q)
   {
@@ -72,5 +79,10 @@ namespace kmq {
     }
 
     return query_result(&q, m_infos.nb_samples());
+  }
+
+  index_infos& kindex::infos()
+  {
+    return m_infos;
   }
 }

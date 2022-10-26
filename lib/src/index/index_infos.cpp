@@ -9,6 +9,18 @@
 
 namespace kmq {
 
+  index_infos::index_infos(const std::string& name, const std::string& km_dir)
+    : m_name(name), m_path(km_dir)
+  {
+    init();
+  }
+
+  index_infos::index_infos(const std::string& name, const json& jdata)
+    : m_name(name)
+  {
+    init(jdata);
+  }
+
   std::shared_ptr<km::HashWindow> index_infos::get_hash_w() const
   {
     return m_hashw;
@@ -22,6 +34,51 @@ namespace kmq {
   std::string index_infos::get_partition(std::size_t partition) const
   {
     return fmt::format("{}/matrices/matrix_{}.cmbf", m_path, partition);
+  }
+
+  std::string index_infos::name() const
+  {
+    return m_name;
+  }
+
+  std::size_t index_infos::bloom_size() const
+  {
+    return m_bloom_size;
+  }
+
+  std::size_t index_infos::nb_partitions() const
+  {
+    return m_nb_partitions;
+  }
+
+  std::size_t index_infos::nb_samples() const
+  {
+    return m_nb_samples;
+  }
+
+  std::size_t index_infos::smer_size() const
+  {
+    return m_smer_size;
+  }
+
+  std::size_t index_infos::minim_size() const
+  {
+    return m_minim_size;
+  }
+
+  std::size_t index_infos::index_size() const
+  {
+    return m_index_size;
+  }
+
+  std::string index_infos::path() const
+  {
+    return m_path;
+  }
+
+  const std::vector<std::string>& index_infos::samples() const
+  {
+    return m_samples;
   }
 
   void index_infos::is_km_index() const

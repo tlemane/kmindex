@@ -29,10 +29,17 @@ namespace kmq {
   kindex::kindex(const index_infos& i)
     : m_infos(i)
   {
-    for (std::size_t i = 0; i < m_infos.nb_partitions(); ++i)
-    {
-      m_partitions.push_back(std::make_unique<partition>(m_infos.get_partition(i), m_infos.nb_samples()));
-    }
+    m_partitions.resize(m_infos.nb_partitions());
+  }
+
+  void kindex::init(std::size_t p)
+  {
+    m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples());
+  }
+
+  void kindex::unmap(std::size_t p)
+  {
+    m_partitions[p] = nullptr;
   }
 
   std::string kindex::name() const { return m_infos.name(); }
@@ -42,11 +49,31 @@ namespace kmq {
   {
     smer_hasher sh(m_infos.get_repartition(), m_infos.get_hash_w(), m_infos.minim_size());
 
+    std::vector<std::vector<smer>> smers(m_infos.nb_partitions());
+
     for (auto& e : q.iterate(m_infos.smer_size(), &sh))
     {
-      m_partitions[e.p]->query(e.h, q.response_block(e.i));
+      smers[e.p].push_back(e);
+    }
+
+    for (auto& v : smers)
+    {
+      if (v.size())
+      {
+        init(v[0].p);
+        for (auto& e : v)
+        {
+          m_partitions[e.p]->query(e.h, q.response_block(e.i));
+        }
+        unmap(v[0].p);
+
+        std::vector<smer> d;
+        v.swap(d);
+      }
     }
 
     return query_result(&q, m_infos.nb_samples());
   }
+
+
 }

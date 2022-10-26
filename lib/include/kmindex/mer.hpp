@@ -24,6 +24,7 @@ namespace kmq {
     std::uint64_t h {0};
   };
 
+
   inline std::ostream& operator<<(std::ostream& o,  const smer& s)
   {
     o << "smer<" << std::to_string(s.i) << ',' << std::to_string(s.p) << ',' << std::to_string(s.h) << '>';

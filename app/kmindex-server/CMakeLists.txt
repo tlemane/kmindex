@@ -1,5 +1,6 @@
 file(GLOB_RECURSE KMINDEX_SERVER_SOURCES "*.cpp")
 
+find_package(Boost REQUIRED COMPONENTS system)
 set(KMINDEX_SERVER "${PROJECT_NAME}-server")
 add_executable(${KMINDEX_SERVER} ${KMINDEX_SERVER_SOURCES})
 
@@ -8,6 +9,8 @@ target_link_libraries(${KMINDEX_SERVER} PUBLIC
   $<BUILD_INTERFACE:build_type_flags>
   $<BUILD_INTERFACE:warning_flags>
   $<BUILD_INTERFACE:asan_flags>
+  Boost::boost
+  Boost::system
   bcli_lib
   kmindex-lib
   kseqpp

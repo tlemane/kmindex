@@ -2,7 +2,7 @@
 #define INDEX_HPP_FJYOTLJN
 
 #include <memory>
-#include <kmindex/query/query.hpp>
+//#include <kmindex/query/query.hpp>
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/index/index_infos.hpp>
 #include <kmtricks/repartition.hpp>
@@ -34,6 +34,10 @@ namespace kmq {
 
       kindex();
       kindex(const index_infos& i);
+
+      auto& partitions() { return m_partitions; }
+      void init(std::size_t p);
+      void unmap(std::size_t p);
 
     public:
       std::string name() const;

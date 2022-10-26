@@ -4,7 +4,6 @@
 #include <mutex>
 #include <kmindex/query/query.hpp>
 
-
 namespace kmq {
 
   class query_result

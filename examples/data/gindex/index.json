@@ -1,0 +1,29 @@
+{
+    "index": {
+        "index_1": {
+            "bloom_size": 10000128,
+            "index_size": 9,
+            "minim_size": 10,
+            "nb_partitions": 4,
+            "nb_samples": 2,
+            "samples": [
+                "D1",
+                "D2"
+            ],
+            "smer_size": 25
+        },
+        "index_2": {
+            "bloom_size": 10000128,
+            "index_size": 9,
+            "minim_size": 10,
+            "nb_partitions": 4,
+            "nb_samples": 2,
+            "samples": [
+                "D3",
+                "D4"
+            ],
+            "smer_size": 25
+        }
+    },
+    "path": "/home/tlemane/Documents/git_repos/kmindex/examples/data/gindex"
+}

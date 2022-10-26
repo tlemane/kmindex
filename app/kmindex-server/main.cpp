@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
   spdlog::flush_every(std::chrono::seconds(5));
   auto logger = std::make_shared<spdlog::logger>("kmindex", dist_sink);
-  logger->set_pattern("[kmindex-server]-[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+  logger->set_pattern("[kms:%t]-[%D %H:%M:%S] [%^%l%$] %v");
 
   spdlog::set_default_logger(logger);
 

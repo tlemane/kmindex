@@ -1,4 +1,4 @@
-# kmindex
+# kmindex (WIP)
 
 kmindex is a tool allowing to perform queries on Bloom filters matrices from [kmtricks](https://github.com/tlemane/kmtricks).
 

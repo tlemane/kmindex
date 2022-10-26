@@ -4,6 +4,7 @@
 #include <memory>
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/index/index_infos.hpp>
+#include <kmindex/spinlock.hpp>
 #include <mio/mmap.hpp>
 
 namespace kmq {
@@ -44,6 +45,7 @@ namespace kmq {
     private:
       index_infos m_infos;
       std::vector<std::unique_ptr<partition>> m_partitions;
+      spinlock m_mutex;
   };
 }
 

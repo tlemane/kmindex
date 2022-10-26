@@ -99,11 +99,18 @@ namespace kmq {
       klibpp::SeqStreamIn iss(o->input.c_str());
       kindex ki(infos);
 
+      ThreadPool pool(o->nb_threads);
+
       while (iss >> record)
       {
-        query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0);
-        agg.add(ki.resolve(q));
+        pool.add_task([record=record, &ki, &agg, &o, &infos](int i){
+          unused(i);
+          query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0);
+          agg.add(ki.resolve(q));
+        });
       }
+
+      pool.join_all();
 
       if (o->single.size() > 0)
       {

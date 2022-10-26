@@ -62,19 +62,22 @@ namespace kmq {
       smers[e.p].push_back(e);
     }
 
-    for (auto& v : smers)
     {
-      if (v.size())
+      std::unique_lock<spinlock> lock(m_mutex);
+      for (auto& v : smers)
       {
-        init(v[0].p);
-        for (auto& e : v)
+        if (v.size())
         {
-          m_partitions[e.p]->query(e.h, q.response_block(e.i));
-        }
-        unmap(v[0].p);
+          init(v[0].p);
+          for (auto& e : v)
+          {
+            m_partitions[e.p]->query(e.h, q.response_block(e.i));
+          }
+          unmap(v[0].p);
 
-        std::vector<smer> d;
-        v.swap(d);
+          std::vector<smer> d;
+          v.swap(d);
+        }
       }
     }
 

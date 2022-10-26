@@ -32,8 +32,9 @@ namespace kmq {
   {
     public:
       virtual std::string format(const std::string& name,
-                               const std::vector<std::string>& sample_ids,
-                               const query_result_agg& queries) = 0;
+                                const std::vector<std::string>& sample_ids,
+                                const query_result_agg& queries,
+                                const std::string& qname) = 0;
   };
 
   class matrix_formatter : public query_formatter_base
@@ -41,10 +42,12 @@ namespace kmq {
     public:
     virtual std::string format(const std::string& name,
                                const std::vector<std::string>& sample_ids,
-                               const query_result_agg& queries) override
+                               const query_result_agg& queries,
+                               const std::string& qname = "") override
     {
       unused(name);
 
+      bool merge = qname.size() > 0;
       std::stringstream ss;
       ss << std::setprecision(2);
       ss << "ID\t";
@@ -55,18 +58,43 @@ namespace kmq {
       ss.seekp(-1, ss.cur);
       ss << '\n';
 
-      for (auto& qr : queries)
+      if (!merge)
       {
-        ss << qr.name() << '\t';
-
-        for (auto& r : qr.ratios())
+        for (auto& qr : queries)
         {
-          ss << r << '\t';
+          ss << qr.name() << '\t';
+
+          for (auto& r : qr.ratios())
+          {
+            ss << r << '\t';
+          }
+          ss.seekp(-1, ss.cur);
+          ss << '\n';
+        }
+
+      }
+      else
+      {
+        std::vector<std::uint32_t> global(sample_ids.size(), 0);
+        std::size_t nbk = 0;
+        for (auto& qr : queries)
+        {
+          nbk += qr.nbk();
+          for (std::size_t i = 0; i < sample_ids.size(); ++i)
+          {
+            global[i] += qr.counts()[i];
+          }
+        }
+
+        ss << qname << '\t';
+
+        for (std::size_t i = 0; i < sample_ids.size(); ++i)
+        {
+          ss << global[i] / static_cast<double>(nbk) << '\t';
         }
         ss.seekp(-1, ss.cur);
         ss << '\n';
       }
-
       return ss.str();
     }
   };
@@ -76,25 +104,29 @@ namespace kmq {
     public:
     virtual std::string format(const std::string& name,
                                const std::vector<std::string>& sample_ids,
-                               const query_result_agg& queries) override
+                               const query_result_agg& queries,
+                               const std::string& qname = "") override
     {
-      return jformat(name, sample_ids, queries).dump(4);
+      return jformat(name, sample_ids, queries, qname).dump(4);
     }
 
     json jformat(const std::string& name,
-                               const std::vector<std::string>& sample_ids,
-                               const query_result_agg& queries,
-                               bool merge = false)
+                 const std::vector<std::string>& sample_ids,
+                 const query_result_agg& queries,
+                 const std::string& qname = "")
     {
       nlohmann::json data;
       data[name] = json({});
+
+      bool merge = qname.size() > 0;
 
       std::vector<std::uint32_t> global(merge ? sample_ids.size() : 0, 0);
       std::size_t nb_k = 0;
 
       for (auto& qr : queries)
       {
-        data[name][qr.name()] = json({});
+        if (!merge)
+          data[name][qr.name()] = json({});
 
         const auto& ratios = qr.ratios();
         const auto& counts = qr.counts();
@@ -113,7 +145,7 @@ namespace kmq {
       {
         for (std::size_t i = 0; i < sample_ids.size(); ++i)
         {
-          data[name][(*queries.begin()).name()][sample_ids[i]] =
+          data[name][qname][sample_ids[i]] =
             global[i] / static_cast<double>(nb_k);
         }
       }

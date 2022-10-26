@@ -1,6 +1,7 @@
 #ifndef QUERY_HPP_ZDULHSN1
 #define QUERY_HPP_ZDULHSN1
 
+#include <vector>
 #include <kmindex/query/format.hpp>
 #include "common.hpp"
 
@@ -9,11 +10,11 @@ namespace kmq {
   struct kmq_query_options : kmq_options
   {
     std::string index;
-    std::string index_name;
+    std::vector<std::string> index_names;
     std::string output;
     std::string input;
     enum format format;
-
+    std::string single;
     std::size_t z {0};
     double sk_threshold {0};
   };

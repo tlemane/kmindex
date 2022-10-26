@@ -16,13 +16,17 @@ kmindex is a tool allowing to perform queries on Bloom filters matrices from [km
 
 All other dependencies are bundled with `kmindex`.
 
-```bash
-git clone --recursive https://github.com/tlemane/kmindex
-cd kmindex
-mkdir build
-cd build
-cmake ..
-make -j
+```
+kmindex build script - v0.0.1.
+Usage:
+  ./install.sh [-r str] [-t int] [-j int] [-p str] [-n] [-h]
+Options:
+  -r <Release|Debug> -> build type {Release}.
+  -t <0|1|2>         -> tests: 0 = disabled, 1 = compile, 2 = compile and run {2}.
+  -j <INT>           -> nb threads {8}.
+  -n                 -> portable x86-64 build {disable}.
+  -p                 -> install path {./kmindex_install}
+  -h                 -> show help.
 ```
 
 ### From conda

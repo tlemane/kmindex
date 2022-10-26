@@ -21,3 +21,8 @@ target_link_libraries(${KMINDEX_SERVER} PUBLIC
 )
 add_dependencies(${KMINDEX_SERVER} deps)
 
+install (TARGETS ${KMINDEX_SERVER}
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         COMPONENT ${KMINDEX_LIB}_Runtime
+)
+

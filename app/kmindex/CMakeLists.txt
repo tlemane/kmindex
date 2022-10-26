@@ -15,3 +15,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 add_dependencies(${PROJECT_NAME} deps)
 
+install (TARGETS ${PROJECT_NAME}
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         COMPONENT ${KMINDEX_LIB}_Runtime
+)
+

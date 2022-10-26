@@ -14,12 +14,16 @@ add_subdirectory(kmtricks)
 add_subdirectory(nlohmann_json)
 
 add_library(mio_mmap INTERFACE)
+
+set(mio.installation OFF)
+set(INSTALL_SUBPROJECTS OFF)
+
 add_subdirectory(mio)
+
 target_link_libraries(mio_mmap INTERFACE mio::mio)
 
 add_subdirectory(gtest)
 add_subdirectory(xxhash)
-
 
 add_subdirectory(zlib)
 

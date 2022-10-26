@@ -1,0 +1,2 @@
+D1: 1.fasta
+D2: 2.fasta

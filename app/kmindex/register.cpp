@@ -4,6 +4,8 @@
 
 #include <kmindex/index/index.hpp>
 
+#include <spdlog/spdlog.h>
+
 namespace kmq {
 
   kmq_options_t kmq_register_cli(parser_t parser, kmq_register_options_t options)
@@ -30,7 +32,6 @@ namespace kmq {
   void main_register(kmq_options_t opt)
   {
     kmq_register_options_t o = std::static_pointer_cast<struct kmq_register_options>(opt);
-
 
     index i(o->global_index_path);
     i.add_index(o->index_name, o->index_path);

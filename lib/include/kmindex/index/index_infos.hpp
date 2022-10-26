@@ -64,6 +64,7 @@ namespace kmq {
     private:
       void init();
       void init(const json& data);
+      void is_km_index() const;
   };
 
 }

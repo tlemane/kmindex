@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <algorithm>
 
+#include <kmindex/exceptions.hpp>
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/utils.hpp>
 #include <fmt/format.h>
@@ -23,8 +24,19 @@ namespace kmq {
     return fmt::format("{}/matrices/matrix_{}.cmbf", m_path, partition);
   }
 
+  void index_infos::is_km_index() const
+  {
+    std::string p = fmt::format("{}/matrices/matrix_0.cmbf", m_path);
+
+    if (!fs::exists(p))
+      throw kmq_io_error(fmt::format("{} is not a kmtricks index.", m_path));
+  }
+
   void index_infos::init()
   {
+    is_km_index();
+
+    m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
     auto hw = get_hash_w();
 
     m_bloom_size = hw->bloom_size();

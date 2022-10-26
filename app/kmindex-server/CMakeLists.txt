@@ -1,6 +1,6 @@
 file(GLOB_RECURSE KMINDEX_SERVER_SOURCES "*.cpp")
 
-find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost 1.70.0 REQUIRED COMPONENTS system)
 set(KMINDEX_SERVER "${PROJECT_NAME}-server")
 add_executable(${KMINDEX_SERVER} ${KMINDEX_SERVER_SOURCES})
 
@@ -19,5 +19,5 @@ target_link_libraries(${KMINDEX_SERVER} PUBLIC
   spdlog
   sws
 )
-
+add_dependencies(${KMINDEX_SERVER} deps)
 

@@ -24,6 +24,7 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:mio_mmap>
   $<BUILD_INTERFACE:xxhash>
 )
+add_dependencies(${KMINDEX_LIB} deps)
 
 target_include_directories(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/lib/include>

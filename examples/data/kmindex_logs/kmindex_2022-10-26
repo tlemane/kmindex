@@ -1,0 +1,8 @@
+[kmindex-server]-[2022-10-26 14:41:48.825] [info] server running on 127.0.0.1:8080.
+[kmindex-server]-[2022-10-26 14:42:03.014] [info] GET /kmindex/infos from 127.0.0.1
+[kmindex-server]-[2022-10-26 14:42:06.853] [info] POST /kmindex/query from 127.0.0.1
+[kmindex-server]-[2022-10-26 14:42:06.854] [info] request -> search 1_S1 in ["index_1"]
+[kmindex-server]-[2022-10-26 14:42:06.873] [info] POST /kmindex/query from 127.0.0.1
+[kmindex-server]-[2022-10-26 14:42:06.873] [info] request -> search 1_S1 in ["index_1","index_2"]
+[kmindex-server]-[2022-10-26 14:42:06.883] [info] POST /kmindex/query from 127.0.0.1
+[kmindex-server]-[2022-10-26 14:42:06.883] [info] request -> search 1_S1-1_S2-AsSingleQuery in ["index_1","index_2"]

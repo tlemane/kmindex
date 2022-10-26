@@ -44,9 +44,13 @@ ExternalProject_Add(
   SWS
   PREFIX SWS
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/Simple-Web-Server
+  CMAKE_ARGS -DUSE_OPENSSL=OFF
   INSTALL_COMMAND ""
   LOG_CONFIGURE ON
   LOG_BUILD ON
 )
 
 target_include_directories(sws SYSTEM INTERFACE ${THIRD_DIR}/Simple-Web-Server/)
+
+add_library(deps INTERFACE)
+add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)

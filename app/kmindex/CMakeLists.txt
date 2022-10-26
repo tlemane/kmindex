@@ -13,5 +13,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   pthread
   spdlog
 )
-
+add_dependencies(${PROJECT_NAME} deps)
 

@@ -1,2 +1,2 @@
-D3: 3.fasta
-D4: 4.fasta
+S3: 3.fasta
+S4: 4.fasta

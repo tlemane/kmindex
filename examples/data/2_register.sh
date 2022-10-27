@@ -1,4 +1,4 @@
 #!/bin/bash
 
-kmindex register --name index_1 --global-index gindex --index ./index_1
-kmindex register --name index_2 --global-index gindex --index ./index_2
+kmindex register --name D1 --global-index G --index ./D1
+kmindex register --name D2 --global-index G --index ./D2

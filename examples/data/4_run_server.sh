@@ -1,3 +1,3 @@
 #!/bin/bash
 
-kmindex-server --index ./gindex
+kmindex-server --index ./G

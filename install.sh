@@ -21,12 +21,12 @@ function kmindex_build ()
 
 function usage ()
 {
-  echo "kmindex build script - v0.0.1."
+  echo "kmindex build script - v0.1.0."
   echo "Usage: "
   echo "  ./install.sh [-r str] [-t int] [-j int] [-p str] [-n] [-h]"
   echo "Options: "
   echo "  -r <Release|Debug> -> build type {Release}."
-  echo "  -t <0|1|2>         -> tests: 0 = disabled, 1 = compile, 2 = compile and run {2}."
+  echo "  -t <0|1|2>         -> tests: 0 = disabled, 1 = compile, 2 = compile and run {0}."
   echo "  -j <INT>           -> nb threads {8}."
   echo "  -n                 -> portable x86-64 build {disable}."
   echo "  -p                 -> install path {./kmindex_install}"
@@ -39,8 +39,8 @@ deb="Debug"
 
 mode="Release"
 static="OFF"
-tests=2
-tests_str="ON"
+tests=0
+tests_str="OFF"
 tests_run=1
 jopt=8
 native="OFF"
@@ -58,6 +58,9 @@ while getopts "r:t:j:p:nh" option; do
       [[ ${tests} == 0 ]] && tests_run=0
       [[ ${tests} == 0 ]] && tests_str="OFF"
       [[ ${tests} == 1 ]] && tests_run=0
+      [[ ${tests} == 1 ]] && tests_str="ON"
+      [[ ${tests} == 2 ]] && tests_run=1
+      [[ ${tests} == 2 ]] && tests_str="ON"
       ;;
     j)
       jopt=${OPTARG}

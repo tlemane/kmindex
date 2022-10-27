@@ -10,8 +10,25 @@
 int main(int argc, char* argv[])
 {
   auto options = std::make_shared<struct kmq::kmq_server_options>();
+
+  const std::string desc =
+    "kmindex-server allows to perform queries via POST requests.\n\n"
+    "  The body is json string with 4 entries:\n\n"
+    "     'index': an array of strings corresponding to the indexes to query.\n\n"
+    "     'id': a string used as query identifier.\n\n"
+    "     'z': a integer which determine the k-mer size, (s+z)-mers. \n\n"
+    "     'seq': an array of strings corresponding to the sequences to query, which\n"
+    "            are considered as a singe query.\n\n"
+    "  POST requests must be sent to /kmindex/query\n"
+    "  Index informations can be obtained via a GET request at /kmindex/infos\n\n"
+    "  Examples:\n\n"
+    "     curl --post302 -L -X http://127.0.0.1:8080/kmindex/query -H 'Content-type: application/json'\n"
+    "          -d '{\"index\":[\"index_1\"],\"seq\":[\"AGAGCCAGCAGCACCCCCAAAAAAAAA\"],\n"
+    "          \"id\":\"ID1\",\"z\":3}'\n\n"
+    "     curl -L -X http://127.0.0.1:8080/kmindex/infos";
+
   auto cli_parser = std::make_shared<bc::Parser<0>>(
-      "kmindex-server", "kmindex REST server", KMQ_PROJECT_TAG, "");
+      "kmindex-server", desc, KMQ_PROJECT_TAG, "");
   kmq::kmq_server_cli(cli_parser, options);
 
   try {
@@ -36,10 +53,11 @@ int main(int argc, char* argv[])
       fmt::format("{}/kmindex", options->log_directory), 0, 0);
 
   auto cerr_sink = std::make_shared<spdlog::sinks::stderr_color_sink_mt>();
-
   auto dist_sink = std::make_shared<spdlog::sinks::dist_sink_st>();
 
-  dist_sink->add_sink(cerr_sink);
+  if (!options->no_stderr)
+    dist_sink->add_sink(cerr_sink);
+
   dist_sink->add_sink(daily_sink);
 
   spdlog::flush_every(std::chrono::seconds(5));

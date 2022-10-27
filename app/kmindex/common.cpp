@@ -9,20 +9,20 @@ namespace kmq {
 
     if (with_threads)
     {
-      cmd->add_param("-t/--threads", "number of threads.")
+      cmd->add_param("-t/--threads", "Number of threads.")
         ->def(std::to_string(std::thread::hardware_concurrency()))
         ->meta("INT")
         ->setter(options->nb_threads)
         ->checker(bc::check::is_number);
     }
 
-    cmd->add_param("-h/--help", "show this message and exit.")
+    cmd->add_param("-h/--help", "Show this message and exit.")
       ->as_flag()
       ->action(bc::Action::ShowHelp);
-    cmd->add_param("--version", "show version and exit.")
+    cmd->add_param("--version", "Show version and exit.")
       ->as_flag()
       ->action(bc::Action::ShowVersion);
-    cmd->add_param("-v/--verbose", "verbosity level [debug|info|warning|error].")
+    cmd->add_param("-v/--verbose", "Verbosity level [debug|info|warning|error].")
       ->meta("STR")
       ->def("info")
       ->checker(bc::check::f::in("debug|info|warning|error"))

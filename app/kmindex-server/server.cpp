@@ -22,41 +22,48 @@ namespace kmq {
 
   kmq_server_options_t kmq_server_cli(parser_t parser, kmq_server_options_t options)
   {
-    parser->add_param("--index", "index path.")
+    parser->add_param("-i/--index", "Index path.")
        ->meta("STR")
        ->setter(options->index_path);
 
-    parser->add_param("--address", "address.")
+    parser->add_param("-a/--address", "Address to use (empty string to bind any address)\n" \
+             "                             IPv4: dotted decimal form\n" \
+             "                             IPv6: hexadimal form.\n" \
+             "                             default -> ")
           ->meta("STR")
           ->def("127.0.0.1")
           ->setter(options->address);
 
-    parser->add_param("--port", "port.")
+    parser->add_param("-p/--port", "Port to use.")
        ->meta("INT")
        ->def("8080")
        ->setter(options->port);
 
-    parser->add_param("--log-directory", "directory for daily logging.")
+    parser->add_param("-d/--log-directory", "Directory for daily logging.")
           ->meta("STR")
           ->def("kmindex_logs")
           ->setter(options->log_directory);
 
+    parser->add_param("-s/--no-stderr", "Disable stderr logging.")
+          ->as_flag()
+          ->setter(options->no_stderr);
+
     parser->add_group("common", "");
 
-    parser->add_param("-t/--threads", "max number of simultaneous connections.")
+    parser->add_param("-t/--threads", "Max number of parallel connections.")
       ->meta("INT")
       ->def("1")
       ->setter(options->nb_threads);
 
-    parser->add_param("-h/--help", "show this message and exit.")
+    parser->add_param("-h/--help", "Show this message and exit.")
           ->as_flag()
           ->action(bc::Action::ShowHelp);
 
-    parser->add_param("--version", "show version and exit.")
+    parser->add_param("--version", "Show version and exit.")
            ->as_flag()
            ->action(bc::Action::ShowVersion);
 
-    parser->add_param("--verbose", "verbosity level [debug|info|warning|error].")
+    parser->add_param("--verbose", "Verbosity level [debug|info|warning|error].")
       ->meta("STR")
       ->def("info")
       ->checker(bc::check::f::in("debug|info|warning|error"))
@@ -94,7 +101,12 @@ namespace kmq {
     try {
       send_response(response, request, callback(content));
 
-    } catch (const std::exception& e) {
+    } catch (const nlohmann::detail::exception& e) {
+      spdlog::info("json parsing failure -> {}", e.what());
+      response->write(SimpleWeb::StatusCode::client_error_bad_request,
+                      json_error("json parsing failure, check your inputs").dump());
+    }
+      catch (const std::exception& e) {
       spdlog::info("bad client request -> {}", e.what());
       response->write(SimpleWeb::StatusCode::client_error_bad_request,
                       json_error(e.what()).dump());
@@ -149,6 +161,5 @@ namespace kmq {
 
     auto s = start_server(server, opt->address, opt->port, opt->nb_threads);
     s.join();
-
   }
 }

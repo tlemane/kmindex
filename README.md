@@ -1,5 +1,7 @@
 # kmindex (WIP)
 
+## Rationale
+
 kmindex is a tool allowing to perform queries on Bloom filters matrices from [kmtricks](https://github.com/tlemane/kmtricks).
 
 ## Installation
@@ -49,24 +51,24 @@ See [1_build.sh](./examples/data/1_build.sh).
 ### 2. Register index
 
 ```
-kmindex register 0.0.1
+kmindex register v0.0.1
 
 DESCRIPTION
-  register a new index.
+  Register index.
 
 USAGE
-  kmindex register --name <STR> --global-index <STR> --index <STR> [-v/--verbose <STR>] [-h/--help] [--version]
+  kmindex register --global-index <STR> --name <STR> --index <STR> [-v/--verbose <STR>] [-h/--help] [--version]
 
 OPTIONS
   [global]
-     --name         - index name
-     --global-index - global index path
-     --index        - index path
+     --global-index - Global index path.
+     --name         - Index name.
+     --index        - Index path (a kmtricks run using --mode hash:bf:bin).
 
   [common]
-    -h --help    - show this message and exit. [⚑]
-       --version - show version and exit. [⚑]
-    -v --verbose - verbosity level [debug|info|warning|error]. {info}
+    -h --help    - Show this message and exit. [⚑]
+       --version - Show version and exit. [⚑]
+    -v --verbose - Verbosity level [debug|info|warning|error]. {info}
 ```
 
 See [2_register.sh](./examples/data/2_register.sh).
@@ -74,32 +76,32 @@ See [2_register.sh](./examples/data/2_register.sh).
 ### 3. Query index
 
 ```
-kmindex query 0.0.1
+kmindex query v0.0.1
 
 DESCRIPTION
-  query
+  Query index.
 
 USAGE
-  kmindex query --index <STR> --names <STR> --fastx <STR> [--z <FLOAT>] [--threshold <?>] [--output <STR>]
-                [--single-query <STR>] [--format <STR>] [-t/--threads <INT>]
-                [-v/--verbose <STR>] [-h/--help] [--version]
+  kmindex query -i/--index <STR> -n/--names <STR> -q/--fastx <STR> [-z/--zvalue <INT>] [-r/--threshold <?>]
+                [-o/--output <STR>] [-s/--single-query <STR>] [-f/--format <STR>]
+                [-t/--threads <INT>] [-v/--verbose <STR>] [-h/--help] [--version]
 
 OPTIONS
   [global]
-     --index        - global index path.
-     --names        - indexes to query, comma separated.
-     --z            - size of k-mers: (s+z)-mers.  {0}
-     --threshold    - shared k-mers threshold. {0}
-     --output       - output directory. {output}
-     --fastx        - fasta/q file containing the sequence(s) to query.
-     --single-query - query id. All sequences are considered as a unique query.
-     --format       - output format [json|matrix] {json}
+    -i --index        - Global index path.
+    -n --names        - Sub-indexes to query, comma separated.
+    -z --zvalue       - Index s-mers and query (s+z)-mers (findere algorithm). {0}
+    -r --threshold    - Shared k-mers threshold (currently unused). {0}
+    -o --output       - Output directory. {output}
+    -q --fastx        - Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query.
+    -s --single-query - Query identifier. All sequences are considered as a unique query.
+    -f --format       - Output format [json|matrix] {json}
 
   [common]
-    -t --threads - number of threads. {8}
-    -h --help    - show this message and exit. [⚑]
-       --version - show version and exit. [⚑]
-    -v --verbose - verbosity level [debug|info|warning|error]. {info}
+    -t --threads - Number of threads. {8}
+    -h --help    - Show this message and exit. [⚑]
+       --version - Show version and exit. [⚑]
+    -v --verbose - Verbosity level [debug|info|warning|error]. {info}
 ```
 
 Outputs are dumped at \<output>/\<index_name>.[json|tsv].
@@ -133,23 +135,41 @@ See [3_query.sh](./examples/data/3_query.sh).
 ### Start
 
 ```
-kmindex-server 0.0.1
+kmindex-server v0.0.1
 
 DESCRIPTION
-  kmindex REST server
+  kmindex-server allows to perform queries via POST requests.
+
+  Examples:
+
+     curl --post302 -L -X http://127.0.0.1:8080/kmindex/query -H 'Content-type: application/json'
+          -d '{"index":["index_1"],"seq":["AGAGCCAGCAGCACCCCCAAAAAAAAA"],
+          "id":"ID1","z":3}'
+
+     curl -L -X http://127.0.0.1:8080/kmindex/infos
 
 USAGE
-  kmindex-server --index <STR> [--address <STR>] [--port <INT>] [--log-directory <STR>] [--verbose <STR>]
-                 [-h/--help]
+  kmindex-server -i/--index <STR> [-a/--address <STR>] [-p/--port <INT>] [-d/--log-directory <STR>]
+                 [-t/--threads <INT>] [--verbose <STR>] [-s/--no-stderr] [-h/--help]
+                 [--version]
 
 OPTIONS
   [global] - global parameters
-       --index         - index path
-       --address       - address {127.0.0.1}
-       --port          - port {8080}
-       --log-directory - directory for daily logging {kmindex_logs}
-       --verbose       - verbosity level [debug|info|warning|error] {info}
-    -h --help          - Show this message and exit [⚑]
+    -i --index         - Index path.
+    -a --address       - Address to use (empty string to bind any address)
+                             IPv4: dotted decimal form
+                             IPv6: hexadimal form.
+                             default ->  {127.0.0.1}
+    -p --port          - Port to use. {8080}
+    -d --log-directory - Directory for daily logging. {kmindex_logs}
+    -s --no-stderr     - Disable stderr logging. [⚑]
+
+  [common]
+    -t --threads - Max number of parallel connections. {1}
+    -h --help    - Show this message and exit. [⚑]
+       --version - Show version and exit. [⚑]
+       --verbose - Verbosity level [debug|info|warning|error]. {info}
+
 ```
 
 See [4_run_server.sh](./examples/data/4_run_server.sh).

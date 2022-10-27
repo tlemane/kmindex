@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 
   const std::string desc =
     "kmindex-server allows to perform queries via POST requests.\n\n"
-    "  The body is json string with 4 entries:\n\n"
+    "  The body is a json string with 4 entries:\n\n"
     "     'index': an array of strings corresponding to the indexes to query.\n\n"
     "     'id': a string used as query identifier.\n\n"
     "     'z': a integer which determine the k-mer size, (s+z)-mers. \n\n"

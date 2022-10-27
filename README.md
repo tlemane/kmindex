@@ -40,8 +40,10 @@ Options:
 ```bash
 conda create -p kmindex_env
 conda activate ./kmindex_env
-conda install -c conda-forge -c tlemane/label/dev -c tlemane kmindex
+conda install -c conda-forge -c tlemane -c tlemane kmindex
 ```
+
+Note that the conda package includes [kmtricks](https://github.com/tlemane/kmtricks)
 
 ## Usage
 

@@ -1,8 +1,12 @@
-# kmindex (WIP)
+# kmindex
 
-## Rationale
+*kmindex* is a tool for sequencing samples indexing and querying. Given a dataset $D = \{S_1, ..., S_n\}$, it allows to compute the percentage of shared k-mers between a query $Q$ and each $S \in D$. It supports multiple datasets and allows searching for each sub-index $D_i \in G = \{D_1,...,D_2\}$. Indexes are built by [kmtricks](https://github.com/tlemane/kmtricks) (see [section 1. Build](#1.Build)) and does not require additional modifications but have to be registered before performing queries (see [section 2. Register](#2.register)). Queries benefit from the [findere](https://github.com/lrobidou/findere) algorithm. In a few words, *findere* allows to reduce the false positive rate at query time by querying ($s$+$z$)-mers instead of $s$-mers, which are the indexed words, usually called $k$-mers (see [section 3. Query](#3.Query)).
 
-kmindex is a tool allowing to perform queries on Bloom filters matrices from [kmtricks](https://github.com/tlemane/kmtricks).
+For easy integration, *kmindex* is also composed of server supporting http requests (see [section Server](#Server)).
+
+
+Note that *kmindex* is a work in progress, its features and usages may be subject to change.
+
 
 ## Installation
 
@@ -14,7 +18,7 @@ Portable binary releases are available at [kmindex/releases](https://github.com/
 
 #### Dependencies
 
-* Requires Boost >= 1.70
+* Requires Boost.Asio and Boost.System >= 1.70 and bzip2
 
 All other dependencies are bundled with `kmindex`.
 
@@ -41,14 +45,23 @@ conda install -c conda-forge -c tlemane/label/dev -c tlemane kmindex
 
 ## Usage
 
-The [examples](./examples) directory provides a complete example, from index construction to query.
+The [examples](./examples) directory provides a complete example, from index construction to queries, including scripts and data for easy testing.
 
 
-### 1. Build index using kmtricks
+### 1. Build
 
-See [1_build.sh](./examples/data/1_build.sh).
+Indexes are built by *kmtricks* (not bundled by *kmindex*, see [kmtricks installation](https://github.com/tlemane/kmtricks/wiki/Installation)). To be usable by *kmindex*, the index has to be constructed with `--mode hash:bf:bin` and without `--cpr`. The $k$-mer size should also not exceed $31$. The other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)).
+
+**Example:**
+
+```bash
+kmtricks pipeline --file fof1.txt --run-dir D1 --hard-min 1 --kmer-size 25 --mode hash:bf:bin
+kmtricks pipeline --file fof2.txt --run-dir D2 --hard-min 1 --kmer-size 25 --mode hash:bf:bin
+```
 
 ### 2. Register index
+
+`kmindex register` allows to register a *kmtricks* index $D$ into a global index $G$.
 
 ```
 kmindex register v0.0.1
@@ -71,9 +84,16 @@ OPTIONS
     -v --verbose - Verbosity level [debug|info|warning|error]. {info}
 ```
 
-See [2_register.sh](./examples/data/2_register.sh).
+**Example:**
+
+```bash
+kmindex register --name D1 --global-index G --index ./index_1
+kmindex register --name D2 --global-index G --index ./index_2
+```
 
 ### 3. Query index
+
+`kmindex query` allows to query a fastx file against one or more indexes from a global index $G$.
 
 ```
 kmindex query v0.0.1
@@ -104,49 +124,46 @@ OPTIONS
     -v --verbose - Verbosity level [debug|info|warning|error]. {info}
 ```
 
-Outputs are dumped at \<output>/\<index_name>.[json|tsv].
-* json output:
+**Example:**
+
+Assuming a fasta file containing two sequences $1$ and $2$, and querying $D1$ (containing two samples $S1$ and $S2$) from $G$, two outputs are available:
+
+```bash
+kmindex query --index ./G --names D1 --output output --fastx 1.fasta --format [json|matrix]
+```
+
+output/D1.json:
 ```json
 {
-    "index_1": {
-        "1_S1": {
-            "D1": 1.0,
-            "D2": 0.0
+    "D1": {
+        "1": {
+            "S1": 1.0,
+            "S2": 0.0
         },
-        "1_S2": {
-            "D1": 1.0,
-            "D2": 0.0
+        "2": {
+            "S1": 1.0,
+            "S2": 0.0
         }
     }
 }
 ```
-* matrix output:
 
+output/D1.tsv:
 ```tsv
-ID	D1	D2
-1_S1	1	0
-1_S2	1	0
+ID	S1	S2
+1	1	0
+2	1	0
 ```
-
-See [3_query.sh](./examples/data/3_query.sh).
 
 ## Server
 
-### Start
+kmindex-server allows to obtain informations about the index via GET requests and to perform queries via POST requests.
 
 ```
 kmindex-server v0.0.1
 
 DESCRIPTION
   kmindex-server allows to perform queries via POST requests.
-
-  Examples:
-
-     curl --post302 -L -X http://127.0.0.1:8080/kmindex/query -H 'Content-type: application/json'
-          -d '{"index":["index_1"],"seq":["AGAGCCAGCAGCACCCCCAAAAAAAAA"],
-          "id":"ID1","z":3}'
-
-     curl -L -X http://127.0.0.1:8080/kmindex/infos
 
 USAGE
   kmindex-server -i/--index <STR> [-a/--address <STR>] [-p/--port <INT>] [-d/--log-directory <STR>]
@@ -172,62 +189,77 @@ OPTIONS
 
 ```
 
-See [4_run_server.sh](./examples/data/4_run_server.sh).
+### 1. Start
 
-### Query
+```bash
+kmindex-server --index ./G --address 127.0.0.1 --port 8080
+```
+Note that you should use `--address ""` to bind any address if you want listening from outside.
 
-#### GET request
+### 2. GET
 
-A GET request allows to obtain informations about indexes.
+GET requests must be sent to /kmindex/infos
 
-
-See [5_get_request.sh](./examples/data/5_get_request.sh).
-
-#### POST request
-
-A POST request allows to query the index.
-
-The body is a json string with 4 entries: `index`, `id`, `seq` and `z`.
-* `ìndex`: A json array containing the names of indexes.
-* `id`: A query identifier.
-* `seq`: A json array containing sequences. All sequences are considered as a single query.
-* `z`: z value.
-
-Body example:
-
-```json
-{
-  "index":[
-    "index_1","index_2"
-  ],
-  "seq":[
-    "ACGACGACGACGAGACGAGACGACAGCAGACAGAGACATAATATACTATATAATATATATAGCGAGGGGGGGAGAGCCAGCAGCACCCCCAAAAAAAAA"
-  ],
-  "id":"1_S1",
-  "z":3
-}
+```bash
+curl -X GET http://127.0.0.1:8080/kmindex/infos
 ```
 
-Response example:
-
-```json
+**Response:**
+```
 {
-    "index_1": {
-        "1_S1": {
-            "D1": 1.0,
-            "D2": 0.0
+    "index": {
+        "D1": {
+            "bloom_size": 10000128,
+            "index_size": 9,
+            "minim_size": 10,
+            "nb_partitions": 4,
+            "nb_samples": 2,
+            "samples": [
+                "S1",
+                "S2"
+            ],
+            "smer_size": 25
+        },
+        "D2": {
+            "bloom_size": 10000128,
+            "index_size": 9,
+            "minim_size": 10,
+            "nb_partitions": 4,
+            "nb_samples": 2,
+            "samples": [
+                "S3",
+                "S4"
+            ],
+            "smer_size": 25
         }
-    },
-    "index_2": {
-        "1_S1": {
-            "D3": 0.0,
-            "D4": 0.0
-        }
+    }
+```
+
+### 3. POST
+
+POST requests must be sent to /kmindex/query
+
+The body a is json string with 4 entries:
+
+* 'index': an array of strings corresponding to the indexes to query.
+* 'id': a string used as query identifier.
+* 'z': a integer which determine the $k$-mer size, ($s$+$z$)-mers.
+* 'seq': an array of strings corresponding to the sequences to query, which are considered as a singe query (same as `kmindex query --single-query `).
+
+```bash
+curl -X POST http://127.0.0.1:8080/kmindex/query -H 'Content-type: application/json' \
+     -d '{"index":["D1"],"seq":["ACGACGACGACGAGACGAGACGACAGCAGACAGAGACATAATATACT"], "id":"ID","z":3}'
+
+```
+**Response:**
+```
+{
+    "D1": {
+        "ID": {
+            "S1": 1.0,
+            "S2": 0.0
+        },
     }
 }
 ```
-
-
-See [6_post_request.sh](./examples/data/6_post_request.sh).
-
 

@@ -22,10 +22,10 @@ int main(int argc, char* argv[])
     "  POST requests must be sent to /kmindex/query\n"
     "  Index informations can be obtained via a GET request at /kmindex/infos\n\n"
     "  Examples:\n\n"
-    "     curl --post302 -L -X http://127.0.0.1:8080/kmindex/query -H 'Content-type: application/json'\n"
+    "     curl -X POST http://127.0.0.1:8080/kmindex/query -H 'Content-type: application/json'\n"
     "          -d '{\"index\":[\"index_1\"],\"seq\":[\"AGAGCCAGCAGCACCCCCAAAAAAAAA\"],\n"
     "          \"id\":\"ID1\",\"z\":3}'\n\n"
-    "     curl -L -X http://127.0.0.1:8080/kmindex/infos";
+    "     curl -X GET http://127.0.0.1:8080/kmindex/infos";
 
   auto cli_parser = std::make_shared<bc::Parser<0>>(
       "kmindex-server", desc, KMQ_PROJECT_TAG, "");

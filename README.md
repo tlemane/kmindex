@@ -98,7 +98,7 @@ kmindex register --name D2 --global-index G --index ./index_2
 `kmindex query` allows to query a fastx file against one or more indexes from a global index $G$.
 
 ```
-kmindex query v0.0.1
+kmindex query v0.1.0
 
 DESCRIPTION
   Query index.

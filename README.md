@@ -2,7 +2,7 @@
 
 *kmindex* is a tool for querying sequencing samples indexed using [kmtricks](https://github.com/tlemane/kmtricks). 
 
-Given a dataset $D = \{S_1, ..., S_n\}$, it allows to compute the percentage of shared k-mers between a query $Q$ and each $S \in D$. It supports multiple datasets and allows searching for each sub-index $D_i \in G = \{D_1,...,D_2\}$. Indexes are built by [kmtricks](https://github.com/tlemane/kmtricks) (see [section 1. Build](#1.Build)) and does not require additional modifications but have to be registered before performing queries (see [section 2. Register](#2.Register)). Queries benefit from the [findere](https://github.com/lrobidou/findere) algorithm. In a few words, *findere* allows to reduce the false positive rate at query time by querying $(s+z)$-mers instead of $s$-mers, which are the indexed words, usually called $k$-mers (see [section 3. Query](#3.Query)).
+Given a dataset $D = \{S_1, ..., S_n\}$, it allows to compute the percentage of shared k-mers between a query $Q$ and each $S \in D$. It supports multiple datasets and allows searching for each sub-index $D_i \in G = \{D_1,...,D_2\}$. Indexes are built by [kmtricks](https://github.com/tlemane/kmtricks) (see [section Build](#Build)) and does not require additional modifications but have to be registered before performing queries (see [section Register](#Register)). Queries benefit from the [findere](https://github.com/lrobidou/findere) algorithm. In a few words, *findere* allows to reduce the false positive rate at query time by querying $(s+z)$-mers instead of $s$-mers, which are the indexed words, usually called $k$-mers (see [section Query](#Query)).
 
 For easy integration, *kmindex* is also composed of a server supporting http requests (see [section Server](#Server)).
 
@@ -52,7 +52,7 @@ Note that the conda package includes [kmtricks](https://github.com/tlemane/kmtri
 The [examples](./examples) directory provides a complete example, from index construction to queries, including scripts and data for easy testing.
 
 
-### 1.Build
+### Build
 
 Indexes are built by *kmtricks* (not bundled by *kmindex*, see [kmtricks installation](https://github.com/tlemane/kmtricks/wiki/Installation)). To be usable by *kmindex*, the index has to be constructed with `--mode hash:bf:bin` and without `--cpr`. The $k$-mer size should also not exceed $31$. The other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)).
 
@@ -63,7 +63,7 @@ kmtricks pipeline --file fof1.txt --run-dir D1 --hard-min 1 --kmer-size 25 --mod
 kmtricks pipeline --file fof2.txt --run-dir D2 --hard-min 1 --kmer-size 25 --mode hash:bf:bin
 ```
 
-### 2.Register 
+### Register 
 
 `kmindex register` allows to register a *kmtricks* index $D$ into a global index $G$.
 
@@ -95,7 +95,7 @@ kmindex register --name D1 --global-index G --index ./index_1
 kmindex register --name D2 --global-index G --index ./index_2
 ```
 
-### 3.Query
+### Query
 
 `kmindex query` allows to query a fastx file against one or more indexes from a global index $G$.
 

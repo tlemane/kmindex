@@ -52,7 +52,7 @@ Note that the conda package includes [kmtricks](https://github.com/tlemane/kmtri
 The [examples](./examples) directory provides a complete example, from index construction to queries, including scripts and data for easy testing.
 
 
-### 1. Build
+### 1.Build
 
 Indexes are built by *kmtricks* (not bundled by *kmindex*, see [kmtricks installation](https://github.com/tlemane/kmtricks/wiki/Installation)). To be usable by *kmindex*, the index has to be constructed with `--mode hash:bf:bin` and without `--cpr`. The $k$-mer size should also not exceed $31$. The other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)).
 
@@ -63,7 +63,7 @@ kmtricks pipeline --file fof1.txt --run-dir D1 --hard-min 1 --kmer-size 25 --mod
 kmtricks pipeline --file fof2.txt --run-dir D2 --hard-min 1 --kmer-size 25 --mode hash:bf:bin
 ```
 
-### 2. Register 
+### 2.Register 
 
 `kmindex register` allows to register a *kmtricks* index $D$ into a global index $G$.
 
@@ -95,7 +95,7 @@ kmindex register --name D1 --global-index G --index ./index_1
 kmindex register --name D2 --global-index G --index ./index_2
 ```
 
-### 3. Query
+### 3.Query
 
 `kmindex query` allows to query a fastx file against one or more indexes from a global index $G$.
 

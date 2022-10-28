@@ -63,7 +63,7 @@ kmtricks pipeline --file fof1.txt --run-dir D1 --hard-min 1 --kmer-size 25 --mod
 kmtricks pipeline --file fof2.txt --run-dir D2 --hard-min 1 --kmer-size 25 --mode hash:bf:bin
 ```
 
-### 2. Register index
+### 2. Register 
 
 `kmindex register` allows to register a *kmtricks* index $D$ into a global index $G$.
 
@@ -95,7 +95,7 @@ kmindex register --name D1 --global-index G --index ./index_1
 kmindex register --name D2 --global-index G --index ./index_2
 ```
 
-### 3. Query index
+### 3. Query
 
 `kmindex query` allows to query a fastx file against one or more indexes from a global index $G$.
 

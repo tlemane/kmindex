@@ -2,7 +2,7 @@
 
 *kmindex* is a tool for sequencing samples indexing and querying. Given a dataset $D = \{S_1, ..., S_n\}$, it allows to compute the percentage of shared k-mers between a query $Q$ and each $S \in D$. It supports multiple datasets and allows searching for each sub-index $D_i \in G = \{D_1,...,D_2\}$. Indexes are built by [kmtricks](https://github.com/tlemane/kmtricks) (see [section 1. Build](#1.Build)) and does not require additional modifications but have to be registered before performing queries (see [section 2. Register](#2.register)). Queries benefit from the [findere](https://github.com/lrobidou/findere) algorithm. In a few words, *findere* allows to reduce the false positive rate at query time by querying $(s+z)$-mers instead of $s$-mers, which are the indexed words, usually called $k$-mers (see [section 3. Query](#3.Query)).
 
-For easy integration, *kmindex* is also composed of server supporting http requests (see [section Server](#Server)).
+For easy integration, *kmindex* is also composed of a server supporting http requests (see [section Server](#Server)).
 
 
 Note that *kmindex* is a work in progress, its features and usages may be subject to change.
@@ -245,7 +245,7 @@ The body a is json string with 4 entries:
 
 * 'index': an array of strings corresponding to the indexes to query.
 * 'id': a string used as query identifier.
-* 'z': a integer which determine the $k$-mer size, ($s$+$z$)-mers.
+* 'z': a integer which determine the $k$-mer size, $(s+z)$-mers.
 * 'seq': an array of strings corresponding to the sequences to query, which are considered as a singe query (same as `kmindex query --single-query `).
 
 ```bash

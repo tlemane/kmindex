@@ -9,8 +9,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include <spdlog/spdlog.h>
-
 using json = nlohmann::json;
 
 namespace kmq {
@@ -28,14 +26,14 @@ namespace kmq {
 
         std::vector<json> responses;
 
+        std::shared_ptr<json_formatter> jformat;
+
         for (auto& i : m_index)
         {
           auto infos = gindex.get(i);
           kindex ki(infos);
 
-          auto jformat =
-            std::dynamic_pointer_cast<json_formatter>(
-                get_formatter(format::json, infos.bw()));
+          jformat = infos.bw() > 1 ? std::make_shared<json_formatter_abs>() : std::make_shared<json_formatter>();
 
           query_result_agg agg;
 

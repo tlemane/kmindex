@@ -57,5 +57,9 @@ ExternalProject_Add(
 
 target_include_directories(sws SYSTEM INTERFACE ${THIRD_DIR}/Simple-Web-Server/)
 
+add_library(bitpack INTERFACE)
+target_include_directories(bitpack SYSTEM INTERFACE ${THIRD_DIR}/bitpacker/include)
+target_include_directories(bitpack SYSTEM INTERFACE ${THIRD_DIR}/span-lite/include)
+
 add_library(deps INTERFACE)
 add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)

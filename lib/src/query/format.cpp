@@ -157,7 +157,7 @@ namespace kmq {
     std::stringstream ss; ss << std::setprecision(2);
     write_headers(ss, sample_ids);
 
-    std::vector<std::uint32_t> global(sample_ids.size(), 0);
+    std::vector<std::uint32_t> global(sample_ids.size(), std::numeric_limits<std::uint32_t>::max());
 
     std::size_t nbk = this->aggregate_c(queries, global);
     unused(nbk);
@@ -286,7 +286,7 @@ namespace kmq {
                                          const query_result_agg& queries,
                                          const std::string& qname)
   {
-    std::vector<std::uint32_t> global(sample_ids.size(), 0);
+    std::vector<std::uint32_t> global(sample_ids.size(), std::numeric_limits<std::uint32_t>::max());
     std::size_t nbk = this->aggregate_c(queries, global);
     unused(nbk);
 

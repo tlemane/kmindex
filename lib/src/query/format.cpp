@@ -159,14 +159,14 @@ namespace kmq {
 
     std::vector<std::uint32_t> global(sample_ids.size(), std::numeric_limits<std::uint32_t>::max());
 
-    std::size_t nbk = this->aggregate_c(queries, global);
+    std::size_t nbk = this->aggregate(queries, global);
     unused(nbk);
 
     ss << qname << '\t';
 
     for (auto& c : global)
     {
-      ss << c << '\t';
+      ss << (c / nbk) << '\t';
     }
 
     ss.seekp(-1, ss.cur);
@@ -287,8 +287,7 @@ namespace kmq {
                                          const std::string& qname)
   {
     std::vector<std::uint32_t> global(sample_ids.size(), std::numeric_limits<std::uint32_t>::max());
-    std::size_t nbk = this->aggregate_c(queries, global);
-    unused(nbk);
+    std::size_t nbk = this->aggregate(queries, global);
 
     json data;
     data[index_name] = json({});
@@ -296,7 +295,7 @@ namespace kmq {
 
     for (std::size_t i = 0; i < sample_ids.size(); ++i)
     {
-      data[index_name][qname][sample_ids[i]] = global[i];
+      data[index_name][qname][sample_ids[i]] = global[i] / nbk;
     }
 
     return data;

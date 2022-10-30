@@ -6,6 +6,7 @@
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/utils.hpp>
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace kmq {
 
@@ -71,6 +72,11 @@ namespace kmq {
     return m_index_size;
   }
 
+  std::size_t index_infos::bw() const
+  {
+    return m_bw;
+  }
+
   std::string index_infos::path() const
   {
     return m_path;
@@ -121,6 +127,8 @@ namespace kmq {
         m_smer_size = std::stoull(trim(ss[1]));
       else if (trim(ss[0]) == "minim_size")
         m_minim_size = std::stoull(trim(ss[1]));
+      else if (trim(ss[0]) == "bwidth")
+        m_bw = std::stoull(trim(ss[1]));
     }
 
     std::string kmfof = fmt::format("{}/kmtricks.fof", m_path);
@@ -151,6 +159,7 @@ namespace kmq {
     m_minim_size  = data["index"][m_name]["minim_size"];
     m_index_size  = data["index"][m_name]["index_size"];
     m_samples     = data["index"][m_name]["samples"];
+    m_bw          = data["index"][m_name]["bw"];
 
     m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
     m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));

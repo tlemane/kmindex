@@ -57,6 +57,7 @@ namespace kmq {
       data["index"][name]["smer_size"]  = i.smer_size();
       data["index"][name]["minim_size"] = i.minim_size();
       data["index"][name]["samples"] = i.samples();
+      data["index"][name]["bw"] = i.bw();
     }
 
     std::ofstream out(fmt::format("{}/index.json", m_index_path), std::ios::out);

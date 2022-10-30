@@ -30,6 +30,7 @@ namespace kmq {
       m_size(m_seq.size() - smer_size + 1),
       m_ksize(m_seq.size() - (smer_size + z_size) + 1),
       m_zsize(z_size),
+      m_width(width),
       m_threshold(threshold)
   {
     m_responses = std::make_unique<query_response>(size(), nb_samples, width);
@@ -68,6 +69,11 @@ namespace kmq {
   double query::threshold() const
   {
     return m_threshold;
+  }
+
+  std::size_t query::width() const
+  {
+    return m_width;
   }
 
   smer_iterator query::iterate(std::size_t smer_size, smer_hasher* h)

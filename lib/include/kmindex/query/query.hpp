@@ -56,6 +56,8 @@ namespace kmq {
 
       std::string name() const;
 
+      std::size_t width() const;
+
       double threshold() const;
 
       smer_iterator iterate(std::size_t smer_size, smer_hasher* h);
@@ -66,6 +68,7 @@ namespace kmq {
       std::size_t m_size;
       std::size_t m_ksize;
       std::size_t m_zsize;
+      std::size_t m_width;
       double m_threshold;
       query_response_t m_responses;
   };

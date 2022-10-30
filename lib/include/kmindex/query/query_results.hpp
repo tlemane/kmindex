@@ -16,6 +16,8 @@ namespace kmq {
 
       void compute_ratios();
 
+      void compute_abs();
+
       std::size_t nbk() const;
 
       const std::vector<std::uint32_t>& counts() const;

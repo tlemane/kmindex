@@ -23,6 +23,8 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:json>
   $<BUILD_INTERFACE:mio_mmap>
   $<BUILD_INTERFACE:xxhash>
+  $<BUILD_INTERFACE:bitpack>
+  $<BUILD_INTERFACE:spdlog>
 )
 add_dependencies(${KMINDEX_LIB} deps)
 

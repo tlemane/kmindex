@@ -1,5 +1,8 @@
 #include <kmindex/query/query_results.hpp>
 
+#include <bitpacker/bitpacker.hpp>
+#include <nonstd/span.hpp>
+
 namespace kmq {
 
   query_result::query_result(query* q, std::size_t nb_samples)
@@ -11,7 +14,10 @@ namespace kmq {
     m_threshold = m_q->threshold();
     m_nbk = m_q->ksize();
 
-    compute_ratios();
+    if (m_q->width() > 1)
+      compute_abs();
+    else
+      compute_ratios();
   }
 
   void query_result::compute_ratios()
@@ -19,7 +25,6 @@ namespace kmq {
     const uint8_t* data = m_q->response_block(0);
 
     std::vector<uint8_t> kres(m_q->block_size(), 255);
-    std::vector<std::uint32_t> count(m_ratios.size(), 0);
 
     std::size_t block_size_z = m_q->block_size() * m_z;
 
@@ -44,6 +49,43 @@ namespace kmq {
     for (std::size_t i = 0; i < m_ratios.size(); ++i)
     {
       m_ratios[i] = m_counts[i] / static_cast<double>(m_q->ksize());
+    }
+  }
+
+  void query_result::compute_abs()
+  {
+    const uint8_t* data = m_q->response_block(0);
+
+    std::vector<std::uint32_t> kres_abs(m_counts.size(), std::numeric_limits<std::uint32_t>::max());
+    std::fill(m_counts.begin(), m_counts.end(), std::numeric_limits<std::uint32_t>::min());
+
+    std::size_t block_size_z = m_q->block_size() * m_z;
+
+    // for each k-mers
+    for (std::size_t i = 0; i < m_q->ksize() * m_q->block_size(); i += m_q->block_size())
+    {
+      // for each s-mers in the k-mer
+      for (std::size_t j = i; j <= i + block_size_z; j += m_q->block_size())
+      {
+        auto s = nonstd::span<const std::uint8_t>(&data[j], m_q->block_size());
+        for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_q->width())
+        {
+          kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_q->width()), kres_abs[k]);
+        }
+      }
+
+      // at this point, kres is a vector of abundances of a k-mer (min of s-mers) across samples
+      for (std::size_t s = 0; s < m_ratios.size(); ++s)
+      {
+        m_counts[s] += kres_abs[s];
+      }
+
+      std::fill(kres_abs.begin(), kres_abs.end(), std::numeric_limits<std::uint32_t>::max());
+    }
+
+    for (std::size_t i = 0; i < m_ratios.size(); ++i)
+    {
+      m_counts[i] = m_counts[i] / m_q->ksize();
     }
   }
 

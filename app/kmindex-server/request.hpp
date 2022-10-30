@@ -25,7 +25,6 @@ namespace kmq {
 
       json solve(const index& gindex) const
       {
-        json_formatter jformat;
 
         std::vector<json> responses;
 
@@ -34,14 +33,18 @@ namespace kmq {
           auto infos = gindex.get(i);
           kindex ki(infos);
 
+          auto jformat =
+            std::dynamic_pointer_cast<json_formatter>(
+                get_formatter(format::json, infos.bw()));
+
           query_result_agg agg;
 
           for (auto& s : m_seq)
           {
-            query q(m_name, s, infos.smer_size(), m_z, infos.nb_samples(), 0.0);
+            query q(m_name, s, infos.smer_size(), m_z, infos.nb_samples(), 0.0, infos.bw());
             agg.add(ki.resolve(q));
           }
-          responses.push_back(jformat.jmerge_format(infos.name(), infos.samples(), agg, m_name));
+          responses.push_back(jformat->jmerge_format(infos.name(), infos.samples(), agg, m_name));
         }
 
         json response;

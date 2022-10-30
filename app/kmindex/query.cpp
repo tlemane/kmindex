@@ -85,12 +85,12 @@ namespace kmq {
 
     spdlog::info("Global index: {}", o->global_index_path);
 
-    auto f = get_formatter(o->format);
-
+    std::shared_ptr<query_formatter_base> f {nullptr};
     for (auto& index_name : o->index_names)
     {
       Timer timer;
       auto infos = global.get(index_name);
+      f = get_formatter(o->format, infos.bw());
 
       spdlog::info("Query '{}' ({} samples)", infos.name(), infos.nb_samples());
       query_result_agg agg;
@@ -105,7 +105,7 @@ namespace kmq {
       {
         pool.add_task([record=record, &ki, &agg, &o, &infos](int i){
           unused(i);
-          query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0);
+          query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0, infos.bw());
           agg.add(ki.resolve(q));
         });
       }

@@ -25,6 +25,7 @@ namespace kmq {
       std::size_t m_smer_size {0};
       std::size_t m_minim_size {0};
       std::size_t m_index_size {0};
+      std::size_t m_bw {0};
       std::vector<std::string> m_samples;
 
       std::shared_ptr<km::HashWindow> m_hashw {nullptr};
@@ -48,6 +49,7 @@ namespace kmq {
       std::size_t smer_size() const;
       std::size_t minim_size() const;
       std::size_t index_size() const;
+      std::size_t bw() const;
       std::string path() const;
       const std::vector<std::string>& samples() const;
 

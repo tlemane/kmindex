@@ -10,10 +10,23 @@ namespace kmq {
     return j;
   }
 
-  void send_response(response_t& response, const request_t& request, std::string&& msg)
+  void send_response(response_t& response, const request_t& request, std::string&& msg, bool json)
   {
-    auto head = SimpleWeb::CaseInsensitiveMultimap(
+    SimpleWeb::CaseInsensitiveMultimap head;
+
+    if (json)
+    {
+      head = SimpleWeb::CaseInsensitiveMultimap(
       { { "Content-type", "application/json" } } );
+    }
+    else
+    {
+      head = SimpleWeb::CaseInsensitiveMultimap(
+      { { "Content-type", "text/csv" } } );
+    }
+
+    //auto head = SimpleWeb::CaseInsensitiveMultimap(
+    //  { { "Content-type", "application/json" } } );
 
     auto ec = request->header.find("Accept-Encoding");
     auto compress =

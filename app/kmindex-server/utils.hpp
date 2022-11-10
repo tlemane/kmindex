@@ -16,7 +16,7 @@ namespace kmq {
 
   json json_error(const std::string& msg);
 
-  void send_response(response_t& response, const request_t& request, std::string&& msg);
+  void send_response(response_t& response, const request_t& request, std::string&& msg, bool json);
 }
 
 #endif /* end of include guard: UTILS_HPP_OEH2LBRD */

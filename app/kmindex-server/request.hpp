@@ -51,6 +51,30 @@ namespace kmq {
         return response;
       }
 
+      std::string solve_tsv(const index& gindex) const
+      {
+        matrix_formatter jformat;
+
+        std::stringstream ss;
+        for (auto& i : m_index)
+        {
+          auto infos = gindex.get(i);
+          kindex ki(infos);
+
+          query_result_agg agg;
+
+          for (auto& s : m_seq)
+          {
+            query q(m_name, s, infos.smer_size(), m_z, infos.nb_samples(), 0.0);
+            agg.add(ki.resolve(q));
+          }
+
+          ss << jformat.merge_format(infos.name(), infos.samples(), agg, m_name) << "\n\n";
+        }
+
+        return ss.str();
+      }
+
     private:
 
       void parse_json(const json& data)
@@ -63,6 +87,8 @@ namespace kmq {
           throw kmq_invalid_request("'seq' entry is missing.");
         if (!data.contains("z"))
           throw kmq_invalid_request("'z' entry is missing.");
+        if (!data.contains("format"))
+          throw kmq_invalid_request("'format' entry is missing.");
 
         m_name = data["id"];
 
@@ -73,6 +99,13 @@ namespace kmq {
           m_seq.push_back(i);
 
         m_z = data["z"];
+
+        if (data["format"] == "json")
+          m_json = true;
+        else if (data["format"] == "tsv")
+          m_json = false;
+        else
+          throw kmq_invalid_request(fmt::format("'format':'{}' not available, should be 'json' or 'tsv'.", data["format"]));
       }
 
     public:
@@ -80,6 +113,7 @@ namespace kmq {
       std::vector<std::string> m_index;
       std::vector<std::string> m_seq;
       std::size_t m_z {0};
+      bool m_json {false};
   };
 
 }

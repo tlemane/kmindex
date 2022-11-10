@@ -99,7 +99,7 @@ namespace kmq {
     spdlog::info("POST {} from {}", request->path, request->remote_endpoint().address().to_string());
 
     try {
-      send_response(response, request, callback(content));
+      send_response(response, request, callback(content), false);
 
     } catch (const nlohmann::detail::exception& e) {
       spdlog::info("json parsing failure -> {}", e.what());
@@ -128,7 +128,7 @@ namespace kmq {
     json data = json::parse(inf);
     data.erase("path");
 
-    send_response(response, request, data.dump(4));
+    send_response(response, request, data.dump(4), true);
   }
 
   std::string perform_query(const std::string& content, index& global)
@@ -138,7 +138,10 @@ namespace kmq {
     request rq(j);
     spdlog::info("request -> search {} in {}", j["id"], j["index"].dump());
 
-    return rq.solve(global).dump(4);
+    if (rq.m_json)
+      return rq.solve(global).dump(4);
+    else
+      return rq.solve_tsv(global);
   }
 
   void main_server(kmq_server_options_t opt)

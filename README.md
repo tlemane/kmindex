@@ -2,7 +2,7 @@
 
 *kmindex* is a tool for querying sequencing samples indexed using [kmtricks](https://github.com/tlemane/kmtricks). 
 
-Given a dataset $D = \{S_1, ..., S_n\}$, it allows to compute the percentage of shared k-mers between a query $Q$ and each $S \in D$. It supports multiple datasets and allows searching for each sub-index $D_i \in G = \{D_1,...,D_2\}$. Indexes are built by [kmtricks](https://github.com/tlemane/kmtricks) (see [section Build](#Build)) and does not require additional modifications but have to be registered before performing queries (see [section Register](#Register)). Queries benefit from the [findere](https://github.com/lrobidou/findere) algorithm. In a few words, *findere* allows to reduce the false positive rate at query time by querying $(s+z)$-mers instead of $s$-mers, which are the indexed words, usually called $k$-mers (see [section Query](#Query)).
+Given a dataset $D = \\{S_1, ..., S_n\\}$, it allows to compute the percentage of shared k-mers between a query $Q$ and each $S \in D$. It supports multiple datasets and allows searching for each sub-index $D_i \in G = \\{D_1,...,D_2\\}$. Indexes are built by [kmtricks](https://github.com/tlemane/kmtricks) (see [section Build](#Build)) and does not require additional modifications but have to be registered before performing queries (see [section Register](#Register)). Queries benefit from the [findere](https://github.com/lrobidou/findere) algorithm. In a few words, *findere* allows to reduce the false positive rate at query time by querying $(s+z)$-mers instead of $s$-mers, which are the indexed words, usually called $k$-mers (see [section Query](#Query)).
 
 For easy integration, *kmindex* is also composed of a server supporting http requests (see [section Server](#Server)).
 

@@ -25,11 +25,13 @@ namespace kmq {
        ->setter(options->global_index_path);
 
     auto name_setter = [options](const std::string& v) {
-      options->index_names = bc::utils::split(v, ',');
+      if (v != "all")
+        options->index_names = bc::utils::split(v, ',');
     };
 
     cmd->add_param("-n/--names", "Sub-indexes to query, comma separated.")
        ->meta("STR")
+       ->def("all")
        ->setter_c(name_setter);
 
     cmd->add_param("-z/--zvalue", "Index s-mers and query (s+z)-mers (findere algorithm).")
@@ -86,6 +88,11 @@ namespace kmq {
     spdlog::info("Global index: {}", o->global_index_path);
 
     auto f = get_formatter(o->format);
+
+    if (o->index_names.empty())
+    {
+      o->index_names = global.all();
+    }
 
     for (auto& index_name : o->index_names)
     {

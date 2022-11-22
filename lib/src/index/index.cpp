@@ -64,6 +64,15 @@ namespace kmq {
     out << std::setw(4) << data << std::endl;
   }
 
+  std::vector<std::string> index::all() const
+  {
+    std::vector<std::string> names;
+    for (const auto& i : m_indexes)
+      names.push_back(i.first);
+
+    return names;
+  }
+
   index::iterator index::begin()
   {
     return std::begin(m_indexes);

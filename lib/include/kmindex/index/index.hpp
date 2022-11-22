@@ -24,6 +24,8 @@ namespace kmq {
 
       const index_infos& get(const std::string& name) const;
 
+      std::vector<std::string> all() const;
+
     private:
       void init(const std::string& ipath);
 

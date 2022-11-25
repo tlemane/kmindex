@@ -19,9 +19,14 @@ namespace kmq {
   {
     auto cmd = parser->add_command("query", "Query index.");
 
+    auto is_kmq_index = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
+      return std::make_tuple(fs::exists(fmt::format("{}/index.json", v)), bc::utils::format_error(p, v, fmt::format("'{}' is not an index.", v)));
+    };
+
     cmd->add_param("-i/--index", "Global index path.")
        ->meta("STR")
        ->checker(bc::check::is_dir)
+       ->checker(is_kmq_index)
        ->setter(options->global_index_path);
 
     auto name_setter = [options](const std::string& v) {
@@ -45,9 +50,14 @@ namespace kmq {
        ->checker(bc::check::f::range(0.0, 1.0))
        ->setter(options->sk_threshold);
 
+    auto not_dir = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
+      return std::make_tuple(!fs::exists(v), bc::utils::format_error(p, v, "Directory already exists."));
+    };
+
     cmd->add_param("-o/--output", "Output directory.")
        ->meta("STR")
        ->def("output")
+       ->checker(not_dir)
        ->setter(options->output);
 
     cmd->add_param("-q/--fastx", "Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query.")

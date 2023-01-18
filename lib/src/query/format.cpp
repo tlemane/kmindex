@@ -1,7 +1,8 @@
 #include <kmindex/query/format.hpp>
 #include <kmindex/utils.hpp>
 
-namespace kmq {
+namespace kmq
+{
 
   enum format str_to_format(const std::string& f)
   {
@@ -24,7 +25,6 @@ namespace kmq {
                      qr.counts().begin(),
                      global.begin(),
                      std::plus<std::uint32_t>{});
-
     }
 
     return nbk;
@@ -43,8 +43,8 @@ namespace kmq {
                      global.end(),
                      qr.counts().begin(),
                      global.begin(),
-                     [](auto& lhs, auto& rhs) { return std::min(lhs, rhs) ;});
-
+                     [](auto& lhs, auto& rhs)
+                     { return std::min(lhs, rhs); });
     }
 
     return nbk;
@@ -81,7 +81,8 @@ namespace kmq {
                                        const query_result_agg& queries)
   {
     unused(index_name);
-    std::stringstream ss; ss << std::setprecision(2);
+    std::stringstream ss;
+    ss << std::setprecision(2);
     write_headers(ss, sample_ids);
 
     for (auto& qr : queries)
@@ -98,7 +99,8 @@ namespace kmq {
                                              const std::string& qname)
   {
     unused(index_name);
-    std::stringstream ss; ss << std::setprecision(2);
+    std::stringstream ss;
+    ss << std::setprecision(2);
     write_headers(ss, sample_ids);
 
     std::vector<std::uint32_t> global(sample_ids.size(), 0);
@@ -137,7 +139,8 @@ namespace kmq {
                                            const query_result_agg& queries)
   {
     unused(index_name);
-    std::stringstream ss; ss << std::setprecision(2);
+    std::stringstream ss;
+    ss << std::setprecision(2);
     write_headers(ss, sample_ids);
 
     for (auto& qr : queries)
@@ -154,12 +157,13 @@ namespace kmq {
                                                  const std::string& qname)
   {
     unused(index_name);
-    std::stringstream ss; ss << std::setprecision(2);
+    std::stringstream ss;
+    ss << std::setprecision(2);
     write_headers(ss, sample_ids);
 
     std::vector<std::uint32_t> global(sample_ids.size(), std::numeric_limits<std::uint32_t>::max());
 
-    std::size_t nbk = this->aggregate(queries, global);
+    std::size_t nbk = this->aggregate_c(queries, global);
     unused(nbk);
 
     ss << qname << '\t';
@@ -287,7 +291,7 @@ namespace kmq {
                                          const std::string& qname)
   {
     std::vector<std::uint32_t> global(sample_ids.size(), std::numeric_limits<std::uint32_t>::max());
-    std::size_t nbk = this->aggregate(queries, global);
+    std::size_t nbk = this->aggregate_c(queries, global);
 
     json data;
     data[index_name] = json({});
@@ -300,7 +304,6 @@ namespace kmq {
 
     return data;
   }
-
 
   query_formatter_t get_formatter(enum format f, std::size_t w)
   {
@@ -335,4 +338,4 @@ namespace kmq {
 
     out << res;
   }
-}
+}  // namespace kmq

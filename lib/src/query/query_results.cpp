@@ -1,12 +1,12 @@
-#include <kmindex/query/query_results.hpp>
-
 #include <bitpacker/bitpacker.hpp>
+#include <kmindex/query/query_results.hpp>
 #include <nonstd/span.hpp>
 
-namespace kmq {
+namespace kmq
+{
 
   query_result::query_result(query* q, std::size_t nb_samples)
-    : m_q(q), m_z(q->zsize())
+      : m_q(q), m_z(q->zsize())
   {
     m_ratios.resize(nb_samples, 0);
     m_counts.resize(nb_samples, 0);
@@ -32,9 +32,9 @@ namespace kmq {
     {
       for (std::size_t j = i; j <= i + block_size_z; j += m_q->block_size())
       {
-        for(std::size_t k = 0; k < m_q->block_size(); ++k)
+        for (std::size_t k = 0; k < m_q->block_size(); ++k)
         {
-          kres[k] &= data[j+k];
+          kres[k] &= data[j + k];
         }
       }
 
@@ -68,7 +68,7 @@ namespace kmq {
       for (std::size_t j = i; j <= i + block_size_z; j += m_q->block_size())
       {
         auto s = nonstd::span<const std::uint8_t>(&data[j], m_q->block_size());
-        for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_q->width())
+        for (std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l += m_q->width())
         {
           kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_q->width()), kres_abs[k]);
         }
@@ -135,4 +135,4 @@ namespace kmq {
     return m_results.end();
   }
 
-}
+}  // namespace kmq

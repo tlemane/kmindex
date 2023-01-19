@@ -299,7 +299,7 @@ namespace kmq
 
     for (std::size_t i = 0; i < sample_ids.size(); ++i)
     {
-      data[index_name][qname][sample_ids[i]] = global[i] / nbk;
+      data[index_name][qname][sample_ids[i]] = global[i];
     }
 
     return data;

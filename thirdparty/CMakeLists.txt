@@ -1,3 +1,4 @@
+cmake_policy(SET CMP0135 NEW)
 set(THIRD_DIR ${CMAKE_SOURCE_DIR}/thirdparty)
 
 set(EXT_INSTALL_DIR ${CMAKE_BINARY_DIR}/ext-install)
@@ -57,5 +58,12 @@ ExternalProject_Add(
 
 target_include_directories(sws SYSTEM INTERFACE ${THIRD_DIR}/Simple-Web-Server/)
 
+add_library(sha1h INTERFACE)
+target_include_directories(sha1h INTERFACE ${THIRD_DIR}/sha1)
+
+add_library(semver INTERFACE)
+target_include_directories(semver INTERFACE ${THIRD_DIR}/semver/include)
+
 add_library(deps INTERFACE)
 add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)
+

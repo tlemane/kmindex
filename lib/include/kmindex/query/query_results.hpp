@@ -6,11 +6,15 @@
 
 namespace kmq {
 
+  class index_infos;
+
+  enum class format;
+
   class query_result
   {
     public:
 
-      query_result(query* q, std::size_t nb_samples);
+      query_result(query_response_t&& qr, std::size_t z, const index_infos& info);
 
     public:
 
@@ -27,13 +31,12 @@ namespace kmq {
       double threshold() const;
 
     private:
-      query* m_q;
-      std::size_t m_z;
       std::vector<double> m_ratios;
       std::vector<std::uint32_t> m_counts;
-      double m_threshold;
-      std::string m_name;
-      std::size_t m_nbk;
+      query_response_t m_qr;
+      std::size_t m_z;
+      const index_infos& m_infos;
+      std::uint32_t m_nbk;
   };
 
   class query_result_agg
@@ -52,6 +55,12 @@ namespace kmq {
       const_iterator begin() const;
 
       const_iterator end() const;
+
+      void output(const index_infos& infos,
+                  const std::string& output_dir,
+                  enum format f,
+                  const std::string& qname,
+                  double threshold);
 
     private:
       std::mutex m_mutex;

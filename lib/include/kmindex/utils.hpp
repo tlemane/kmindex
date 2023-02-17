@@ -57,7 +57,14 @@ namespace kmq {
 
   std::vector<std::string> split(const std::string& s, char delim);
 
+  template<typename C>
+  void free_container(C& c)
+  {
+    C{}.swap(c);
+  }
+
   std::size_t directory_size(const std::string& p);
+
   class Timer
   {
     using time_point_t = std::chrono::time_point<std::chrono::steady_clock>;

@@ -10,7 +10,13 @@ namespace kmq {
     return format::json;
   }
 
-  std::size_t query_formatter_base::aggregate(const query_result_agg& queries, std::vector<std::uint32_t>& global)
+  query_formatter_base::query_formatter_base(double threshold)
+    : m_threshold(threshold)
+  {
+
+  }
+
+  std::size_t query_formatter_base::aggregate(const std::vector<query_result>& queries, std::vector<std::uint32_t>& global)
   {
     std::size_t nbk = 0;
 
@@ -29,167 +35,124 @@ namespace kmq {
     return nbk;
   }
 
-  void matrix_formatter::write_headers(std::stringstream& ss, const std::vector<std::string>& sample_ids)
+  matrix_formatter::matrix_formatter(double threshold)
+    : query_formatter_base(threshold)
   {
-    ss << "ID\t";
 
-    for (auto& s : sample_ids)
-    {
-      ss << s << '\t';
-    }
-
-    ss.seekp(-1, ss.cur);
-    ss << '\n';
   }
 
-  void matrix_formatter::write_one(std::stringstream& ss, const std::string& name, const std::vector<double>& ratios)
+  void matrix_formatter::write_headers(std::ostream& ss, const index_infos& infos)
   {
-    ss << name << '\t';
-
-    for (auto& r : ratios)
-    {
-      ss << r << '\t';
-    }
-
-    ss.seekp(-1, ss.cur);
-    ss << '\n';
+    ss << fmt::format("{}\t{}\n", infos.name(), fmt::join(infos.samples(), "\t"));
   }
 
-  std::string matrix_formatter::format(const std::string& index_name,
-                                       const std::vector<std::string>& sample_ids,
-                                       const query_result_agg& queries)
+  void matrix_formatter::format(const index_infos& infos,
+                                const query_result& response,
+                                std::ostream& os)
   {
-    unused(index_name);
-    std::stringstream ss; ss << std::setprecision(2);
-    write_headers(ss, sample_ids);
-
-    for (auto& qr : queries)
-    {
-      write_one(ss, qr.name(), qr.ratios());
-    }
-
-    return ss.str();
+    os << fmt::format("{}:{}\t{}\n", infos.name(), response.name(), fmt::join(response.ratios(), "\t"));
   }
 
-  std::string matrix_formatter::merge_format(const std::string& index_name,
-                                             const std::vector<std::string>& sample_ids,
-                                             const query_result_agg& queries,
-                                             const std::string& qname)
+  void matrix_formatter::merge_format(const index_infos& infos,
+                                      const std::string& name,
+                                      const std::vector<query_result>& responses,
+                                      std::ostream& os)
   {
-    unused(index_name);
-    std::stringstream ss; ss << std::setprecision(2);
-    write_headers(ss, sample_ids);
-
-    std::vector<std::uint32_t> global(sample_ids.size(), 0);
-    std::size_t nbk = this->aggregate(queries, global);
-
-    ss << qname << '\t';
+    write_headers(os, infos);
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::vector<double> ratios; ratios.reserve(infos.nb_samples());
+    std::size_t nbk = this->aggregate(responses, global);
 
     for (auto& c : global)
+      ratios.push_back(c / static_cast<double>(nbk));
+
+    os << fmt::format("{}\t{}\n", name, fmt::join(ratios, "\t"));
+  }
+
+  json_formatter::json_formatter(double threshold)
+    : query_formatter_base(threshold)
+  {
+    m_json = json({});
+  }
+
+  json_formatter::~json_formatter()
+  {
+    (*m_os) << m_json.dump(4);
+  }
+
+  void json_formatter::format(const index_infos& infos,
+                              const query_result& response,
+                              std::ostream& os)
+  {
+    m_os = &os;
+    m_json[infos.name()][response.name()] = json({});
+
+    auto& j = m_json[infos.name()][response.name()];
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      ss << (c / static_cast<double>(nbk)) << '\t';
+      if (response.ratios()[i] >= this->m_threshold)
+        j[infos.samples()[i]] = response.ratios()[i];
     }
-
-    ss.seekp(-1, ss.cur);
-    ss << '\n';
-
-    return ss.str();
   }
 
-  void json_formatter::write_one(json& data,
-                                 const std::string& name,
-                                 const std::vector<double>& ratios,
-                                 const std::vector<std::string>& sample_ids)
+  void json_formatter::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
   {
-    data[name] = json({});
+    m_os = &os;
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::size_t nbk = this->aggregate(responses, global);
 
-    for (std::size_t i = 0; i < sample_ids.size(); ++i)
+    m_json[infos.name()] = json({});
+    m_json[infos.name()][name] = json({});
+
+    auto& j = m_json[infos.name()][name];
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      data[name][sample_ids[i]] = ratios[i];
+      double v = global[i] / static_cast<double>(nbk);
+      if (v >= this->m_threshold)
+        j[infos.samples()[i]] = v;
     }
   }
 
-  std::string json_formatter::format(const std::string& index_name,
-                                     const std::vector<std::string>& sample_ids,
-                                     const query_result_agg& queries)
+  const json& json_formatter::get_json() const
   {
-    return jformat(index_name, sample_ids, queries).dump(4);
+    return m_json;
   }
 
-  std::string json_formatter::merge_format(const std::string& index_name,
-                                           const std::vector<std::string>& sample_ids,
-                                           const query_result_agg& queries,
-                                           const std::string& qname)
-  {
-    return jmerge_format(index_name, sample_ids, queries, qname).dump(4);
-  }
-
-  json json_formatter::jformat(const std::string& index_name,
-                               const std::vector<std::string>& sample_ids,
-                               const query_result_agg& queries)
-  {
-    json data;
-    data[index_name] = json({});
-
-    for (auto& qr : queries)
-    {
-      write_one(data[index_name], qr.name(), qr.ratios(), sample_ids);
-    }
-
-    return data;
-  }
-
-  json json_formatter::jmerge_format(const std::string& index_name,
-                                     const std::vector<std::string>& sample_ids,
-                                     const query_result_agg& queries,
-                                     const std::string& qname)
-  {
-    std::vector<std::uint32_t> global(sample_ids.size(), 0);
-    std::size_t nbk = this->aggregate(queries, global);
-
-    json data;
-    data[index_name] = json({});
-    data[index_name][qname] = json({});
-
-    for (std::size_t i = 0; i < sample_ids.size(); ++i)
-    {
-      data[index_name][qname][sample_ids[i]] = global[i] / static_cast<double>(nbk);
-    }
-
-    return data;
-  }
-
-  query_formatter_t get_formatter(enum format f)
+  query_formatter_t make_formatter(enum format f, double threshold)
   {
     switch (f)
     {
       case format::matrix:
-        return std::make_shared<matrix_formatter>();
+        return std::make_shared<matrix_formatter>(threshold);
       case format::json:
-        return std::make_shared<json_formatter>();
+        return std::make_shared<json_formatter>(threshold);
     }
 
     return nullptr;
   }
 
-  void write_result(const std::string& res,
-                    const std::string& index_name,
-                    const std::string& output_dir,
-                    enum format f)
-  {
-    fs::create_directory(output_dir);
+  //void write_result(const std::string& res,
+  //                  const std::string& index_name,
+  //                  const std::string& output_dir,
+  //                  enum format f)
+  //{
+  //  fs::create_directory(output_dir);
 
-    std::ofstream out;
-    switch (f)
-    {
-      case format::matrix:
-        out.open(fmt::format("{}/{}.tsv", output_dir, index_name), std::ios::out);
-        break;
-      case format::json:
-        out.open(fmt::format("{}/{}.json", output_dir, index_name), std::ios::out);
-        break;
-    }
+  //  std::ofstream out;
+  //  switch (f)
+  //  {
+  //    case format::matrix:
+  //      out.open(fmt::format("{}/{}.tsv", output_dir, index_name), std::ios::out);
+  //      break;
+  //    case format::json:
+  //      out.open(fmt::format("{}/{}.json", output_dir, index_name), std::ios::out);
+  //      break;
+  //  }
 
-    out << res;
-  }
+  //  out << res;
+  //}
 }

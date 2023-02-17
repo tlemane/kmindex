@@ -25,12 +25,18 @@ namespace kmq {
     std::uint64_t h {0};
   };
 
+  inline bool operator<(const smer& lhs, const smer& rhs)
+  {
+    return lhs.h < rhs.h;
+  }
+
 
   inline std::ostream& operator<<(std::ostream& o,  const smer& s)
   {
     o << "smer<" << std::to_string(s.i) << ',' << std::to_string(s.p) << ',' << std::to_string(s.h) << '>';
     return o;
   }
+
 
   class smer_hasher
   {
@@ -63,8 +69,22 @@ namespace kmq {
                     const smer_hasher* hasher);
 
     private:
+      // smer_iterator(std::size_t seqn);
 
-      smer_iterator(std::size_t seqn);
+      class smer_iterator_sentinel
+      {
+        public:
+          smer_iterator_sentinel(std::size_t n)
+            : m_end(n) {}
+
+          bool is_done(const smer_iterator& it) const
+          {
+            return m_end == it.m_current;
+          }
+
+        private:
+          std::size_t m_end {0};
+      };
 
     public:
 
@@ -76,25 +96,32 @@ namespace kmq {
 
       smer_iterator begin();
 
-      smer_iterator end();
+      // smer_iterator end();
+      smer_iterator_sentinel end();
 
-      friend bool operator==(const smer_iterator& lhs, const smer_iterator& rhs)
+      // friend bool operator==(const smer_iterator& lhs, const smer_iterator_sentinel& rhs)
+      friend bool operator==(const smer_iterator& lhs, const smer_iterator_sentinel& rhs)
       {
-        return lhs.m_current == rhs.m_current;
+        return rhs.is_done(lhs);
+        // return lhs.m_current == rhs.m_current;
       }
 
-      friend bool operator!=(const smer_iterator& lhs, const smer_iterator& rhs)
+      // friend bool operator!=(const smer_iterator& lhs, const smer_iterator& rhs)
+      friend bool operator!=(const smer_iterator& lhs, const smer_iterator_sentinel& rhs)
       {
-        return lhs.m_current != rhs.m_current;
+        return !rhs.is_done(lhs);
+        // return lhs.m_current != rhs.m_current;
       }
 
     private:
       const std::string_view m_seq;
       std::size_t m_smer_size {0};
-      std::int64_t m_current {0};
+      // std::int64_t m_current {0};
+      std::size_t m_current {0};
       const smer_hasher* m_hash;
-
       smer m_smer;
+      kmer_type m_sk;
+      kmer_type m_mask;
   };
 
 }

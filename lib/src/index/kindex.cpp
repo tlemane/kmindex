@@ -15,6 +15,7 @@ namespace kmq {
 
   partition::~partition()
   {
+    m_mapped.unmap();
     close(m_fd);
   }
 
@@ -51,38 +52,41 @@ namespace kmq {
     return m_infos.path();
   }
 
-  query_result kindex::resolve(query& q)
-  {
-    smer_hasher sh(m_infos.get_repartition(), m_infos.get_hash_w(), m_infos.minim_size());
-
-    std::vector<std::vector<smer>> smers(m_infos.nb_partitions());
-
-    for (auto& e : q.iterate(m_infos.smer_size(), &sh))
-    {
-      smers[e.p].push_back(e);
-    }
-
-    {
-      std::unique_lock<spinlock> lock(m_mutex);
-      for (auto& v : smers)
-      {
-        if (v.size())
-        {
-          init(v[0].p);
-          for (auto& e : v)
-          {
-            m_partitions[e.p]->query(e.h, q.response_block(e.i));
-          }
-          unmap(v[0].p);
-
-          std::vector<smer> d;
-          v.swap(d);
-        }
-      }
-    }
-
-    return query_result(&q, m_infos.nb_samples());
-  }
+//  query_result kindex::resolve(query& q)
+//  {
+//    smer_hasher sh(m_infos.get_repartition(), m_infos.get_hash_w(), m_infos.minim_size());
+//
+//    std::vector<std::vector<smer>> smers(m_infos.nb_partitions());
+//
+//    for (auto& e : q.iterate(m_infos.smer_size(), &sh))
+//    {
+//      smers[e.p].push_back(e);
+//    }
+//
+//    for (auto& v : smers)
+//    {
+//      std::sort(v.begin(), v.end());
+//    }
+//
+//    {
+//      std::unique_lock<spinlock> lock(m_mutex);
+//      for (auto& v : smers)
+//      {
+//        if (v.size())
+//        {
+//          for (auto& e : v)
+//          {
+//            m_partitions[e.p]->query(e.h, q.response_block(e.i));
+//          }
+//
+//          std::vector<smer> d;
+//          v.swap(d);
+//        }
+//      }
+//    }
+//
+//    return query_result(&q, m_infos.nb_samples());
+//  }
 
   index_infos& kindex::infos()
   {

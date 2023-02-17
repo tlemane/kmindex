@@ -5,7 +5,11 @@
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/index/kindex.hpp>
 
+#include <semver.hpp>
+
 namespace kmq {
+
+  constexpr semver::version min_kmv_required{1, 3, 0};
 
   class index
   {
@@ -18,13 +22,15 @@ namespace kmq {
       void add_index(const std::string& name, const std::string& km_path);
       void save() const;
 
-
       iterator begin();
       iterator end();
 
       const index_infos& get(const std::string& name) const;
+      index_infos& get(const std::string& name);
 
       std::vector<std::string> all() const;
+
+      std::vector<std::vector<std::string>> mergeable() const;
 
     private:
       void init(const std::string& ipath);

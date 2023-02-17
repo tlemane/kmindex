@@ -1,3 +1,5 @@
+#include <map>
+
 #include <kmindex/index/index.hpp>
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/exceptions.hpp>
@@ -5,10 +7,8 @@
 
 #include <nlohmann/json.hpp>
 
-
 using json = nlohmann::json;
 namespace kmq {
-
 
   index::index(const std::string& index_path)
     : m_index_path(fs::absolute(index_path).string())
@@ -21,14 +21,14 @@ namespace kmq {
 
   void index::init(const std::string& index_path)
   {
-      std::ifstream inf(fmt::format("{}/index.json", m_index_path), std::ios::in);
-      check_fstream_good(index_path, inf);
-      json data = json::parse(inf);
+    std::ifstream inf(fmt::format("{}/index.json", m_index_path), std::ios::in);
+    check_fstream_good(index_path, inf);
+    json data = json::parse(inf);
 
-      for (auto& e : data["index"].items())
-      {
-        m_indexes[e.key()] = index_infos(e.key(), data);
-      }
+    for (auto& e : data["index"].items())
+    {
+      m_indexes[e.key()] = index_infos(e.key(), data);
+    }
   }
 
   void index::add_index(const std::string& name, const std::string& km_path)
@@ -49,7 +49,6 @@ namespace kmq {
       if (!fs::is_symlink(fmt::format("{}/{}", m_index_path, name)))
         fs::create_directory_symlink(i.path(), fmt::format("{}/{}", m_index_path, name));
 
-
       data["index"][name]["nb_samples"] = i.nb_samples();
       data["index"][name]["index_size"] = i.index_size();
       data["index"][name]["bloom_size"] = i.bloom_size();
@@ -57,6 +56,9 @@ namespace kmq {
       data["index"][name]["smer_size"]  = i.smer_size();
       data["index"][name]["minim_size"] = i.minim_size();
       data["index"][name]["samples"] = i.samples();
+      data["index"][name]["sha1"] = i.sha1();
+      data["index"][name]["kmindex_version"] = i.km_version().to_string();
+      data["index"][name]["kmtricks_version"] = i.kmt_version().to_string();
     }
 
     std::ofstream out(fmt::format("{}/index.json", m_index_path), std::ios::out);
@@ -90,5 +92,30 @@ namespace kmq {
     throw kmq_invalid_index(fmt::format("'{}' is not registered by this instance", name));
   }
 
+  index_infos& index::get(const std::string& name)
+  {
+    if (m_indexes.count(name))
+      return m_indexes.at(name);
+    throw kmq_invalid_index(fmt::format("'{}' is not registered by this instance", name));
+  }
+
+
+  std::vector<std::vector<std::string>> index::mergeable() const
+  {
+    std::vector<std::vector<std::string>> vec;
+
+    std::map<std::string, std::vector<std::string>> m;
+
+    for (auto& [name, i] : m_indexes)
+      m[i.sha1()].push_back(name);
+
+    for (auto& [_, v] : m)
+    {
+      if (vec.size() > 1)
+        vec.push_back(std::move(v));
+    }
+
+    return vec;
+  }
 
 }

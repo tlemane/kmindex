@@ -7,6 +7,9 @@
 #include <kmindex/spinlock.hpp>
 #include <mio/mmap.hpp>
 
+
+#include <iostream>
+
 namespace kmq {
 
   class partition
@@ -39,7 +42,22 @@ namespace kmq {
       std::string name() const;
       std::string directory() const;
 
-      query_result resolve(query& q);
+//      query_result resolve(query& q);
+
+      void solve_one(batch_query& bq, std::size_t p)
+      {
+        auto& smers = bq.partition(p);
+        auto& responses = bq.response();
+
+        std::sort(std::begin(smers), std::end(smers));
+
+        init(p);
+        for (auto& [mer, qid] : smers)
+        {
+          m_partitions[p]->query(mer.h, responses[qid]->get(mer.i));
+        }
+        m_partitions[p] = nullptr;
+      }
 
       index_infos& infos();
     private:

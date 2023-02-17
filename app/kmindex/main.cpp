@@ -33,6 +33,15 @@ int main(int argc, char* argv[])
       case kmq::kmq_commands::kmq_query:
         kmq::main_query(options);
         break;
+      case kmq::kmq_commands::kmq_build:
+        kmq::main_build(options);
+        break;
+      case kmq::kmq_commands::kmq_index_infos:
+        kmq::main_infos(options);
+        break;
+      case kmq::kmq_commands::kmq_merge:
+        kmq::main_merge(options);
+        break;
     }
   } catch (const std::exception& e) {
     spdlog::error(e.what());

@@ -12,6 +12,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   zlib
   pthread
   spdlog
+  semver
 )
 add_dependencies(${PROJECT_NAME} deps)
 

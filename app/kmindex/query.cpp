@@ -45,8 +45,8 @@ namespace kmq {
        ->checker(bc::check::f::range(0, 8))
        ->setter(options->z);
 
-    cmd->add_param("-r/--threshold", "Shared k-mers threshold (currently unused).")
-       ->def("0")
+    cmd->add_param("-r/--threshold", "Shared k-mers threshold.")
+       ->def("0.0")
        ->checker(bc::check::f::range(0.0, 1.0))
        ->setter(options->sk_threshold);
 
@@ -71,7 +71,6 @@ namespace kmq {
       ->meta("STR")
       ->setter(options->single);
 
-
     auto format_setter = [options](const std::string& v) {
       options->format = str_to_format(v);
     };
@@ -81,6 +80,12 @@ namespace kmq {
        ->def("json")
        ->checker(bc::check::f::in("json|matrix"))
        ->setter_c(format_setter);
+
+    cmd->add_param("-b/--batch-size", "Size of query batches.")
+       ->meta("INT")
+       ->def("0")
+       ->checker(bc::check::is_number)
+       ->setter(options->batch_size);
 
     add_common_options(cmd, options, true);
 
@@ -97,7 +102,7 @@ namespace kmq {
 
     spdlog::info("Global index: {}", o->global_index_path);
 
-    auto f = get_formatter(o->format);
+    //auto f = get_formatter(o->format);
 
     if (o->index_names.empty())
     {
@@ -110,39 +115,36 @@ namespace kmq {
       auto infos = global.get(index_name);
 
       spdlog::info("Query '{}' ({} samples)", infos.name(), infos.nb_samples());
-      query_result_agg agg;
 
       klibpp::KSeq record;
       klibpp::SeqStreamIn iss(o->input.c_str());
       kindex ki(infos);
 
+      smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
+
       ThreadPool pool(o->nb_threads);
+
+      batch_query bq(
+        infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), o->z, infos.bw(), &sh);
 
       while (iss >> record)
       {
-        pool.add_task([record=record, &ki, &agg, &o, &infos](int i){
-          unused(i);
-          query q(record.name, record.seq, infos.smer_size(), o->z, infos.nb_samples(), 0.0);
-          agg.add(ki.resolve(q));
-        });
+        bq.add_query(record.name, record.seq);
       }
 
-      pool.join_all();
+      for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
+      {
+        ki.solve_one(bq, p);
+      }
 
-      if (o->single.size() > 0)
+      query_result_agg agg;
+      for (auto&& r : bq.response())
       {
-        write_result(f->merge_format(infos.name(), infos.samples(), agg, o->single),
-                     infos.name(),
-                     o->output,
-                     o->format);
+        agg.add(query_result(std::move(r), o->z, infos));
       }
-      else
-      {
-        write_result(f->format(infos.name(), infos.samples(), agg),
-                     infos.name(),
-                     o->output,
-                     o->format);
-      }
+
+      agg.output(infos, o->output, o->format, o->single, o->sk_threshold);
+
 
       spdlog::info("Results dumped at {}/{}.{} ({})",
                  o->output,

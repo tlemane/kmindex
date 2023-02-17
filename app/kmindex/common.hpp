@@ -11,8 +11,11 @@ namespace kmq {
 
   enum class kmq_commands
   {
+    kmq_build,
     kmq_query,
-    kmq_register
+    kmq_register,
+    kmq_merge,
+    kmq_index_infos
   };
 
   struct kmq_options

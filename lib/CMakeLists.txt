@@ -23,7 +23,10 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:json>
   $<BUILD_INTERFACE:mio_mmap>
   $<BUILD_INTERFACE:xxhash>
+  $<BUILD_INTERFACE:sha1h>
+  $<BUILD_INTERFACE:semver>
 )
+
 add_dependencies(${KMINDEX_LIB} deps)
 
 target_include_directories(${KMINDEX_LIB} PUBLIC

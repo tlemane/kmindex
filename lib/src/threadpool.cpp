@@ -11,6 +11,17 @@ namespace kmq {
     }
   }
 
+  void ThreadPool::restart(size_type threads)
+  {
+    _n = threads ? threads : _n;
+    _stop = false;
+    _pool.clear();
+    for (size_t i = 0; i < _n; i++)
+    {
+      _pool.push_back(std::thread(&ThreadPool::worker, this, i));
+    }
+  }
+
   ThreadPool::~ThreadPool()
   {
     {

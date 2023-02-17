@@ -29,6 +29,7 @@ namespace kmq {
     void join_all();
 
     void join(int i);
+    void restart(size_type threads = 0);
 
     template <typename Callable>
     void add_task(Callable&& f)

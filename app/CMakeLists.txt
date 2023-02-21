@@ -1,2 +1,2 @@
 add_subdirectory(kmindex)
-#add_subdirectory(kmindex-server)
+add_subdirectory(kmindex-server)

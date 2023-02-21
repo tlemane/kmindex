@@ -79,6 +79,11 @@ namespace kmq {
     return m_results.size();
   }
 
+  const query_result_agg::vec_t& query_result_agg::results() const
+  {
+    return m_results;
+  }
+
   query_result_agg::const_iterator query_result_agg::begin() const
   {
     return m_results.begin();

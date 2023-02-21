@@ -56,6 +56,8 @@ namespace kmq {
 
       const_iterator end() const;
 
+      const vec_t& results() const;
+
       void output(const index_infos& infos,
                   const std::string& output_dir,
                   enum format f,

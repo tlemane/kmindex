@@ -102,8 +102,6 @@ namespace kmq {
 
     spdlog::info("Global index: {}", o->global_index_path);
 
-    //auto f = get_formatter(o->format);
-
     if (o->index_names.empty())
     {
       o->index_names = global.all();
@@ -121,8 +119,6 @@ namespace kmq {
       kindex ki(infos);
 
       smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
-
-      ThreadPool pool(o->nb_threads);
 
       batch_query bq(
         infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), o->z, infos.bw(), &sh);

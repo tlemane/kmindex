@@ -1,0 +1,16 @@
+D0: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/0.fasta
+D1: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/1.fasta
+D2: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/2.fasta
+D3: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/3.fasta
+D4: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/4.fasta
+D5: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/5.fasta
+D6: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/6.fasta
+D7: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/7.fasta
+D8: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/8.fasta
+D9: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/9.fasta
+D10: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/10.fasta
+D11: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/11.fasta
+D12: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/12.fasta
+D13: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/13.fasta
+D14: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/14.fasta
+D15: /home/tlemane/work/dev/repo/tmp/kmindex/tests/units/data/datasets/abs_dataset/15.fasta

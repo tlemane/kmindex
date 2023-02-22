@@ -1,0 +1,65 @@
+{
+    "index": {
+        "abs": {
+            "bloom_size": 800000,
+            "bw": 2,
+            "index_size": 3,
+            "kmindex_version": "0.2.0",
+            "kmtricks_version": "1.2.1",
+            "minim_size": 10,
+            "nb_partitions": 4,
+            "nb_samples": 16,
+            "samples": [
+                "D0",
+                "D1",
+                "D2",
+                "D3",
+                "D4",
+                "D5",
+                "D6",
+                "D7",
+                "D8",
+                "D9",
+                "D10",
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15"
+            ],
+            "sha1": "6a0f7482d4533cf2fef2e44979a0d11912f18272",
+            "smer_size": 25
+        },
+        "pa": {
+            "bloom_size": 800000,
+            "bw": 1,
+            "index_size": 1,
+            "kmindex_version": "0.2.0",
+            "kmtricks_version": "1.2.1",
+            "minim_size": 10,
+            "nb_partitions": 4,
+            "nb_samples": 16,
+            "samples": [
+                "D0",
+                "D1",
+                "D2",
+                "D3",
+                "D4",
+                "D5",
+                "D6",
+                "D7",
+                "D8",
+                "D9",
+                "D10",
+                "D11",
+                "D12",
+                "D13",
+                "D14",
+                "D15"
+            ],
+            "sha1": "7a0284634c173063e0a136e8628249be6f68ef36",
+            "smer_size": 25
+        }
+    },
+    "path": "./indexes/index"
+}

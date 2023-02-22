@@ -1,0 +1,36 @@
+kmtricks v1.2.1
+
+- HOST -
+build host: Linux-6.1.3
+run host: Linux 6.1.3
+
+- BUILD -
+c compiler: GNU 11.3.0
+cxx compiler: GNU 11.3.0
+conda: OFF
+static: OFF
+native: ON
+modules: ON
+socks: OFF
+howde: OFF
+dev: OFF
+kmer: 32
+max_c: 4294967295
+
+- GIT SHA1 / VERSION -
+kmtricks: fa8c48d
+sdsl: c32874c
+bcli: 3e4f493
+fmt: 0544a227
+kff: 97d135e
+lz4: 4de56b3
+spdlog: v1.2.1-1811-g5b4c4f3f
+xxhash: 6853ddc
+gtest: release-1.8.0-2774-g96f4ce02
+croaring: v0.3.3-17-g2d5c927
+robin-hood-hasing: 24b3f50
+turbop: 4ab9f5b
+cfrcat: 2f9da97
+indicators: v1.9-36-gcdcff01
+
+Contact: teo.lemane@inria.fr

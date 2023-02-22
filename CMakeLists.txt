@@ -23,10 +23,6 @@ target_compile_options(build_type_flags INTERFACE
   $<IF:$<BOOL:${PORTABLE_BUILD}>,-march=x86-64,-march=native>
 )
 
-if (NATIVE)
-
-endif()
-
 add_library(warning_flags INTERFACE)
 target_compile_options(warning_flags INTERFACE
   "-Wall"
@@ -52,6 +48,7 @@ add_subdirectory(lib)
 add_subdirectory(app)
 
 if (WITH_TESTS)
+  enable_testing()
   add_subdirectory(tests)
 endif()
 

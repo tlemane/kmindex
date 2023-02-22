@@ -16,7 +16,7 @@
       };
 
       kmindexBuildInputs = [
-        pkgs.gcc10
+        pkgs.gcc12
         pkgs.cmake
         pkgs.zlib
         pkgs.gbenchmark
@@ -31,7 +31,7 @@
 
       kmindex = (with pkgs; stdenv.mkDerivation {
           pname = "kmindex";
-          version = "0.1.0";
+          version = "0.2.0";
           src = builtins.fetchGit {
             url = "https://github.com/tlemane/kmindex";
             ref = "dev";
@@ -40,16 +40,17 @@
           nativeBuildInputs = kmindexBuildInputs;
 
           configurePhase = ''
-
+            cmake -S . -B build
           '';
 
           buildPhase = ''
-            bash install.sh
+            cmake --build ./build
           '';
 
           installPhase = ''
             mkdir -p $out/bin
-            cp $TMP/kmindex/kmindex_install/bin/* $out/bin
+            cp ./build/app/kmindex/kmindex $out/bin
+            cp ./build/app/kmindex-server/kmindex-server $out/bin
           '';
         }
       );

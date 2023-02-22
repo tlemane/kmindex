@@ -66,6 +66,10 @@ target_include_directories(sha1h INTERFACE ${THIRD_DIR}/sha1)
 add_library(semver INTERFACE)
 target_include_directories(semver INTERFACE ${THIRD_DIR}/semver/include)
 
+add_library(bitpack INTERFACE)
+target_include_directories(bitpack SYSTEM INTERFACE ${THIRD_DIR}/bitpacker/include)
+target_include_directories(bitpack SYSTEM INTERFACE ${THIRD_DIR}/span-lite/include)
+
 add_library(deps INTERFACE)
 add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)
 

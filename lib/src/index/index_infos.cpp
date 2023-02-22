@@ -206,6 +206,8 @@ namespace kmq {
         m_smer_size = std::stoull(trim(ss[1]));
       else if (trim(ss[0]) == "minim_size")
         m_minim_size = std::stoull(trim(ss[1]));
+      else if (trim(ss[0]) == "bwidth")
+        m_bw = std::stoull(trim(ss[1]));
     }
 
     std::string kmfof = fmt::format("{}/kmtricks.fof", m_path);
@@ -275,6 +277,7 @@ namespace kmq {
     m_minim_size  = data["index"][m_name]["minim_size"];
     m_index_size  = data["index"][m_name]["index_size"];
     m_samples     = data["index"][m_name]["samples"];
+    m_bw          = data["index"][m_name]["bw"];
     m_sha1        = data["index"][m_name]["sha1"];
 
     m_kmver = semver::version(data["index"][m_name]["kmindex_version"].get_ref<const json::string_t&>());

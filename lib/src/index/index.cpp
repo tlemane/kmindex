@@ -57,6 +57,7 @@ namespace kmq {
       data["index"][name]["minim_size"] = i.minim_size();
       data["index"][name]["samples"] = i.samples();
       data["index"][name]["sha1"] = i.sha1();
+      data["index"][name]["bw"] = i.bw();
       data["index"][name]["kmindex_version"] = i.km_version().to_string();
       data["index"][name]["kmtricks_version"] = i.kmt_version().to_string();
     }

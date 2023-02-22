@@ -16,7 +16,8 @@ namespace kmq {
 
   }
 
-  std::size_t query_formatter_base::aggregate(const std::vector<query_result>& queries, std::vector<std::uint32_t>& global)
+  std::size_t query_formatter_base::aggregate(const std::vector<query_result>& queries,
+                                              std::vector<std::uint32_t>& global)
   {
     std::size_t nbk = 0;
 
@@ -24,12 +25,33 @@ namespace kmq {
     {
       nbk += qr.nbk();
 
-      std::transform(global.begin(),
-                     global.end(),
-                     qr.counts().begin(),
-                     global.begin(),
-                     std::plus<std::uint32_t>{});
+      std::transform(std::begin(global),
+                     std::end(global),
+                     std::begin(qr.counts()),
+                     std::begin(global),
+                     std::plus<std::uint32_t>{}
+      );
 
+    }
+
+    return nbk;
+  }
+
+  std::size_t query_formatter_base::aggregate_c(const std::vector<query_result>& queries,
+                                                std::vector<std::uint32_t>& global)
+  {
+    std::size_t nbk = 0;
+
+    for (auto& qr : queries)
+    {
+      nbk += qr.nbk();
+
+      std::transform(std::begin(global),
+                     std::end(global),
+                     std::begin(qr.counts()),
+                     std::begin(global),
+                     [](auto& lhs, auto& rhs) { return std::min(lhs, rhs); }
+      );
     }
 
     return nbk;
@@ -122,37 +144,72 @@ namespace kmq {
     return m_json;
   }
 
-  query_formatter_t make_formatter(enum format f, double threshold)
+  matrix_formatter_abs::matrix_formatter_abs(double threshold)
+    : matrix_formatter(threshold)
+  {
+
+  }
+
+  void matrix_formatter_abs::format(const index_infos& infos,
+                                    const query_result& response,
+                                    std::ostream& os)
+  {
+    os << fmt::format("{}:{}\t{}\n", infos.name(), response.name(), fmt::join(response.counts(), "\t"));
+  }
+
+  void matrix_formatter_abs::merge_format(const index_infos& infos,
+                                          const std::string& name,
+                                          const std::vector<query_result>& responses,
+                                          std::ostream& os)
+  {
+    this->write_headers(os, infos);
+
+    std::vector<std::uint32_t> global(infos.nb_samples(), std::numeric_limits<std::uint32_t>::max());
+
+    std::size_t nbk = this->aggregate_c(responses, global);
+
+    for (auto& c : global)
+      c /= nbk;
+
+    os << fmt::format("{}:{}\t{}\n", infos.name(), name, fmt::join(global, "\t"));
+  }
+
+
+  json_formatter_abs::json_formatter_abs(double threshold)
+    : json_formatter(threshold)
+  {
+
+  }
+
+  void json_formatter_abs::format(const index_infos& infos,
+                                  const query_result& response,
+                                  std::ostream& os)
+  {
+
+  }
+
+  void json_formatter_abs::merge_format(const index_infos& infos,
+                                        const std::string& name,
+                                        const std::vector<query_result>& responses,
+                                        std::ostream& os)
+  {
+
+  }
+
+  query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw)
   {
     switch (f)
     {
       case format::matrix:
-        return std::make_shared<matrix_formatter>(threshold);
+        return bw == 1 ? std::make_shared<matrix_formatter>(threshold)
+                       : std::make_shared<matrix_formatter_abs>(threshold);
       case format::json:
-        return std::make_shared<json_formatter>(threshold);
+        return bw == 1 ? std::make_shared<json_formatter>(threshold)
+                       : std::make_shared<json_formatter_abs>(threshold);
     }
 
     return nullptr;
   }
 
-  //void write_result(const std::string& res,
-  //                  const std::string& index_name,
-  //                  const std::string& output_dir,
-  //                  enum format f)
-  //{
-  //  fs::create_directory(output_dir);
 
-  //  std::ofstream out;
-  //  switch (f)
-  //  {
-  //    case format::matrix:
-  //      out.open(fmt::format("{}/{}.tsv", output_dir, index_name), std::ios::out);
-  //      break;
-  //    case format::json:
-  //      out.open(fmt::format("{}/{}.json", output_dir, index_name), std::ios::out);
-  //      break;
-  //  }
-
-  //  out << res;
-  //}
 }

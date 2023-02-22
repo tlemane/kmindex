@@ -2,6 +2,9 @@
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/query/format.hpp>
 
+#include <bitpacker/bitpacker.hpp>
+#include <nonstd/span.hpp>
+
 namespace kmq {
 
   query_result::query_result(query_response_t&& qr, std::size_t z, const index_infos& infos)
@@ -9,7 +12,11 @@ namespace kmq {
   {
     m_ratios.resize(m_infos.nb_samples(), 0);
     m_counts.resize(m_infos.nb_samples(), 0);
-    compute_ratios();
+
+    if (m_infos.bw() > 1)
+      compute_abs();
+    else
+      compute_ratios();
   }
 
   void query_result::compute_ratios()
@@ -47,10 +54,46 @@ namespace kmq {
     m_qr->free();
   }
 
+  void query_result::compute_abs()
+  {
+    const uint8_t* data = m_qr->get(0);
+
+    std::vector<std::uint32_t> kres_abs(m_counts.size(), std::numeric_limits<std::uint32_t>::max());
+    std::fill(m_counts.begin(), m_counts.end(), std::numeric_limits<std::uint32_t>::min());
+
+    std::size_t block_size_z = m_qr->block_size() * m_z;
+
+    // for each k-mers
+    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    {
+      // for each s-mers in the k-mer
+      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      {
+        auto s = nonstd::span<const std::uint8_t>(&data[j], m_qr->block_size());
+        for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_infos.bw())
+        {
+          kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_infos.bw()), kres_abs[k]);
+        }
+      }
+
+      // at this point, kres is a vector of abundances of a k-mer (min of s-mers) across samples
+      for (std::size_t s = 0; s < m_ratios.size(); ++s)
+      {
+        m_counts[s] += kres_abs[s];
+      }
+
+      std::fill(kres_abs.begin(), kres_abs.end(), std::numeric_limits<std::uint32_t>::max());
+    }
+
+    for (std::size_t i = 0; i < m_ratios.size(); ++i)
+    {
+      m_counts[i] = m_counts[i] / m_nbk;
+    }
+  }
+
   std::size_t query_result::nbk() const
   {
     return m_nbk;
-    // return m_qr->nbk() - m_z;
   }
 
   const std::vector<std::uint32_t>& query_result::counts() const

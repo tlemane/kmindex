@@ -42,6 +42,7 @@ namespace kmq {
     protected:
       std::size_t aggregate(const std::vector<query_result>& queries, std::vector<uint32_t>& global);
 
+      std::size_t aggregate_c(const std::vector<query_result>& queries, std::vector<uint32_t>& global);
     protected:
       double m_threshold {0};
   };
@@ -53,7 +54,8 @@ namespace kmq {
     public:
       matrix_formatter(double threshold);
       virtual ~matrix_formatter() = default;
-    private:
+
+    protected:
       void write_headers(std::ostream& ss, const index_infos& infos);
 
     public:
@@ -74,12 +76,6 @@ namespace kmq {
       json_formatter(double threshold);
       ~json_formatter();
 
-    private:
-      void write_one(json& data,
-                     const std::string& name,
-                     const std::vector<double>& ratios,
-                     const std::vector<std::string>& sample_ids);
-
     public:
       virtual void format(const index_infos& infos,
                           const query_result& response,
@@ -92,20 +88,44 @@ namespace kmq {
 
       const json& get_json() const;
 
-      //virtual json jformat(const std::string& index_name,
-      //                     const std::vector<std::string>& sample_ids,
-      //                     const query_result_agg& queries);
-
-      //virtual json jmerge_format(const std::string& index_name,
-      //                           const std::vector<std::string>& sample_ids,
-      //                           const query_result_agg& queries,
-      //                           const std::string& qname);
     private:
       std::ostream* m_os;
       json m_json;
   };
 
-  query_formatter_t make_formatter(enum format f, double threshold);
+  class matrix_formatter_abs : public matrix_formatter
+  {
+    public:
+      matrix_formatter_abs(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class json_formatter_abs : public json_formatter
+  {
+    public:
+      json_formatter_abs(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw = 1);
 }
 
 #endif /* end of include guard: FORMAT_HPP_QFHCMIRK */

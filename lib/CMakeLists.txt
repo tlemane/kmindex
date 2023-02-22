@@ -25,6 +25,7 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:xxhash>
   $<BUILD_INTERFACE:sha1h>
   $<BUILD_INTERFACE:semver>
+  $<BUILD_INTERFACE:bitpack>
 )
 
 add_dependencies(${KMINDEX_LIB} deps)

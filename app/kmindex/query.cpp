@@ -62,6 +62,7 @@ namespace kmq {
 
     cmd->add_param("-q/--fastx", "Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query.")
        ->meta("STR")
+       ->checker(bc::check::is_file)
        ->checker(bc::check::f::ext(
          "fa|fq|fasta|fastq|fna|fa.gz|fq.gz|fasta.gz|fastq.gz|fna.gz|fa.bz2|fq.bz2|fasta.bz2|fastq.bz2|fna.bz2"))
        ->setter(options->input);

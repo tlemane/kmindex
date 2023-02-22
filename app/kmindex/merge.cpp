@@ -15,12 +15,12 @@ namespace kmq {
     auto cmd = parser->add_command("merge", "Merge sub-indexes.");
 
 
-    cmd->add_param("-i/--index", "global index path.")
+    cmd->add_param("-i/--index", "Global index path.")
        ->meta("STR")
        ->checker(bc::check::is_dir)
        ->setter(options->global_index_path);
 
-    cmd->add_param("-n/--new-name", "name of the new index.")
+    cmd->add_param("-n/--new-name", "Name of the new index.")
        ->meta("STR")
        ->setter(options->name);
 
@@ -28,18 +28,18 @@ namespace kmq {
       options->to_merge = bc::utils::split(v, ',');
     };
 
-    cmd->add_param("-m/--to-merge", "indexes to merge, comma separated.")
+    cmd->add_param("-m/--to-merge", "Sub-indexes to merge, comma separated.")
        ->meta("LIST[STR]")
        ->setter_c(merge_setter);
 
-    cmd->add_param("-d/--delete-old", "delete old index files.")
+    cmd->add_param("-d/--delete-old", "Delete old sub-index files.")
        ->as_flag()
        ->setter(options->remove);
 
     const std::string rename_help =
-                          "rename sample ids.\n"
+                          "Rename sample ids.\n"
       "                      - A sub-index cannot contain samples with similar identifiers.\n"
-      "                        Indexes containing identical identifiers cannot be merged, the\n"
+      "                        Sub-indexes containing identical identifiers cannot be merged, the\n"
       "                        identifiers must be renamed.\n"
       "                      - Renaming can be done in three different ways:\n\n"
       "                        1. Using identifier files (one per line).\n"
@@ -48,7 +48,7 @@ namespace kmq {
       "                        2. Using a format string ('{}' is replaced by an integer in [0, nb_samples)).\n"
       "                             '-r \"id_{}\"'\n\n"
       "                        3. Manually (not recommended).\n"
-      "                           Identifiers can be changed in 'kmtricks.fof' files in index directories.";
+      "                           Identifiers can be changed in 'kmtricks.fof' files in sub-index directories.";
     cmd->add_param("-r/--rename", rename_help)
        ->meta("STR")
        ->def("")

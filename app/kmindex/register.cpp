@@ -12,15 +12,15 @@ namespace kmq {
   {
     auto cmd = parser->add_command("register", "Register index.");
 
-    cmd->add_param("--global-index", "Global index path.")
+    cmd->add_param("-i/--global-index", "Global index path.")
       ->meta("STR")
       ->setter(options->global_index_path);
 
-    cmd->add_param("--name", "Index name.")
+    cmd->add_param("-n/--name", "Index name.")
        ->meta("STR")
        ->setter(options->index_name);
 
-    cmd->add_param("--index", "Index path (a kmtricks run using --mode hash:bf:bin).")
+    cmd->add_param("-p/--index-path", "Index path (a kmtricks run).")
        ->meta("STR")
        ->setter(options->index_path);
 

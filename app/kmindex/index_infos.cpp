@@ -18,7 +18,7 @@ namespace kmq {
   {
     auto cmd = parser->add_command("index-infos", "Print index informations.");
 
-    cmd->add_param("-i/--index", "global index path.")
+    cmd->add_param("-i/--index", "Global index path.")
        ->meta("STR")
        ->checker(bc::check::is_dir)
        ->setter(options->global_index_path);
@@ -32,7 +32,9 @@ namespace kmq {
   {
     kmq_infos_options_t o = std::static_pointer_cast<struct kmq_infos_options>(opt);
 
+    std::cout << "OK" << std::endl;
     auto mergeable = index(o->global_index_path).mergeable();
+    std::cout << "OK" << std::endl;
 
     std::ifstream inf(fmt::format("{}/index.json", o->global_index_path), std::ios::in);
     check_fstream_good(o->global_index_path, inf);

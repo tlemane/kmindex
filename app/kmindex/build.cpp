@@ -15,7 +15,7 @@ namespace kmq {
   {
     auto cmd = parser->add_command("build", "Build index.");
 
-    cmd->add_param("-i/--index", "global index path.")
+    cmd->add_param("-i/--index", "Global index path.")
        ->meta("STR")
        ->setter(options->global_index_path);
 
@@ -28,22 +28,22 @@ namespace kmq {
        ->meta("STR")
        ->setter(options->directory);
 
-    cmd->add_param("-r/--register-as", "index name.")
+    cmd->add_param("-r/--register-as", "Index name.")
        ->meta("STR")
        ->setter(options->name);
 
-    cmd->add_param("--from", "use parameters from a pre-registered index.")
+    cmd->add_param("--from", "Use parameters from a pre-registered index.")
        ->def("")
        ->meta("STR")
        ->setter(options->from);
 
-    cmd->add_param("--no-check", "bypass kmtricks version checking (hidden options)")
+    cmd->add_param("--no-check", "Bypass kmtricks version checking (hidden options)")
        ->as_flag()
        ->hide()
        ->setter(options->no_check);
 
     std::string km_path_help =
-      "path to kmtricks binary.\n"
+      "Path to kmtricks binary.\n"
       "                   - If empty, kmtricks is searched in $PATH and\n"
       "                     at the same location as kmindex binary.";
     cmd->add_param("--km-path", km_path_help)
@@ -53,28 +53,28 @@ namespace kmq {
       ->setter(options->km_path);
 
     auto kg = cmd->add_group("kmtricks parameters", "See kmtricks pipeline --help");
-    kg->add_param("-k/--kmer-size", "size of a k-mer. in [8, 31]")
+    kg->add_param("-k/--kmer-size", "Size of a k-mer. in [8, 31]")
        ->def("31")
        ->meta("INT")
        ->checker(bc::check::f::range(8, 31))
        ->setter(options->kmer_size);
 
-    kg->add_param("-m/--minim-size", "size of minimizers. in [4, 15]")
+    kg->add_param("-m/--minim-size", "Size of minimizers. in [4, 15]")
        ->def("10")
        ->meta("INT")
        ->checker(bc::check::f::range(4, 15))
        ->setter(options->minim_size);
 
-    kg->add_param("--hard-min", "min abundance to keep a k-mer.")
+    kg->add_param("--hard-min", "Min abundance to keep a k-mer.")
        ->def("2")
        ->meta("INT");
 
-    kg->add_param("--bloom-size", "bloom filter size.")
+    kg->add_param("--bloom-size", "Bloom filter size.")
        ->def("10000000")
        ->meta("INT")
        ->setter(options->bloom_size);
 
-    kg->add_param("--nb-partitions", "number of partitions (0=auto).")
+    kg->add_param("--nb-partitions", "Number of partitions (0=auto).")
        ->def("0")
        ->meta("INT")
        ->checker(bc::check::is_number)

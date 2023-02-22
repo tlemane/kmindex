@@ -13,8 +13,10 @@ include(GNUInstallDirs)
 add_library(bcli_lib INTERFACE)
 target_include_directories(bcli_lib SYSTEM INTERFACE ${THIRD_DIR}/bcli/include)
 
+add_library(kmtricks INTERFACE)
+target_include_directories(kmtricks SYSTEM INTERFACE ${THIRD_DIR}/kmtricks/include/)
+
 add_subdirectory(fmt)
-add_subdirectory(kmtricks)
 add_subdirectory(nlohmann_json)
 
 add_library(mio_mmap INTERFACE)

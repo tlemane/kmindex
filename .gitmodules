@@ -13,3 +13,6 @@
 [submodule "thirdparty/semver"]
 	path = thirdparty/semver
 	url = https://github.com/Neargye/semver
+[submodule "thirdparty/kmtricks"]
+	path = thirdparty/kmtricks
+	url = https://github.com/tlemane/kmtricks

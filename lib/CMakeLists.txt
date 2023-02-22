@@ -8,7 +8,9 @@ endif()
 
 file(GLOB_RECURSE KMINDEX_SOURCES "src/*.cpp")
 add_library(${KMINDEX_LIB} ${KMINDEX_SOURCES})
+
 set_target_properties(${KMINDEX_LIB} PROPERTIES OUTPUT_NAME "kmindex")
+target_compile_definitions(${KMINDEX_LIB} PUBLIC KMTRICKS_PUBLIC)
 
 add_library(${KMINDEX_LIB}::${KMINDEX_LIB} ALIAS ${KMINDEX_LIB})
 

@@ -5,6 +5,10 @@
 #include <cstdint>
 #include <cassert>
 
+#ifndef KMTRICKS_PUBLIC
+  #define KMTRICKS_PUBLIC
+#endif
+
 #include <kmtricks/hash.hpp>
 #include <kmtricks/repartition.hpp>
 

@@ -34,7 +34,7 @@ namespace kmq {
 
   void kindex::init(std::size_t p)
   {
-    m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples());
+    m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples(), m_infos.bw());
   }
 
   void kindex::unmap(std::size_t p)

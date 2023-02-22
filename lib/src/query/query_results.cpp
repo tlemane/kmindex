@@ -148,7 +148,7 @@ namespace kmq {
     std::ofstream out(
       fmt::format("{}/{}.{}", output_dir, infos.name(), f == format::matrix ? "tsv" : "json"));
 
-    auto formatter = make_formatter(f, threshold);
+    auto formatter = make_formatter(f, threshold, infos.bw());
 
     if (qname.size() > 0)
     {
@@ -156,6 +156,7 @@ namespace kmq {
     }
     else
     {
+      formatter->write_headers(out, infos);
       for (auto& r : m_results)
       {
         formatter->format(infos, r, out);

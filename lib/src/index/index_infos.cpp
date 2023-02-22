@@ -203,11 +203,22 @@ namespace kmq {
     {
       auto ss = split(e, '=');
       if (trim(ss[0]) == "kmer_size")
+      {
         m_smer_size = std::stoull(trim(ss[1]));
+      }
       else if (trim(ss[0]) == "minim_size")
+      {
         m_minim_size = std::stoull(trim(ss[1]));
+      }
       else if (trim(ss[0]) == "bwidth")
+      {
         m_bw = std::stoull(trim(ss[1]));
+      }
+      else if (trim(ss[0]) == "mode")
+      {
+        if (trim(ss[1]) == "bf")
+          m_bw = 1;
+      }
     }
 
     std::string kmfof = fmt::format("{}/kmtricks.fof", m_path);

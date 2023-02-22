@@ -15,7 +15,7 @@ namespace kmq {
   class partition
   {
     public:
-      partition(const std::string& matrix_path, std::size_t nb_samples, std::size_t width = 1);
+      partition(const std::string& matrix_path, std::size_t nb_samples, std::size_t width);
 
       ~partition();
 

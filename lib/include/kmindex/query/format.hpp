@@ -39,6 +39,11 @@ namespace kmq {
                                 const std::vector<query_result>& responses,
                                 std::ostream& os) = 0;
 
+      virtual void write_headers(std::ostream& os, const index_infos& infos)
+      {
+        unused(os); unused(infos);
+      }
+
     protected:
       std::size_t aggregate(const std::vector<query_result>& queries, std::vector<uint32_t>& global);
 
@@ -55,8 +60,9 @@ namespace kmq {
       matrix_formatter(double threshold);
       virtual ~matrix_formatter() = default;
 
-    protected:
-      void write_headers(std::ostream& ss, const index_infos& infos);
+    public:
+      virtual void write_headers(std::ostream& ss,
+                                 const index_infos& infos) override;
 
     public:
 
@@ -88,7 +94,7 @@ namespace kmq {
 
       const json& get_json() const;
 
-    private:
+    protected:
       std::ostream* m_os;
       json m_json;
   };

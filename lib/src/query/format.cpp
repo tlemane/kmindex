@@ -1,6 +1,8 @@
 #include <kmindex/query/format.hpp>
 #include <kmindex/utils.hpp>
 
+#include <iostream>
+
 namespace kmq {
 
   enum format str_to_format(const std::string& f)
@@ -40,21 +42,23 @@ namespace kmq {
   std::size_t query_formatter_base::aggregate_c(const std::vector<query_result>& queries,
                                                 std::vector<std::uint32_t>& global)
   {
-    std::size_t nbk = 0;
+    std::size_t nbq = 0;
 
     for (auto& qr : queries)
     {
-      nbk += qr.nbk();
+      ++nbq;
+      // nbk += qr.nbk();
 
       std::transform(std::begin(global),
                      std::end(global),
                      std::begin(qr.counts()),
                      std::begin(global),
-                     [](auto& lhs, auto& rhs) { return std::min(lhs, rhs); }
+                     std::plus<std::uint32_t>{}
+                     // [](auto& lhs, auto& rhs) { return std::min(lhs, rhs); }
       );
     }
 
-    return nbk;
+    return nbq;
   }
 
   matrix_formatter::matrix_formatter(double threshold)
@@ -164,12 +168,12 @@ namespace kmq {
   {
     this->write_headers(os, infos);
 
-    std::vector<std::uint32_t> global(infos.nb_samples(), std::numeric_limits<std::uint32_t>::max());
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
 
-    std::size_t nbk = this->aggregate_c(responses, global);
+    std::size_t nbq = this->aggregate_c(responses, global);
 
     for (auto& c : global)
-      c /= nbk;
+      c /= nbq;
 
     os << fmt::format("{}:{}\t{}\n", infos.name(), name, fmt::join(global, "\t"));
   }
@@ -185,7 +189,14 @@ namespace kmq {
                                   const query_result& response,
                                   std::ostream& os)
   {
+    m_os = &os;
+    m_json[infos.name()][response.name()] = json({});
 
+    auto& j = m_json[infos.name()][response.name()];
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      j[infos.samples()[i]] = response.counts()[i];
+    }
   }
 
   void json_formatter_abs::merge_format(const index_infos& infos,
@@ -193,7 +204,19 @@ namespace kmq {
                                         const std::vector<query_result>& responses,
                                         std::ostream& os)
   {
+    m_os = &os;
+    m_json[infos.name()][name] = json({});
 
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+
+    std::size_t nbq = this->aggregate_c(responses, global);
+
+    auto& j = m_json[infos.name()][name];
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      j[infos.samples()[i]] = global[i] / nbq;
+    }
   }
 
   query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw)

@@ -23,18 +23,19 @@
         pkgs.boost
         pkgs.bzip2
         pkgs.xxHash
-        pkgs.nolhmann_json
-        pkgs.fmt_9
+        pkgs.nlohmann_json
+        pkgs.fmt_8
+        pkgs.gtest
+        pkgs.spdlog
       ];
 
       kmindex = (with pkgs; stdenv.mkDerivation {
           pname = "kmindex";
           version = "0.1.0";
-          src = fetchgit {
+          src = builtins.fetchGit {
             url = "https://github.com/tlemane/kmindex";
-            rev = "dev";
-            sha256 = "sha256-9WmdgUYLgQfJsn+TcQtj4njwkGTM+EHeqaX7EVmT6lc=";
-            fetchSubmodules = true;
+            ref = "dev";
+            submodules = true;
           };
           nativeBuildInputs = kmindexBuildInputs;
 

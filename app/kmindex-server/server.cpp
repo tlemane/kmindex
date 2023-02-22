@@ -138,7 +138,7 @@ namespace kmq {
     request rq(j);
     spdlog::info("request -> search {} in {}", j["id"], j["index"].dump());
 
-    return rq.solve(global).dump(4);
+    return rq.solve(global);
   }
 
   void main_server(kmq_server_options_t opt)

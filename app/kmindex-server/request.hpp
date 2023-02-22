@@ -23,7 +23,12 @@ namespace kmq {
         parse_json(data);
       }
 
-      json solve(const index& gindex) const
+      std::string solve(const index& gindex) const
+      {
+        return m_json ? solve_json(gindex) : solve_tsv(gindex);
+      }
+
+      std::string solve_json(const index& gindex) const
       {
         std::vector<json> responses;
 
@@ -49,16 +54,50 @@ namespace kmq {
 
           std::ofstream nullstream; nullstream.setstate(std::ios_base::badbit);
 
-          json_formatter jformat(0.0);
-          jformat.merge_format(infos, m_name, agg.results(), nullstream);
-          responses.push_back(jformat.get_json());
+          std::shared_ptr<json_formatter> jformat =
+            std::static_pointer_cast<json_formatter>(
+                make_formatter(format::json, 0.0, infos.bw()));
+
+          jformat->merge_format(infos, m_name, agg.results(), nullstream);
+          responses.push_back(jformat->get_json());
         }
 
         json response;
         for (auto& r : responses)
           response.update(r);
 
-        return response;
+        return response.dump(4);
+      }
+
+      std::string solve_tsv(const index& gindex) const
+      {
+        std::stringstream ss;
+
+        for (auto& i : m_index)
+        {
+          auto infos = gindex.get(i);
+          kindex ki(infos);
+          smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
+
+          batch_query bq(
+            infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), m_z, infos.bw(), &sh);
+
+          for (auto& s : m_seq)
+            bq.add_query(m_name, s);
+
+          for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
+            ki.solve_one(bq, p);
+
+          query_result_agg agg;
+          for (auto&& r : bq.response())
+            agg.add(query_result(std::move(r), m_z, infos));
+
+          auto tformat = make_formatter(format::matrix, 0.0, infos.bw());
+          tformat->merge_format(infos, m_name, agg.results(), ss);
+          ss << '\n';
+        }
+
+        return ss.str();
       }
 
     private:
@@ -73,6 +112,22 @@ namespace kmq {
           throw kmq_invalid_request("'seq' entry is missing.");
         if (!data.contains("z"))
           throw kmq_invalid_request("'z' entry is missing.");
+
+        if (!data.contains("format"))
+        {
+          m_json = true;
+        }
+        else
+        {
+          if (data["format"] == "json")
+            m_json = true;
+          else if (data["format"] == "tsv")
+            m_json = false;
+          else
+            throw kmq_invalid_request(
+              fmt::format("'format':'{}' not supported, should be 'json' or 'tsv'.", data["format"]));
+        }
+
 
         m_name = data["id"];
 
@@ -90,6 +145,7 @@ namespace kmq {
       std::vector<std::string> m_index;
       std::vector<std::string> m_seq;
       std::size_t m_z {0};
+      bool m_json {true};
   };
 
 }

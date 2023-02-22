@@ -179,6 +179,7 @@ namespace kmq {
     is_km_index();
 
     m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
+    m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
     auto hw = get_hash_w();
 
     m_bloom_size = hw->bloom_size();

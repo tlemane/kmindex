@@ -259,6 +259,7 @@ namespace kmq {
     h.add(&m_nb_partitions, sizeof(m_nb_partitions));
     h.add(&m_smer_size, sizeof(m_smer_size));
     h.add(&m_minim_size, sizeof(m_minim_size));
+    h.add(&m_bw, sizeof(m_bw));
 
     std::ifstream repart_file(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
 

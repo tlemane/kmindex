@@ -2,7 +2,7 @@ add_library(fmt INTERFACE)
 
 option(FORCE_BUILD_FMT "Always build, instead of using the system version." OFF)
 option(FMT_HEADER_ONLY "Use header only version of fmt." OFF)
-set(FMT_MIN_REQUIRED_VERSION "9.1.0")
+set(FMT_MIN_REQUIRED_VERSION "8.1.0...<9.0.0")
 
 if (NOT FORCE_BUILD_FMT AND NOT FORCE_BUILD_ALL)
 

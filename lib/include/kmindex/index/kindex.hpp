@@ -42,7 +42,11 @@ namespace kmq {
       std::string name() const;
       std::string directory() const;
 
-//      query_result resolve(query& q);
+      void solve(batch_query& bq)
+      {
+        for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
+          solve_one(bq, p);
+      }
 
       void solve_one(batch_query& bq, std::size_t p)
       {

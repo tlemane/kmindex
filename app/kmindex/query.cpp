@@ -86,7 +86,8 @@ namespace kmq {
        ->meta("INT")
        ->def("0")
        ->checker(bc::check::is_number)
-       ->setter(options->batch_size);
+       ->setter(options->batch_size)
+       ->hide();
 
     add_common_options(cmd, options, true);
 
@@ -125,14 +126,9 @@ namespace kmq {
         infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), o->z, infos.bw(), &sh);
 
       while (iss >> record)
-      {
         bq.add_query(record.name, record.seq);
-      }
 
-      for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
-      {
-        ki.solve_one(bq, p);
-      }
+      ki.solve(bq);
 
       query_result_agg agg;
       for (auto&& r : bq.response())

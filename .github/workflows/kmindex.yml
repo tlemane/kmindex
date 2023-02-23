@@ -53,7 +53,7 @@ jobs:
           cd build
           export CC=$(which ${{ matrix.cc }})
           export CXX=$(which ${{ matrix.cxx }})
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DPORTABLE_BUILD=ON
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DPORTABLE_BUILD=ON -DWITH_TESTS=ON
 
       - name: Build
         shell: bash
@@ -62,6 +62,12 @@ jobs:
           export CC=$(which ${{ matrix.cc }})
           export CXX=$(which ${{ matrix.cxx }})
           make
+
+      - name: Test
+        shell: bash
+        run: |
+          cd build
+          ctest --verbose
 
       - name: Package
         if: matrix.compiler == 'g++-10' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')

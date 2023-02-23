@@ -19,6 +19,11 @@ target_link_libraries(${KMINDEX_SERVER} PUBLIC
   spdlog
   sws
 )
+
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
+  target_link_libraries(${KMINDEX_SERVER} PUBLIC stdc++fs)
+endif()
+
 add_dependencies(${KMINDEX_SERVER} deps)
 
 install (TARGETS ${KMINDEX_SERVER}

@@ -14,6 +14,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog
   semver
 )
+
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
+  target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
+endif()
+
 add_dependencies(${PROJECT_NAME} deps)
 
 install (TARGETS ${PROJECT_NAME}

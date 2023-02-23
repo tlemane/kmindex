@@ -28,7 +28,9 @@ add_subdirectory(mio)
 
 target_link_libraries(mio_mmap INTERFACE mio::mio)
 
-add_subdirectory(gtest)
+if (WITH_TESTS)
+  add_subdirectory(gtest)
+endif()
 add_subdirectory(xxhash)
 
 add_subdirectory(zlib)

@@ -19,7 +19,7 @@ target_compile_features(${KMINDEX_LIB} PUBLIC cxx_std_17)
 target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:build_type_flags>
   $<BUILD_INTERFACE:warning_flags>
-  $<BUILD_INTERFACE:asan_flags>
+  # $<BUILD_INTERFACE:asan_flags>
   $<BUILD_INTERFACE:fmt>
   $<BUILD_INTERFACE:kmtricks>
   $<BUILD_INTERFACE:json>

@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_library(build_type_flags INTERFACE)
 target_compile_options(build_type_flags INTERFACE
-  $<$<CONFIG:Debug>:-O0 -g>
+  $<$<CONFIG:Debug>:-O -g>
   $<$<CONFIG:Release>:-O3 -DNDEBUG>
   $<$<CONFIG:Profile>:-O3 -ggdb3 -DNDEBUG -fno-inline>
   $<$<CONFIG:Coverage>:-O0 -g --coverage>

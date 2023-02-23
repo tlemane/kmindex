@@ -4,6 +4,7 @@
 
 #include <kmindex/index/index.hpp>
 #include <kmindex/version.hpp>
+#include <kmindex/exceptions.hpp>
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -45,7 +46,7 @@ namespace kmq {
     std::string km_path_help =
       "Path to kmtricks binary.\n"
       "                   - If empty, kmtricks is searched in $PATH and\n"
-      "                     at the same location as kmindex binary.";
+      "                     at the same location as the kmindex binary.";
     cmd->add_param("--km-path", km_path_help)
       ->def("")
       ->meta("STR")
@@ -67,18 +68,51 @@ namespace kmq {
 
     kg->add_param("--hard-min", "Min abundance to keep a k-mer.")
        ->def("2")
-       ->meta("INT");
-
-    kg->add_param("--bloom-size", "Bloom filter size.")
-       ->def("10000000")
        ->meta("INT")
-       ->setter(options->bloom_size);
+       ->setter(options->hard_min);
 
     kg->add_param("--nb-partitions", "Number of partitions (0=auto).")
        ->def("0")
        ->meta("INT")
        ->checker(bc::check::is_number)
        ->setter(options->nb_partitions);
+
+    auto bfm = cmd->add_group("presence/absence indexing", "");
+    bfm->add_param("--bloom-size", "Bloom filter size.")
+               ->def("")
+               ->meta("INT")
+               ->checker(bc::check::is_number)
+               ->setter(options->bloom_size);
+
+    auto bfcm = cmd->add_group("abundance indexing", "");
+    bfcm->add_param("--nb-cell", "Number of cells in counting Bloom filter.")
+               ->def("")
+               ->meta("INT")
+               ->checker(bc::check::is_number)
+               ->setter(options->nb_cell);
+
+    std::string bwidth_help =
+      "Number of bits per cell. {2}\n"
+      "                 - Abundances are indexed by log2 classes (nb classes = 2^{bitw})\n"
+      "                   For example, using --bwidth 3 resulting in the following classes:\n"
+      "                     0 -> 0"
+      "                     1 -> [1,2) \n"
+      "                     2 -> [2,4) \n"
+      "                     3 -> [4,8) \n"
+      "                     4 -> [8,16) \n"
+      "                     5 -> [16,32) \n"
+      "                     6 -> [32,64) \n"
+      "                     7 -> [64,+∞) \n";
+    bfcm->add_param("--bitw", bwidth_help)
+        ->def("")
+        ->meta("INT")
+        ->setter(options->bw);
+
+    // Currently not used
+    bfcm->add_param("--class", "")
+         ->def("log2")
+         ->meta("STR")
+         ->hide();
 
     add_common_options(cmd, options, true);
 
@@ -114,7 +148,7 @@ namespace kmq {
   std::string get_kmtricks_cmd(kmq_build_options_t opt)
   {
     static std::string cmd_template =
-      "pipeline --file {} --run-dir {} --kmer-size {} --hard-min {} --mode hash:bf:bin "
+      "pipeline --file {} --run-dir {} --kmer-size {} --hard-min {} "
       "--bloom-size {} --minimizer-size {} --nb-partitions {} --threads {} ";
 
     if (!opt->from.empty())
@@ -131,6 +165,12 @@ namespace kmq {
       opt->nb_partitions,
       opt->nb_threads
     );
+
+    if (opt->bw > 1)
+      fmt_cmd += fmt::format("--bitw {} --mode hash:bfc:bin ", opt->bw);
+    else
+      fmt_cmd += "--mode hash:bf:bin ";
+
 
     if (!opt->from.empty())
       fmt_cmd += fmt::format("--repart-from {}", opt->from);
@@ -168,13 +208,24 @@ namespace kmq {
     {
       if (!(kmv >= min_kmv_required))
       {
-        throw std::runtime_error(
+        throw kmq_error(
           fmt::format("kmindex v{} requires kmtricks >= v{}, but found v{}.",
                       kmindex_version.to_string(), min_kmv_required.to_string(), kmv.to_string()
           )
         );
       }
     }
+
+    if (!options->bloom_size && !options->nb_cell)
+      throw kmq_error("--bloom-size or --nb-cell must be provided.");
+
+    if (options->bloom_size && options->nb_cell)
+      throw kmq_error("--bloom-size and --nb-cell are mutually exclusive. Use --bloom-size for presence/absence indexing OR --nb-cell for log abundance indexing.");
+
+    if (options->bloom_size > 0)
+      options->bw = 1;
+
+    options->bloom_size = std::max(options->bloom_size, options->nb_cell);
 
     spdlog::info("Found kmtricks v{}.", kmv.to_string());
 

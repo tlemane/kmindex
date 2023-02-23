@@ -14,12 +14,13 @@ namespace kmq {
     std::string name;
     std::string km_path;
 
-    std::size_t kmer_size;
-    std::size_t minim_size;
-    std::size_t hard_min;
-    std::size_t bloom_size;
-    std::size_t nb_partitions;
-
+    std::size_t kmer_size {0};
+    std::size_t minim_size {0};
+    std::size_t hard_min {0};
+    std::size_t bloom_size {0};
+    std::size_t nb_cell {0};
+    std::size_t nb_partitions {0};
+    std::size_t bw {2};
     bool no_check {false};
   };
 

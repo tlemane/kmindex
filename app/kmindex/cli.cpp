@@ -15,21 +15,13 @@ namespace kmq {
     kmq_build_cli(m_cli_parser, m_kmq_build_opt);
     kmq_register_cli(m_cli_parser, m_kmq_register_opt);
     kmq_query_cli(m_cli_parser, m_kmq_query_opt);
-    kmq_merge_cli(m_cli_parser, m_kmq_merge_opt);
+    //kmq_merge_cli(m_cli_parser, m_kmq_merge_opt);
     kmq_infos_cli(m_cli_parser, m_kmq_infos_opt);
   }
 
   std::tuple<kmq_commands, kmq_options_t> kmq_cli::parse(int argc, char* argv[])
   {
-    try
-    {
-      m_cli_parser->parse(argc, argv);
-    }
-    catch (const bc::ex::BCliError& e)
-    {
-      bc::utils::exit_bcli(e);
-      exit(EXIT_FAILURE);
-    }
+    m_cli_parser->parse(argc, argv);
 
     if (m_cli_parser->is("build"))
       return std::make_tuple(kmq_commands::kmq_build, m_kmq_build_opt);

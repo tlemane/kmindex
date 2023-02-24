@@ -3,7 +3,11 @@ add_executable(kmindex-lib-tests
   "mer.cpp"
 )
 
-target_link_libraries(kmindex-lib-tests gtest pthread kmindex-lib fmt)
+target_link_libraries(kmindex-lib-tests PUBLIC gtest pthread kmindex-lib fmt)
+
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
+  target_link_libraries(kmindex-lib-tests PUBLIC stdc++fs)
+endif()
 
 add_test(
   NAME kmindex:lib

@@ -16,7 +16,7 @@
       };
 
       kmindexBuildInputs = [
-        pkgs.gcc12
+        pkgs.gcc11
         pkgs.cmake
         pkgs.zlib
         pkgs.gbenchmark
@@ -29,7 +29,7 @@
         pkgs.spdlog
       ];
 
-      kmindex = (with pkgs; stdenv.mkDerivation {
+      kmindex = (with pkgs; stdenvNoCC.mkDerivation {
           pname = "kmindex";
           version = "0.2.0";
           src = builtins.fetchGit {

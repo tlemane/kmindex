@@ -55,6 +55,7 @@ namespace kmq {
 
         std::sort(std::begin(smers), std::end(smers));
 
+        std::unique_lock<spinlock> lock(m_mutexes[p]);
         init(p);
         for (auto& [mer, qid] : smers)
         {
@@ -67,7 +68,7 @@ namespace kmq {
     private:
       index_infos m_infos;
       std::vector<std::unique_ptr<partition>> m_partitions;
-      spinlock m_mutex;
+      std::vector<spinlock> m_mutexes;
   };
 }
 

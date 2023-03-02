@@ -12,8 +12,26 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
+#include <atomic_queue/atomic_queue.h>
 
 namespace kmq {
+
+  struct fastx_record {
+    std::string name;
+    std::string seq;
+    fastx_record() {}
+    fastx_record(std::string&& name, std::string&& seq)
+      : name(std::move(name)), seq(std::move(seq)) {}
+  };
+
+  static constexpr bool minimize_contention = true;
+  static constexpr bool maximize_throughput = true;
+  static constexpr bool total_ordering = true;
+  static constexpr bool spsc = false;
+  static constexpr std::size_t queue_size = 2048;
+  using queue_type = atomic_queue::AtomicQueue2<
+    fastx_record, queue_size, minimize_contention, maximize_throughput, total_ordering, spsc
+  >;
 
   kmq_options_t kmq_query_cli(parser_t parser, kmq_query_options_t options)
   {
@@ -86,12 +104,75 @@ namespace kmq {
        ->meta("INT")
        ->def("0")
        ->checker(bc::check::is_number)
-       ->setter(options->batch_size)
-       ->hide();
+       ->setter(options->batch_size);
 
     add_common_options(cmd, options, true);
 
     return options;
+  }
+
+  void populate_queue(queue_type& q, klibpp::SeqStreamIn& fx_stream, std::size_t n)
+  {
+    klibpp::KSeq record;
+    while (fx_stream >> record)
+    {
+      q.push(fastx_record(std::move(record.name), std::move(record.seq)));
+    }
+    for (std::size_t _ = 0; _ < n; ++_)
+      q.push(fastx_record("", ""));
+  }
+
+  void solve_batch(batch_query& bq,
+                   const index_infos& infos,
+                   kindex& ki,
+                   const kmq_query_options_t& opt,
+                   std::size_t batch_id,
+                   Timer& timer,
+                   query_result_agg& aggs)
+  {
+    std::size_t nq = bq.size();
+
+    ki.solve(bq);
+
+    bq.free_smers();
+
+    if (opt->single.empty())
+    {
+      query_result_agg agg;
+      for (auto&& r : bq.response())
+        agg.add(query_result(std::move(r), opt->z, infos));
+
+      bq.free_responses();
+
+      std::string output;
+      if (opt->batch_size > 0)
+      {
+        output = fmt::format("{}/batch_{}", opt->output, batch_id);
+        fs::create_directories(output);
+      }
+      else
+      {
+        output = opt->output;
+      }
+      agg.output(infos, output, opt->format, opt->single, opt->sk_threshold);
+
+      spdlog::info("batch_{} processed ({} sequences) dumped at {}/{}.{} ({})",
+          batch_id,
+          nq,
+          output,
+          infos.name(),
+          opt->format == format::json ? "json" : "tsv",
+          timer.formatted());
+    }
+    else
+    {
+      for (auto&& r : bq.response())
+        aggs.add(query_result(std::move(r), opt->z, infos));
+
+      bq.free_responses();
+
+      spdlog::info("batch_{} processed ({} sequences) ({})", batch_id, nq, timer.formatted());
+    }
   }
 
   void main_query(kmq_options_t opt)
@@ -102,50 +183,101 @@ namespace kmq {
 
     index global(o->global_index_path);
 
-    spdlog::info("Global index: {}", o->global_index_path);
+    spdlog::info(
+      "Global index: '{}'", fs::absolute(o->global_index_path).parent_path().filename().string());
 
     if (o->index_names.empty())
     {
       o->index_names = global.all();
     }
+    else
+
+    spdlog::info("Sub-indexes to query: [{}]", fmt::join(o->index_names, ","));
+
+    if (!o->single.empty())
+      spdlog::warn("--single-query: all query results are kept in memory");
 
     for (auto& index_name : o->index_names)
     {
       Timer timer;
       auto infos = global.get(index_name);
 
-      spdlog::info("Query '{}' ({} samples)", infos.name(), infos.nb_samples());
+      spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
 
-      klibpp::KSeq record;
       klibpp::SeqStreamIn iss(o->input.c_str());
-      kindex ki(infos);
+      queue_type bqueue;
 
+      ThreadPool pool(opt->nb_threads);
+
+      kindex ki(infos);
       smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
-      batch_query bq(
-        infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), o->z, infos.bw(), &sh);
+      std::atomic<std::size_t> batch_id = 0;
 
-      while (iss >> record)
-        bq.add_query(record.name, record.seq);
+      query_result_agg aggs;
 
-      ki.solve(bq);
-
-      query_result_agg agg;
-      for (auto&& r : bq.response())
+      for (std::size_t c = 0; c < opt->nb_threads; ++c)
       {
-        agg.add(query_result(std::move(r), o->z, infos));
+        pool.add_task([&bqueue, &infos, &ki, &sh, &batch_id, &aggs, opt=o](int i){
+          unused(i);
+          for (;;)
+          {
+            Timer timer;
+            batch_query bq(infos.nb_samples(),
+                           infos.nb_partitions(),
+                           infos.smer_size(),
+                           opt->z,
+                           infos.bw(),
+                           &sh);
+
+            bool end = false;
+            std::size_t nq = 0;
+            std::size_t id = batch_id.load();
+
+            batch_id++;
+
+            while (!end)
+            {
+              auto record = bqueue.pop();
+
+              if (record.name.empty())
+              {
+                end = true;
+              }
+              else
+              {
+                bq.add_query(std::move(record.name), std::move(record.seq));
+                ++nq;
+              }
+
+              if ((nq == opt->batch_size || end) && nq > 0)
+              {
+                spdlog::info("process batch_{} ({} sequences)", id, nq);
+                solve_batch(bq, infos, ki, opt, id, timer, aggs);
+                break;
+              }
+            }
+
+            nq = 0;
+
+            if (end)
+              return;
+          }
+        });
       }
 
-      agg.output(infos, o->output, o->format, o->single, o->sk_threshold);
+      populate_queue(bqueue, iss, opt->nb_threads);
+      pool.join_all();
 
-
-      spdlog::info("Results dumped at {}/{}.{} ({})",
-                 o->output,
-                 infos.name(),
-                 o->format == format::json ? "json" : "tsv",
-                 timer.formatted());
+      if (!o->single.empty())
+      {
+        spdlog::info("aggregate query results ({} sequences)", aggs.size());
+        aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
+        spdlog::info("query '{}' processed, dumped at {}/{}.{}",
+          o->single, o->output, infos.name(), o->format == format::json ? "json" : "tsv");
+      }
     }
-
     spdlog::info("Done ({}).", gtime.formatted());
   }
 }
+

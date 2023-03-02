@@ -41,7 +41,7 @@ namespace kmq {
     json data = json::parse(inf);
 
     for (auto& v : mergeable)
-      spdlog::info("[{}] are mergeable. See kmindex merge --help.", fmt::join(v, ","));
+      spdlog::info("[{}] are mergeable. (upcoming feature)", fmt::join(v, ","));
 
     std::cout << std::setw(4) << data << std::endl;
   }

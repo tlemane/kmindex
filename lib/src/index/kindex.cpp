@@ -3,6 +3,7 @@
 #include <kmindex/mer.hpp>
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/index/kindex.hpp>
+#include <sys/mman.h>
 
 namespace kmq {
 
@@ -11,6 +12,7 @@ namespace kmq {
   {
     m_fd = open(matrix_path.c_str(), O_RDONLY);
     m_mapped = mio::mmap_source(m_fd, 0, mio::map_entire_file);
+    posix_madvise(&m_mapped[0], m_mapped.length(), POSIX_MADV_SEQUENTIAL);
   }
 
   partition::~partition()
@@ -27,7 +29,7 @@ namespace kmq {
   kindex::kindex() {}
 
   kindex::kindex(const index_infos& i)
-    : m_infos(i)
+    : m_infos(i), m_mutexes(i.nb_partitions())
   {
     m_partitions.resize(m_infos.nb_partitions());
   }

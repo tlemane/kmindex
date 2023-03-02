@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
       spdlog::set_level(spdlog::level::err);
 
     auto cerr_logger = spdlog::stderr_color_mt("kmindex");
-    cerr_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+    cerr_logger->set_pattern("[%C/%m/%d %H:%M:%S][%^%L%$:%t] %v");
     spdlog::set_default_logger(cerr_logger);
 
     switch (cmd)

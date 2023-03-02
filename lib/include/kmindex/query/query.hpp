@@ -18,6 +18,7 @@
 
 #include <kmindex/utils.hpp>
 #include <kmindex/mer.hpp>
+#include <kmindex/spinlock.hpp>
 
 namespace kmq {
 
@@ -80,7 +81,7 @@ namespace kmq {
         {
           for (std::size_t p = 0; p < tmp.size(); ++p)
           {
-            std::unique_lock<std::mutex> _(m_pmutexes[p]);
+            std::unique_lock<spinlock> _(m_pmutexes[p]);
             m_smers[p].insert(std::end(m_smers[p]), std::begin(tmp[p]), std::end(tmp[p]));
           }
         }
@@ -106,10 +107,25 @@ namespace kmq {
         return m_smers.end();
       }
 
+      void free_smers()
+      {
+        free_container(m_smers);
+      }
+
+      void free_responses()
+      {
+        free_container(m_responses);
+      }
+
+      std::size_t size() const
+      {
+        return m_responses.size();
+      }
+
     private:
       std::uint32_t insert(const std::string& name, std::size_t nb_smers)
       {
-        std::unique_lock<std::mutex> _(m_mutex);
+        std::unique_lock<spinlock> _(m_mutex);
         m_responses.push_back(
             std::make_unique<query_response>(std::move(name), nb_smers, m_nb_samples, m_width));
         return m_responses.size() - 1;
@@ -124,8 +140,8 @@ namespace kmq {
 
       smer_hasher* m_hasher {nullptr};
 
-      std::mutex m_mutex;
-      std::vector<std::mutex> m_pmutexes;
+      spinlock m_mutex;
+      std::vector<spinlock> m_pmutexes;
 
       std::vector<query_response_t> m_responses;
       std::vector<qpart_type> m_smers;

@@ -16,7 +16,7 @@
       };
 
       kmindexBuildInputs = [
-        pkgs.gcc11
+        pkgs.gcc12
         pkgs.cmake
         pkgs.zlib
         pkgs.gbenchmark

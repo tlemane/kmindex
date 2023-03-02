@@ -13,6 +13,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   pthread
   spdlog
   semver
+  atomic_queue
 )
 
 if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)

@@ -74,6 +74,10 @@ add_library(bitpack INTERFACE)
 target_include_directories(bitpack SYSTEM INTERFACE ${THIRD_DIR}/bitpacker/include)
 target_include_directories(bitpack SYSTEM INTERFACE ${THIRD_DIR}/span-lite/include)
 
+add_library(atomic_queue INTERFACE)
+target_include_directories(atomic_queue SYSTEM INTERFACE ${THIRD_DIR}/atomic_queue/include)
+
 add_library(deps INTERFACE)
 add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)
+
 

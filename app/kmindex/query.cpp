@@ -19,7 +19,7 @@ namespace kmq {
   struct fastx_record {
     std::string name;
     std::string seq;
-    fastx_record() {} noexcept
+    fastx_record() noexcept {}
     fastx_record(std::string&& name, std::string&& seq) noexcept
       : name(std::move(name)), seq(std::move(seq)) {}
   };

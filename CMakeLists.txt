@@ -5,8 +5,11 @@ set(PROJECT_DESCRIPTION "kmindex")
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
-option(PORTABLE_BUILD "" OFF)
-option(WITH_TESTS "" OFF)
+option(PORTABLE_BUILD "Generic x86_64 build" OFF)
+option(WITH_APP "Compile kmindex cli" ON)
+option(WITH_SERVER "Compile kmindex-server" ON)
+option(WITH_TESTS "Compile tests" OFF)
+
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE="Release")

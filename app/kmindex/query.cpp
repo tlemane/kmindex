@@ -63,7 +63,8 @@ namespace kmq {
        ->checker(bc::check::f::range(0, 8))
        ->setter(options->z);
 
-    cmd->add_param("-r/--threshold", "Shared k-mers threshold.")
+    cmd->add_param("-r/--threshold", "Shared k-mers threshold. in [0.0, 1.0]")
+       ->meta("FLOAT")
        ->def("0.0")
        ->checker(bc::check::f::range(0.0, 1.0))
        ->setter(options->sk_threshold);
@@ -100,13 +101,13 @@ namespace kmq {
        ->checker(bc::check::f::in("json|matrix"))
        ->setter_c(format_setter);
 
-    cmd->add_param("-b/--batch-size", "Size of query batches.")
+    cmd->add_param("-b/--batch-size", "Size of query batches (0≈nb_seq/nb_thread).")
        ->meta("INT")
        ->def("0")
        ->checker(bc::check::is_number)
        ->setter(options->batch_size);
 
-    add_common_options(cmd, options, true);
+    add_common_options(cmd, options, true, 1);
 
     return options;
   }

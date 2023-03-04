@@ -45,8 +45,8 @@ namespace kmq {
 
     std::string km_path_help =
       "Path to kmtricks binary.\n"
-      "                   - If empty, kmtricks is searched in $PATH and\n"
-      "                     at the same location as the kmindex binary.";
+      "                       - If empty, kmtricks is searched in $PATH and\n"
+      "                         at the same location as the kmindex binary.";
     cmd->add_param("--km-path", km_path_help)
       ->def("")
       ->meta("STR")
@@ -95,14 +95,14 @@ namespace kmq {
       "Number of bits per cell. {2}\n"
       "                 - Abundances are indexed by log2 classes (nb classes = 2^{bitw})\n"
       "                   For example, using --bwidth 3 resulting in the following classes:\n"
-      "                     0 -> 0"
+      "                     0 -> 0\n"
       "                     1 -> [1,2) \n"
       "                     2 -> [2,4) \n"
       "                     3 -> [4,8) \n"
       "                     4 -> [8,16) \n"
       "                     5 -> [16,32) \n"
       "                     6 -> [32,64) \n"
-      "                     7 -> [64,+∞) \n";
+      "                     7 -> [64,max(uint32_t))";
     bfcm->add_param("--bitw", bwidth_help)
         ->def("")
         ->meta("INT")

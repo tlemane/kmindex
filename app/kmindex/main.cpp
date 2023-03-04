@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[])
 {
-  kmq::kmq_cli cli("kmindex", "Index kmtricks bf matrices", KMQ_PROJECT_TAG);
+  kmq::kmq_cli cli("kmindex", "Index/Query kmtricks bf/cbf matrices", KMQ_PROJECT_TAG);
 
   try {
     auto [cmd, options] = cli.parse(argc, argv);
@@ -45,9 +45,11 @@ int main(int argc, char* argv[])
     }
 
   } catch (const bc::ex::BCliError& e) {
-    spdlog::error("[{}] -> {}", e.get_name(), e.get_msg());
+    if (!e.get_name().empty())
+      spdlog::error("[{}] -> {}", e.get_name(), e.get_msg());
   } catch (const std::exception& e) {
     spdlog::error(e.what());
+    exit(EXIT_FAILURE);
   }
 
   return 0;

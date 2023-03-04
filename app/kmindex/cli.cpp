@@ -1,6 +1,8 @@
 #include "cli.hpp"
 #include <iostream>
 
+#include <kmindex/config.hpp>
+
 namespace kmq {
 
   kmq_cli::kmq_cli(const std::string& name, const std::string& desc, const std::string& version)
@@ -21,6 +23,17 @@ namespace kmq {
 
   std::tuple<kmq_commands, kmq_options_t> kmq_cli::parse(int argc, char* argv[])
   {
+    if (argc > 1 && (std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h"))
+    {
+      m_cli_parser->show_help();
+      exit(EXIT_SUCCESS);
+    }
+    else if (argc > 1 && (std::string(argv[1]) == "--version"))
+    {
+      std::cerr << fmt::format("kmindex {}", KMQ_PROJECT_TAG) << std::endl;
+      exit(EXIT_SUCCESS);
+    }
+
     m_cli_parser->parse(argc, argv);
 
     if (m_cli_parser->is("build"))

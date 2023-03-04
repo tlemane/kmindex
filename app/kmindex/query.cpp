@@ -111,11 +111,16 @@ namespace kmq {
     return options;
   }
 
-  void populate_queue(queue_type& q, klibpp::SeqStreamIn& fx_stream, std::size_t n)
+  void populate_queue(queue_type& q, klibpp::SeqStreamIn& fx_stream, std::size_t n, std::size_t min_size)
   {
     klibpp::KSeq record;
     while (fx_stream >> record)
     {
+      if (record.seq.size() < min_size)
+      {
+        spdlog::warn("'{}' skipped: min size is s+z={}", record.name, min_size);
+        continue;
+      }
       q.push(fastx_record(std::move(record.name), std::move(record.seq)));
     }
     for (std::size_t _ = 0; _ < n; ++_)
@@ -266,7 +271,7 @@ namespace kmq {
         });
       }
 
-      populate_queue(bqueue, iss, opt->nb_threads);
+      populate_queue(bqueue, iss, opt->nb_threads, infos.smer_size() + o->z);
       pool.join_all();
 
       if (!o->single.empty())

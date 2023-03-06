@@ -151,7 +151,7 @@ namespace kmq {
       bq.free_responses();
 
       std::string output;
-      if (opt->batch_size > 0)
+      if (opt->batch_size > 0 || opt->nb_threads > 1)
       {
         output = fmt::format("{}/batch_{}", opt->output, batch_id);
         fs::create_directories(output);

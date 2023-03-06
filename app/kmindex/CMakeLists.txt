@@ -20,6 +20,10 @@ if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
   target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
 endif()
 
+if (ipo_supported)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 add_dependencies(${PROJECT_NAME} deps)
 
 install (TARGETS ${PROJECT_NAME}

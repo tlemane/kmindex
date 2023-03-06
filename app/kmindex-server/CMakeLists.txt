@@ -24,6 +24,10 @@ if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
   target_link_libraries(${KMINDEX_SERVER} PUBLIC stdc++fs)
 endif()
 
+if (ipo_supported)
+  set_property(TARGET ${KMINDEX_SERVER} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 add_dependencies(${KMINDEX_SERVER} deps)
 
 install (TARGETS ${KMINDEX_SERVER}

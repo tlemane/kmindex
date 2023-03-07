@@ -1,0 +1,92 @@
+# Index query
+
+## **kmindex query**
+
+*kmindex query* allows to query all sequences in FASTA/Q file (gz/bz2) against all sub-indexes registered into a global index $G$. For each sequence, the output is a list of either shared $k$-mer ratios (presence/absence mode) or abundance classes (abundance mode).
+
+!!! tip "Options"
+    ```
+    kmindex query v0.2.0
+
+    DESCRIPTION
+      Query index.
+
+    USAGE
+      kmindex query -i/--index <STR> -q/--fastx <STR> [-n/--names <STR>] [-z/--zvalue <INT>]
+                    [-r/--threshold <FLOAT>] [-o/--output <STR>] [-s/--single-query <STR>]
+                    [-f/--format <STR>] [-b/--batch-size <INT>] [-t/--threads <INT>]
+                    [-v/--verbose <STR>] [-h/--help] [--version]
+
+    OPTIONS
+      [global]
+        -i --index        - Global index path.
+        -n --names        - Sub-indexes to query, comma separated. {all}
+        -z --zvalue       - Index s-mers and query (s+z)-mers (findere algorithm). {0}
+        -r --threshold    - Shared k-mers threshold. in [0.0, 1.0] {0.0}
+        -o --output       - Output directory. {output}
+        -q --fastx        - Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query.
+        -s --single-query - Query identifier. All sequences are considered as a unique query.
+        -f --format       - Output format [json|matrix] {json}
+        -b --batch-size   - Size of query batches (0≈nb_seq/nb_thread). {0}
+
+      [common]
+        -t --threads - Number of threads. {1}
+        -h --help    - Show this message and exit. [⚑]
+           --version - Show version and exit. [⚑]
+        -v --verbose - Verbosity level [debug|info|warning|error]. {info}
+    ```
+
+!!! tip "--single-query <STR\>"
+    All sequences in an input file can be considered a unique query by using `--single-query query_name`. The output file contains then shared $k$-mer ratios between the input file and each indexed sample. This corresponds to the query behavior of *kmindex-server* (see [server-query](server-query.md))
+
+
+!!! warning "--batch-size <INT\>"
+    The number of queries in memory is actually `batch-size`$\times$`threads`.
+
+
+### Presence/Absence query
+
+
+!!! note "Main parameters"
+    * `--index <STR>`: Path to global index.
+    * `--fastx <STR>:` File containing queries.
+    * `--names <[STR]>`: Sub-indexes to query, comma separated.
+    * `--zvalue <INT>`: Usually in $[3,6]$, see [findere algorithm]().
+    * `--threshold <FLOAT>`: Report only ratios > `threshold`, in $[0.0,1.0]$.
+
+**Example**
+```bash
+kmindex query --index ./G --fastx 1.fasta --names D1 --zvalue 3
+```
+
+#### Output formats
+
+!!! abstract "JSON (`--format json`)"
+    ```json
+    {
+        "D1": {
+            "1": {
+                "S1": 1.0,
+                "S2": 0.0
+            },
+            "2": {
+                "S1": 1.0,
+                "S2": 0.0
+            }
+        }
+    }
+    ```
+!!! abstratc "TSV (`--format matrix`)"
+    ```tsv
+    D1     S1   S2
+    D1:1  1.0  0.0
+    D1:2  1.0  0.0
+    ```
+
+### Abundance query
+
+The query mode is automatically determined by the index type. The values reported in the output files are simply abundance classes instead of shared $k$-mer ratios.
+
+## About the `z` parameter
+
+

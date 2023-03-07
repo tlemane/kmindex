@@ -1,0 +1,36 @@
+name: kmindex-doc
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'docker/**'
+      - 'conda/**'
+      - 'scripts/**'
+      - '.gitignore'
+  pull_request:
+      paths-ignore:
+      - 'README.md'
+      - 'docker/**'
+      - 'conda/**'
+      - 'scripts/**'
+      - '.gitignore'
+
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - uses: actions/cache@v2
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+      - run: pip install mkdocs-material
+      - run: mkdocs gh-deploy -f ./docs/kmindex/mkdocs.yml --force
+
+

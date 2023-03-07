@@ -56,7 +56,7 @@ namespace kmq {
 
           std::shared_ptr<json_formatter> jformat =
             std::static_pointer_cast<json_formatter>(
-                make_formatter(format::json, 0.0, infos.bw()));
+                make_formatter(format::json, m_r, infos.bw()));
 
           jformat->merge_format(infos, m_name, agg.results(), nullstream);
           responses.push_back(jformat->get_json());
@@ -92,7 +92,7 @@ namespace kmq {
           for (auto&& r : bq.response())
             agg.add(query_result(std::move(r), m_z, infos));
 
-          auto tformat = make_formatter(format::matrix, 0.0, infos.bw());
+          auto tformat = make_formatter(format::matrix, m_r, infos.bw());
           tformat->merge_format(infos, m_name, agg.results(), ss);
           ss << '\n';
         }
@@ -128,6 +128,16 @@ namespace kmq {
               fmt::format("'format':'{}' not supported, should be 'json' or 'tsv'.", data["format"]));
         }
 
+        if (data.contains("r"))
+        {
+          if (!data["r"].is_number_float())
+            throw kmq_invalid_request("'r' should be a float in [0.0, 1.0]");
+
+          m_r = data["r"];
+          if (m_r < 0.0 || m_r > 1.0)
+            throw kmq_invalid_request(
+              fmt::format("'r':'{}', should be in [0.0, 1.0]", data["r"]));
+        }
 
         m_name = data["id"];
 
@@ -145,6 +155,7 @@ namespace kmq {
       std::vector<std::string> m_index;
       std::vector<std::string> m_seq;
       std::size_t m_z {0};
+      double m_r {0.0};
       bool m_json {true};
   };
 

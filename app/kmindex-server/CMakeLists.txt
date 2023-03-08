@@ -19,10 +19,19 @@ target_link_libraries(${KMINDEX_SERVER} PUBLIC
   kmindex-lib
   kseqpp
   zlib
-  pthread
   spdlog
   sws
 )
+
+if (STATIC_BUILD)
+  target_link_libraries(${KMINDEX_SERVER} PUBLIC
+    -Wl,--whole-archive
+    pthread
+    -Wl,--no-whole-archive
+  )
+else()
+  target_link_libraries(${KMINDEX_SERVER} PUBLIC pthread)
+endif()
 
 if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
   target_link_libraries(${KMINDEX_SERVER} PUBLIC stdc++fs)
@@ -32,7 +41,7 @@ if (ipo_supported)
   set_property(TARGET ${KMINDEX_SERVER} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-if (STATIC_BUILD)
+if (STATIC_BUILD AND NOT ${CMAKE_BUILD_TYPE} MATCHES "Debug")
   target_link_options(${KMINDEX_SERVER} PRIVATE -static)
 endif()
 

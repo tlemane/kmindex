@@ -10,11 +10,21 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   kmindex-lib
   kseqpp
   zlib
-  pthread
   spdlog
   semver
   atomic_queue
 )
+
+if (STATIC_BUILD)
+  target_link_libraries(${PROJECT_NAME} PUBLIC
+    -Wl,--whole-archive
+    pthread
+    -Wl,--no-whole-archive
+  )
+else()
+  target_link_libraries(${PROJECT_NAME} PUBLIC pthread)
+endif()
+
 
 if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0.0)
   target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
@@ -24,7 +34,7 @@ if (ipo_supported)
   set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-if (STATIC_BUILD)
+if (STATIC_BUILD AND NOT ${CMAKE_BUILD_TYPE} MATCHES "Debug")
   target_link_options(${PROJECT_NAME} PRIVATE -static)
 endif()
 

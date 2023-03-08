@@ -50,7 +50,10 @@ for record in SeqIO.parse("query.fa", "fasta"):
                                "index_id", # Can be a list of sub-indexes to query
                                0.0,        # Min ratio to report a result (optional, default 0.0)
                                3))         # z value (optional, default 3)
-    print(res.id, res.result)
+    if res:
+        print(res.id, res.result)
+    else:
+        print(res.err)
 ```
 
 #### **Asynchronous**
@@ -71,7 +74,10 @@ for record in SeqIO.parse("query.fa", "fasta"):
     responses = km_serv.submit_async(batch)
 
     for r in responses:
-        print(r.id, r.result)
+        if r:
+            print(r.id, r.result)
+        else:
+            print(r.err)
     ```
 
 !!! note "Using your own event loop"
@@ -87,10 +93,14 @@ for record in SeqIO.parse("query.fa", "fasta"):
     for record in SeqIO.parse("query.fa", "fasta"):
         futures.append(km_serv.async_query(Query(record.id, record.seq, "index_id")))
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     responses = loop.run_until_complete(asyncio.gather(*futures))
 
     for r in responses:
-        print(r.id, r.result)
+        if r:
+            print(r.id, r.result)
+        else:
+            print(r.err)
     ```
 

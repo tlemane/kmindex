@@ -3,6 +3,7 @@ name: kmindex
 on:
   push:
     paths-ignore:
+      - '.github/workflows/doc.yml'
       - 'README.md'
       - 'docker/**'
       - 'conda/**'
@@ -11,6 +12,7 @@ on:
       - 'docs/kmindex/**'
   pull_request:
       paths-ignore:
+      - '.github/workflows/doc.yml'
       - 'README.md'
       - 'docker/**'
       - 'conda/**'

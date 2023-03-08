@@ -18,8 +18,8 @@ class Query:
         self.qid = qid
         self.sequences = self._wrap_as_list(sequence)
         self.indexes = self._wrap_as_list(index)
-        self.z = 3
-        self.r = 0.0
+        self.r = r
+        self.z = z
 
 
     def _wrap_as_list(self, v: Union[str, List[str]]) -> List[str]:

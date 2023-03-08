@@ -1,11 +1,11 @@
 # Python API
 
-The python API allows to query a running kmindex server. In the following, we assume that a server is running at 127.0.0.1 on port 8008.
+The python API allows to query a running kmindex server. In the following, we assume that a server is running at 127.0.0.1 on port 8080.
 
 ## **Installation**
 
 !!! info "Requirements"
-    * python >= 3.x
+    * python >= 3.10
     * pip (with [PEP-517 support](https://peps.python.org/pep-0517/) if installing from sources)
 
 ### Using pip [![pip](https://img.shields.io/pypi/v/pykmindex?logo=pypi)]()
@@ -25,7 +25,7 @@ pip install git+https://github.com/tlemane/kmindex.git#subdirectory=pykmindex
 ### **Connection**
 
 ```py
-from pykmindex import connect
+from pykmindex.server import connect
 
 km_serv = connect("127.0.0.1", 8080)
 
@@ -39,7 +39,8 @@ infos = km_serv.infos()
 ```py
 from Bio import SeqIO
 
-from pykmindex import connect, Query
+from pykmindex.server import connect
+from pykmindex.query import Query
 
 km_serv = connect("127.0.0.1", 8080)
 
@@ -57,7 +58,8 @@ for record in SeqIO.parse("query.fa", "fasta"):
 !!! note "Using QBatch"
     ```py
     from Bio import SeqIO
-    from pykmindex import connect, QBatch
+    from pykmindex.server import connect
+    from pykmindex.query import QBatch
 
     km_serv = connect("127.0.0.1", 8080)
 
@@ -76,7 +78,8 @@ for record in SeqIO.parse("query.fa", "fasta"):
     ```py
     import asyncio
     from Bio import SeqIO
-    from pykmindex import connect, Query
+    from pykmindex.server import connect
+    from pykmindex.query import Query
 
     km_serv = connect("127.0.0.1", 8080)
 

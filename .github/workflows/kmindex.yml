@@ -8,6 +8,7 @@ on:
       - 'conda/**'
       - 'scripts/**'
       - '.gitignore'
+      - 'docs/kmindex/**'
   pull_request:
       paths-ignore:
       - 'README.md'
@@ -15,6 +16,7 @@ on:
       - 'conda/**'
       - 'scripts/**'
       - '.gitignore'
+      - 'docs/kmindex/**'
 
 jobs:
   Linux:

@@ -45,7 +45,7 @@
          --nb-cell - Number of cells in counting Bloom filter.
          --bitw    - Number of bits per cell. {2}
                      - Abundances are indexed by log2 classes (nb classes = 2^{bitw})
-                       For example, using --bwidth 3 resulting in the following classes:
+                       For example, using --bitw 3 resulting in the following classes:
                          0 -> 0
                          1 -> [1,2)
                          2 -> [2,4)
@@ -68,7 +68,7 @@ One sample per line, with a unique ID, and a list of FASTA/Q files separated by 
 
 **Example**
 ```
-D1: /path/to/D1_1.fasta ; /path/to/D1_2.fasta
+D1: /path/to/D1_1.fasta ; /path/to/D1_2.fasta ; /path/to/D1_3.fasta
 D2: /path/to/D2_1.fasta.gz ; /path/to/D2_2.fasta.gz
 ```
 
@@ -90,9 +90,13 @@ In presence/absence mode, the index only contains the presence/absence pattern o
 
 **Examples**
 ```bash
-kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --bloom-size 1000000
-kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --bloom-size 1000000
+kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --bloom-size 1000000 # (1)!
+kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --bloom-size 1000000 # (2)!
 ```
+
+1. Creates a directory `G` containing the index for the `D1` dataset
+2. Add the index for the `D2` dataset in the previously created `G`directory
+
 
 ### **Abundance indexing**
 
@@ -110,12 +114,12 @@ As a result, a query response corresponds to an abundance class which is the ave
 
 **Examples**
 ```bash
-kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 2 # (1)!
-kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 4 # (2)!
+kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 2 # (3)!
+kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 4 # (4)!
 ```
 
-1. D1 is indexed using 4 abundance classes.
-2. D2 is indexed using 16 abundance classes.
+3. D1 is indexed using 4 abundance classes.
+4. D2 is indexed using 16 abundance classes.
 
 ## **About Bloom filter size**
 

@@ -7,8 +7,9 @@ maintainers = [ "Teo Lemane <teo.lemane@proton.me>" ]
 license = "MIT"
 classifiers = [
   "License :: OSI Approved :: MIT License",
-  "Programming Lnaguage :: Python :: 3"
+  "Programming Language :: Python :: 3"
 ]
+readme = "README.md"
 keywords = [ "k-mer", "indexing", "kmindex" ]
 homepage = "https://github/tlemane/kmindex"
 documentation = "https://github.io/tlemane/kmindex"

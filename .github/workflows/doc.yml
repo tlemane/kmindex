@@ -2,22 +2,12 @@ name: kmindex-doc
 
 on:
   push:
-    paths-ignore:
-      - 'README.md'
-      - 'docker/**'
-      - 'conda/**'
-      - 'scripts/**'
-      - '.gitignore'
-  pull_request:
-      paths-ignore:
-      - 'README.md'
-      - 'docker/**'
-      - 'conda/**'
-      - 'scripts/**'
-      - '.gitignore'
+    paths: ['docs/kmindex/**']
+    branches: ['main']
 
 permissions:
   contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

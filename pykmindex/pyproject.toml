@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "pykmindex"
+version = "0.2.0"
+description = "Python API to query kmindex server."
+authors = [ "Teo Lemane <teo.lemane@proton.me>" ]
+maintainers = [ "Teo Lemane <teo.lemane@proton.me>" ]
+license = "MIT"
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Lnaguage :: Python :: 3"
+]
+keywords = [ "k-mer", "indexing", "kmindex" ]
+homepage = "https://github/tlemane/kmindex"
+documentation = "https://github.io/tlemane/kmindex"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+uplink = "^0.9.7"
+aiohttp = "^3.8.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,7 +1,7 @@
 # kmindex
 
 [![License](http://img.shields.io/:license-affero-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
-[![kmtricks](https://github.com/tlemane/kmindex/workflows/kmtricks/badge.svg)](https://github.com/tlemane/kmindex/actions/workflows/kmindex.yml)
+[![kmindex](https://github.com/tlemane/kmindex/workflows/kmindex/badge.svg)](https://github.com/tlemane/kmindex/actions/workflows/kmindex.yml)
 [![release](https://img.shields.io/github/v/release/tlemane/kmindex)](https://github.com/tlemane/kmindex/releases)
 [![dockerhub](https://img.shields.io/docker/v/tlemane/kmindex?label=tlemane/kmindex&logo=docker)](https://hub.docker.com/r/tlemane/kmindex/)
 [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)

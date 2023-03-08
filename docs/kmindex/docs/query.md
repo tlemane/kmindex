@@ -46,12 +46,11 @@
 
 ### Presence/Absence query
 
-
 !!! note "Main parameters"
     * `--index <STR>`: Path to global index.
     * `--fastx <STR>:` File containing queries.
     * `--names <[STR]>`: Sub-indexes to query, comma separated.
-    * `--zvalue <INT>`: Usually in $[3,6]$, see [findere algorithm]().
+    * `--zvalue <INT>`: Usually in $[0,6]$, see [findere algorithm]().
     * `--threshold <FLOAT>`: Report only ratios > `threshold`, in $[0.0,1.0]$.
 
 **Example**
@@ -89,4 +88,7 @@ The query mode is automatically determined by the index type. The values reporte
 
 ## About the `z` parameter
 
+ [findere](https://github.com/lrobidou/findere) is a query-time technique allowing to reduce the false positive rate of an arbitrary [AMQF](https://en.wikipedia.org/wiki/Approximate_Membership_Query_Filter) (as Bloom filters) while reducing the number of lookups to resolve a query. Its scope concerns the indexing of objects that are decomposable into sub-objects, i.e. a sequence of characters. It is based on the following straightforward statement: if a sequence $S \in E$, then its sub-words $w_i \in E$.
+
+To benefit from *findere*, small $k$-mers are actually indexed ($s$-mer), and ($s+z$)-mers are considered are query time. As a result, for a given false positive rate of $\epsilon$, the probability of a false match becomes $\epsilon^z$ at query time, reducing the false postive rate by several orders of magnitude. Note that $z$ cannot be arbitrary large, usually $z \in [0, 6]$, see [findere paper](http://dx.doi.org/10.1007/978-3-030-86692-1_13) for more details.
 

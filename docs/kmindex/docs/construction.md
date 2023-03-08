@@ -5,7 +5,7 @@
 `kmindex build` allows to construct an index $I$ from a set of FASTA/Q files (gzipped or not) and register it into a global index $G$. It supports both presence/absence and abundance indexing.
 
 !!! note
-    `kmindex build` is basically a wrapper around [kmtricks](https://github.com/tlemane/kmtricks), ensuring indexes are built in the right way. However, indexes built by `kmtricks` are usable by `kmindex` if built using `--mode hash:bf:bin` (presence/absence mode) or `--mode hash:bfc:bin` (abundance mode), and without `--cpr`. Other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)). To be queryable, indexes have to be registered into a global index (see `kmindex regisrer`).
+    `kmindex build` is basically a wrapper around [kmtricks](https://github.com/tlemane/kmtricks), ensuring indexes are built in the right way. However, indexes built by `kmtricks` are usable by `kmindex` if built using `--mode hash:bf:bin` (presence/absence mode) or `--mode hash:bfc:bin` (abundance mode), and without `--cpr`. Other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)). To be queryable, indexes have to be registered into a global index (see `kmindex register`).
 
 !!! tip "Options"
     ```
@@ -124,5 +124,5 @@ kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --h
 !!! tip
     Some online tools can help: [https://hur.st/bloomfilter/](https://hur.st/bloomfilter/)
 
-Note that *kmindex* benefits from the [findere algorithm](https://github.com/lrobidou/findere), a query-time technique allowing to drastically reduce the false positive rates. An approximation of the false positive rate under *findere* is $\epsilon^z$, where $z$ is a query-time parameter (which cannot be arbitrary large, see [findere paper](http://dx.doi.org/10.1007/978-3-030-86692-1_13)). It is recommended to choose your filter size according to this point.
+Note that *kmindex* benefits from the [findere algorithm](https://github.com/lrobidou/findere), a query-time technique allowing to drastically reduce the false positive rates. An approximation of the false positive rate under *findere* is $\epsilon^z$, where $z$ is a query-time parameter (which cannot be arbitrary large, see [z help](query.md#about-the-z-parameter) and [findere paper](http://dx.doi.org/10.1007/978-3-030-86692-1_13)). It is recommended to choose your filter size according to this point.
 

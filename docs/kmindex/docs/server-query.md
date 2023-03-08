@@ -61,8 +61,9 @@ curl -X GET http://127.0.0.1:8080/kmindex/infos
 ```bash
 curl -X POST http://127.0.0.1:8080/kmindex/query \
      -H 'Content-type: application/json' \
-     -d '{"index":["D1"],"seq":["ACGACGACGACGAGACGAGACGACAGCAGACAGAGACATAATATACT"], "id":"ID","z":3} #(1)!'
+     -d '{"index":["D1"],"seq":["ACGACGACGACGAGACGAGACGACAGCAGACAGAGACATAATATACT"], "id":"ID","z":3}' # (1)!.
 ```
+
 1. To avoid curl to change POST requests to GET on redirection, use `--post302`.
 
 **Response**
@@ -79,5 +80,3 @@ curl -X POST http://127.0.0.1:8080/kmindex/query \
 ```
 
 
-
-```

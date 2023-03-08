@@ -1,5 +1,8 @@
-cmake_policy(SET CMP0135 NEW)
 cmake_policy(SET CMP0077 NEW)
+
+if (STATIC_BUILD)
+  set(ZLIB_USE_STATIC_LIBS ON)
+endif()
 
 set(THIRD_DIR ${CMAKE_SOURCE_DIR}/thirdparty)
 

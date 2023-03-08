@@ -55,7 +55,7 @@ jobs:
           cd build
           export CC=$(which ${{ matrix.cc }})
           export CXX=$(which ${{ matrix.cxx }})
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DPORTABLE_BUILD=ON -DWITH_TESTS=ON
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DPORTABLE_BUILD=ON -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DSTATIC_BUILD=ON
 
       - name: Build
         shell: bash

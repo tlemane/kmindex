@@ -9,7 +9,7 @@ option(PORTABLE_BUILD "Generic x86_64 build" OFF)
 option(WITH_APP "Compile kmindex cli" ON)
 option(WITH_SERVER "Compile kmindex-server" ON)
 option(WITH_TESTS "Compile tests" OFF)
-
+option(STATIC_BUILD "Static build" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE="Release")

@@ -1,5 +1,9 @@
 file(GLOB_RECURSE KMINDEX_SERVER_SOURCES "*.cpp")
 
+if (STATIC_BUILD)
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
+
 find_package(Boost 1.70.0 REQUIRED COMPONENTS system)
 set(KMINDEX_SERVER "${PROJECT_NAME}-server")
 add_executable(${KMINDEX_SERVER} ${KMINDEX_SERVER_SOURCES})
@@ -26,6 +30,10 @@ endif()
 
 if (ipo_supported)
   set_property(TARGET ${KMINDEX_SERVER} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+if (STATIC_BUILD)
+  target_link_options(${KMINDEX_SERVER} PRIVATE -static)
 endif()
 
 add_dependencies(${KMINDEX_SERVER} deps)

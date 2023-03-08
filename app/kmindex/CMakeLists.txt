@@ -24,6 +24,10 @@ if (ipo_supported)
   set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
+if (STATIC_BUILD)
+  target_link_options(${PROJECT_NAME} PRIVATE -static)
+endif()
+
 add_dependencies(${PROJECT_NAME} deps)
 
 install (TARGETS ${PROJECT_NAME}

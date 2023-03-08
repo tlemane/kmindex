@@ -20,9 +20,9 @@ pip install pykmindex
 pip install git+https://github.com/tlemane/kmindex.git#subdirectory=pykmindex
 ```
 
-## Usage
+## **Usage**
 
-### Connection
+### **Connection**
 
 ```py
 from pykmindex import connect
@@ -32,37 +32,62 @@ km_serv = connect("127.0.0.1", 8080)
 infos = km_serv.infos()
 ```
 
-### Query
+### **Query**
 
-#### Sync
-
-```py
-from pykmindex import Query
-
-q = Query(indexes=["index1", "index2"],
-          name="Q1",
-          seqs=["AGCAGTACTAACAA", "CAGCAGATACTCAAGAGCA"],
-          r=0.5
-          z=3)
-
-# res is a dictionnary corresponding to the json response
-res = km_serv.submit(q)
-```
-
-
-#### Async
+#### **Synchronous**
 
 ```py
 from Bio import SeqIO
-from pykmindex import QBatch
 
-batch = QBatch()
+from pykmindex import connect, Query
 
-indexes = ["index1", "index2"]
+km_serv = connect("127.0.0.1", 8080)
 
 for record in SeqIO.parse("query.fa", "fasta"):
-  batch.add(indexes=indexes, name=record.id, seqs=[record.seq], r=0.5, z=3)
-
-# res is dictionnary where query identifiers are associated to the json responses.
-res = km_serv.submit(batch)
+    res = km_serv.submit(Query(record.id,
+                               record.seq, # Can be a list of sequences
+                               "index_id", # Can be a list of sub-indexes to query
+                               0.0,        # Min ratio to report a result (optional, default 0.0)
+                               3))         # z value (optional, default 3)
+    print(res.id, res.result)
 ```
+
+#### **Asynchronous**
+
+!!! note "Using QBatch"
+    ```py
+    from Bio import SeqIO
+    from pykmindex import connect, QBatch
+
+    km_serv = connect("127.0.0.1", 8080)
+
+    batch = QBatch()
+
+    for record in SeqIO.parse("query.fa", "fasta"):
+        batch.add(record.id, record.seq, "index_id")
+
+    responses = km_serv.submit_async(batch)
+
+    for r in responses:
+        print(r.id, r.result)
+    ```
+
+!!! note "Using your own event loop"
+    ```py
+    import asyncio
+    from Bio import SeqIO
+    from pykmindex import connect, Query
+
+    km_serv = connect("127.0.0.1", 8080)
+
+    futures = []
+    for record in SeqIO.parse("query.fa", "fasta"):
+        futures.append(km_serv.async_query(Query(record.id, record.seq, "index_id")))
+
+    loop = asyncio.get_event_loop()
+    responses = loop.run_until_complete(asyncio.gather(*futures))
+
+    for r in responses:
+        print(r.id, r.result)
+    ```
+

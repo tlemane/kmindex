@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pykmindex"
-version = "0.2.1"
+version = "0.2.2"
 description = "Python API to query kmindex server."
 authors = [ "Teo Lemane <teo.lemane@proton.me>" ]
 maintainers = [ "Teo Lemane <teo.lemane@proton.me>" ]

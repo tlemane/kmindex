@@ -53,10 +53,15 @@
     * `--zvalue <INT>`: Usually in $[0,6]$, see [findere algorithm]().
     * `--threshold <FLOAT>`: Report only ratios > `threshold`, in $[0.0,1.0]$.
 
-**Example**
+**Example:** Querying sequence `1` and `2` from `query.fasta` against the presence/absence index $D1$.
+
 ```bash
-kmindex query --index ./G --fastx 1.fasta --names D1 --zvalue 3
+kmindex query --index ./G --fastx query.fasta --names D1 --zvalue 3 --threshold 0 # (1)!
 ```
+
+1. Several indexes can be queried at the same time by using `--names D1,D2,...`.
+
+The results are shared ratios between queries and each sample indexed in $D1$. See [Output formats](#output-formats).
 
 #### Output formats
 
@@ -75,7 +80,7 @@ kmindex query --index ./G --fastx 1.fasta --names D1 --zvalue 3
         }
     }
     ```
-!!! abstratc "TSV (`--format matrix`)"
+!!! abstract "TSV (`--format matrix`)"
     ```tsv
     D1     S1   S2
     D1:1  1.0  0.0

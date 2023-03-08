@@ -42,7 +42,13 @@ namespace kmq {
             infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), m_z, infos.bw(), &sh);
 
           for (auto& s : m_seq)
+          {
+            if (s.size() < (infos.smer_size() + m_z))
+              throw kmq_invalid_request(
+                  fmt::format(
+                    "Sequence too small: {}, min size is {}.", s.size(), infos.smer_size() + m_z));
             bq.add_query(m_name, s);
+          }
 
           for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
             ki.solve_one(bq, p);
@@ -131,12 +137,12 @@ namespace kmq {
         if (data.contains("r"))
         {
           if (!data["r"].is_number_float())
-            throw kmq_invalid_request("'r' should be a float in [0.0, 1.0]");
-
-          m_r = data["r"];
+            throw kmq_invalid_request(
+              fmt::format("'r' should be a float in [0.0, 1.0]"));
+          m_r = data["r"].get<double>();
           if (m_r < 0.0 || m_r > 1.0)
             throw kmq_invalid_request(
-              fmt::format("'r':'{}', should be in [0.0, 1.0]", data["r"]));
+              fmt::format("'r': {}, should be in [0.0, 1.0]", data["r"].get<double>()));
         }
 
         m_name = data["id"];

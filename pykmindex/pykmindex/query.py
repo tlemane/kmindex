@@ -54,11 +54,19 @@ class QBatch:
 
 class QResponse:
     def __init__(self, data) -> None:
-        self.index = {}
+        self.result = {}
+        self.err = ""
         self._from_json(data)
 
     def _from_json(self, data) -> None:
+        if "error" in data:
+            self.err = data["error"]
+            return
+
         self.id = list(data[list(data.keys())[0]].keys())[0]
         for k in data.keys():
             self.result[k] = data[k][self.id]
+
+    def __bool__(self) -> None:
+        return not bool(self.err)
 

@@ -35,12 +35,13 @@ class KmIndexServer:
 
     async def async_query(self, query: Query):
         response = await self._api_async.query(query.payload)
-        json = await response.json()
+        json = await response.json(content_type=None)
         return QResponse(json)
 
     def submit_async(self, queries: QBatch):
         futures = [self.async_query(q) for q in queries]
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         return loop.run_until_complete(asyncio.gather(*futures))
 
 

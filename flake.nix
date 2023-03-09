@@ -34,7 +34,7 @@
           version = "0.2.0";
           src = builtins.fetchGit {
             url = "https://github.com/tlemane/kmindex";
-            ref = "dev";
+            rev = "a75d57df57e492c2aa82598a66b15c1ff2920ec9";
             submodules = true;
           };
           nativeBuildInputs = kmindexBuildInputs;

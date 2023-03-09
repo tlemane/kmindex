@@ -15,14 +15,15 @@ RUN apt-get update \
     && apt-get clean
 
 RUN cd /home \
-    && mkdir kmindex
+    && mkdir kmindex \
     && cd kmindex \
-    && wget https://github.com/tlemane/kmindex/releases/download/${KMINDEX_VERSION}/kmindex-${KMINDEX_VERSION}-sources.tar.gz
+    && wget https://github.com/tlemane/kmindex/releases/download/${KMINDEX_VERSION}/kmindex-${KMINDEX_VERSION}-sources.tar.gz \
     && tar -xzvf kmindex-${KMINDEX_VERSION}-sources.tar.gz
 
 RUN cd /home \
     && cd kmindex \
-    && mkdir build \
+    && rm -rf build \
+    && mkdir -p build \
     && cd build \
     && cmake .. -DPORTABLE_BUILD=ON \
     && make -j8 && make install -p /bin

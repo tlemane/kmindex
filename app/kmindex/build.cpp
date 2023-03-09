@@ -94,7 +94,7 @@ namespace kmq {
     std::string bwidth_help =
       "Number of bits per cell. {2}\n"
       "                 - Abundances are indexed by log2 classes (nb classes = 2^{bitw})\n"
-      "                   For example, using --bwidth 3 resulting in the following classes:\n"
+      "                   For example, using --bitw 3 resulting in the following classes:\n"
       "                     0 -> 0\n"
       "                     1 -> [1,2) \n"
       "                     2 -> [2,4) \n"

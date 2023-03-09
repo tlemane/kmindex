@@ -95,7 +95,7 @@ kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --h
 ```
 
 1. Creates a directory `G` containing the index for the `D1` dataset
-2. Add the index for the `D2` dataset in the previously created `G`directory
+2. Add the index for the `D2` dataset in the previously created `G` directory
 
 
 ### **Abundance indexing**
@@ -114,12 +114,12 @@ As a result, a query response corresponds to an abundance class which is the ave
 
 **Examples**
 ```bash
-kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 2 # (3)!
-kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 4 # (4)!
+kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 2 # (1)!
+kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 4 # (2)!
 ```
 
-3. D1 is indexed using 4 abundance classes.
-4. D2 is indexed using 16 abundance classes.
+1. D1 is indexed using 4 abundance classes.
+2. D2 is indexed using 16 abundance classes.
 
 ## **About Bloom filter size**
 

@@ -1,0 +1,36 @@
+{% set version = "0.2.0" %}
+
+package:
+  name: kmindex
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/tlemane/kmindex
+  git_rev: v{{ version }}
+
+requirements:
+  build:
+    - {{ compiler('cxx' )}}
+    - make
+    - cmake
+
+  host:
+    - zlib
+    - xxhash
+    - spdlog =1.10.0
+    - fmt =8.1.1
+    - boost-cpp
+    - bzip2
+
+  run:
+    - kmtricks
+
+about:
+  home: https://github.com/tlemane/kmindex
+  license: AGPL-3.0;
+
+extra:
+  recipe-maintainers:
+    - tlemane
+
+

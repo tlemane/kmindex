@@ -89,6 +89,8 @@ In presence/absence mode, the index only contains the presence/absence pattern o
     * `--bloom-size`: Number of bits in Bloom filters.
 
 **Examples**
+
+The [kmindex](https://github.com/tlemane/kmindex) repository offers an `examples` directory where these commands can be tested. 
 ```bash
 kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --bloom-size 1000000 # (1)!
 kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --bloom-size 1000000 # (2)!
@@ -113,6 +115,7 @@ As a result, a query response corresponds to an abundance class which is the ave
     * `--bitw`: Number of bits per cell (nb classes = $2^{bitw}$).
 
 **Examples**
+
 ```bash
 kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 2 # (1)!
 kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --nb-cell 1000000 --bitw 4 # (2)!

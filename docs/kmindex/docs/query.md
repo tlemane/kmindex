@@ -53,7 +53,7 @@
     * `--zvalue <INT>`: Usually in $[0,6]$, see [findere algorithm]().
     * `--threshold <FLOAT>`: Report only ratios > `threshold`, in $[0.0,1.0]$.
 
-**Example:** Querying sequence `1` and `2` from `query.fasta` against the presence/absence index $D1$.
+**Example:** Querying sequence `1` and `2` from `query.fasta` against the presence/absence index $D1$. The [kmindex](https://github.com/tlemane/kmindex) repository offers an `examples` directory where these commands can be tested. 
 
 ```bash
 kmindex query --index ./G --fastx query.fasta --names D1 --zvalue 3 --threshold 0 # (1)!

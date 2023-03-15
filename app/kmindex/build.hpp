@@ -22,6 +22,7 @@ namespace kmq {
     std::size_t nb_partitions {0};
     std::size_t bw {2};
     bool no_check {false};
+    bool cpr {false};
   };
 
   using kmq_build_options_t = std::shared_ptr<struct kmq_build_options>;

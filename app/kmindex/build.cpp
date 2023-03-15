@@ -77,6 +77,10 @@ namespace kmq {
        ->checker(bc::check::is_number)
        ->setter(options->nb_partitions);
 
+    kg->add_param("--cpr", "Compress intermediate files.")
+      ->as_flag()
+      ->setter(options->cpr);
+
     auto bfm = cmd->add_group("presence/absence indexing", "");
     bfm->add_param("--bloom-size", "Bloom filter size.")
                ->def("")
@@ -173,7 +177,10 @@ namespace kmq {
 
 
     if (!opt->from.empty())
-      fmt_cmd += fmt::format("--repart-from {}", opt->from);
+      fmt_cmd += fmt::format("--repart-from {} ", opt->from);
+
+    if (opt->cpr)
+      fmt_cmd += "--cpr ";
 
     return fmt_cmd;
   }
@@ -213,6 +220,11 @@ namespace kmq {
                       kmindex_version.to_string(), min_kmv_required.to_string(), kmv.to_string()
           )
         );
+      }
+      if ((kmv < semver::version("1.4.0")) && options->cpr)
+      {
+        spdlog::warn("--cpr ignored. Requires kmtricks >= v1.4.0, found v{}.", kmv.to_string());
+        options->cpr = false;
       }
     }
 

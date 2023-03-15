@@ -107,6 +107,15 @@ namespace kmq {
        ->checker(bc::check::is_number)
        ->setter(options->batch_size);
 
+    cmd->add_param("-a/--aggregate", "Aggregate results from batches into one file.")
+       ->as_flag()
+       ->setter(options->aggregate);
+
+    cmd->add_param("--fast", "Allow the kernel to keep more pages in cache (see doc for details).")
+       ->as_flag()
+       ->setter(options->cache);
+
+
     add_common_options(cmd, options, true, 1);
 
     return options;
@@ -138,7 +147,7 @@ namespace kmq {
   {
     std::size_t nq = bq.size();
 
-    ki.solve(bq);
+    ki.solve_batch(bq);
 
     bq.free_smers();
 
@@ -162,7 +171,7 @@ namespace kmq {
       }
       agg.output(infos, output, opt->format, opt->single, opt->sk_threshold);
 
-      spdlog::info("batch_{} processed ({} sequences) dumped at {}/{}.{} ({})",
+      spdlog::debug("batch_{} processed ({} sequences) dumped at {}/{}.{} ({})",
           batch_id,
           nq,
           output,
@@ -177,7 +186,66 @@ namespace kmq {
 
       bq.free_responses();
 
-      spdlog::info("batch_{} processed ({} sequences) ({})", batch_id, nq, timer.formatted());
+      spdlog::debug("batch_{} processed ({} sequences) ({})", batch_id, nq, timer.formatted());
+    }
+  }
+
+  void merge_json(std::size_t n, const std::string& index_name, const std::string& output)
+  {
+    std::ofstream out(fmt::format("{}/{}.json", output, index_name), std::ios::out);
+
+    json data = json({});
+
+    for (std::size_t b = 0; b < n; ++b)
+    {
+      std::ifstream inf(fmt::format("{}/batch_{}/{}.json", output, b, index_name), std::ios::in);
+      auto jj = json::parse(inf);
+      data.merge_patch(jj);
+    }
+    out << std::setw(4) << data << std::endl;
+  }
+
+  void merge_tsv(std::size_t n, const std::string& index_name, const std::string& output)
+  {
+    std::ofstream out(fmt::format("{}/{}.tsv", output, index_name), std::ios::out);
+
+    bool first = true;
+    for (std::size_t b = 0; b < n; ++b)
+    {
+      std::string line;
+      std::ifstream inf(fmt::format("{}/batch_{}/{}.tsv", output, b, index_name), std::ios::in);
+
+      if (first)
+      {
+        std::getline(inf, line);
+        out << line << '\n';
+        first = false;
+      }
+      else
+      {
+        std::getline(inf, line);
+      }
+
+      while (std::getline(inf, line))
+      {
+        out << line << '\n';
+      }
+    }
+  }
+
+  void merge_results(const std::string& output, format f, const std::string& index_name)
+  {
+    auto it = fs::directory_iterator(output);
+    std::size_t n = std::distance(it, fs::directory_iterator{});
+
+    switch (f)
+    {
+      case format::json:
+        merge_json(n, index_name, output);
+        break;
+      case format::matrix:
+        merge_tsv(n, index_name, output);
+        break;
     }
   }
 
@@ -190,7 +258,7 @@ namespace kmq {
     index global(o->global_index_path);
 
     spdlog::info(
-      "Global index: '{}'", fs::absolute(o->global_index_path).parent_path().filename().string());
+      "Global index: '{}'", fs::absolute(o->global_index_path + "/").parent_path().filename().string());
 
     if (o->index_names.empty())
     {
@@ -215,7 +283,7 @@ namespace kmq {
 
       ThreadPool pool(opt->nb_threads);
 
-      kindex ki(infos);
+      kindex ki(infos, o->cache);
       smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
       std::atomic<std::size_t> batch_id = 0;
@@ -238,9 +306,7 @@ namespace kmq {
 
             bool end = false;
             std::size_t nq = 0;
-            std::size_t id = batch_id.load();
-
-            batch_id++;
+            std::size_t id = batch_id.fetch_add(1);
 
             while (!end)
             {
@@ -258,7 +324,7 @@ namespace kmq {
 
               if ((nq == opt->batch_size || end) && nq > 0)
               {
-                spdlog::info("process batch_{} ({} sequences)", id, nq);
+                spdlog::debug("process batch_{} ({} sequences)", id, nq);
                 solve_batch(bq, infos, ki, opt, id, timer, aggs);
                 break;
               }
@@ -279,8 +345,28 @@ namespace kmq {
       {
         spdlog::info("aggregate query results ({} sequences)", aggs.size());
         aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
-        spdlog::info("query '{}' processed, dumped at {}/{}.{}",
+        spdlog::info("query '{}' processed, results dumped at {}/{}.{}",
           o->single, o->output, infos.name(), o->format == format::json ? "json" : "tsv");
+      }
+      else
+      {
+        if (o->aggregate && ((o->batch_size > 0) || (o->nb_threads > 1)))
+        {
+          std::string ext = o->format == format::json ? "json" : "tsv";
+
+          merge_results(o->output, o->format, infos.name());
+
+          spdlog::info("Index '{}' processed, results dumped at {}/{}.{} ({}).",
+                       infos.name(),
+                       o->output,
+                       infos.name(),
+                       ext,
+                       timer.formatted());
+        }
+        else
+        {
+          spdlog::info("Index '{}' processed. ({})", infos.name(), timer.formatted());
+        }
       }
     }
     spdlog::info("Done ({}).", gtime.formatted());

@@ -33,7 +33,8 @@ namespace kmq {
     public:
 
       kindex();
-      kindex(const index_infos& i);
+      ~kindex();
+      kindex(const index_infos& i, bool cache = false);
 
       void init(std::size_t p);
       void unmap(std::size_t p);
@@ -44,7 +45,12 @@ namespace kmq {
 
       void solve(batch_query& bq)
       {
+        std::vector<std::size_t> order; order.reserve(m_infos.nb_partitions());
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
+          order.push_back(p);
+        std::random_shuffle(std::begin(order), std::begin(order));
+
+        for (auto const& p : order)
           solve_one(bq, p);
       }
 
@@ -64,11 +70,39 @@ namespace kmq {
         m_partitions[p] = nullptr;
       }
 
+      void solve_cache(batch_query& bq)
+      {
+        for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
+          solve_one_cache(bq, p);
+      }
+
+      void solve_one_cache(batch_query& bq, std::size_t p)
+      {
+        auto& smers = bq.partition(p);
+        auto& responses = bq.response();
+
+        std::sort(std::begin(smers), std::end(smers));
+
+        for (auto& [mer, qid] : smers)
+        {
+          m_partitions[p]->query(mer.h, responses[qid]->get(mer.i));
+        }
+      }
+
+      void solve_batch(batch_query& bq)
+      {
+        if (m_cache)
+          solve_cache(bq);
+        else
+          solve(bq);
+      }
+
       index_infos& infos();
     private:
       index_infos m_infos;
       std::vector<std::unique_ptr<partition>> m_partitions;
       std::vector<spinlock> m_mutexes;
+      bool m_cache {false};
   };
 }
 

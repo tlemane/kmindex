@@ -28,10 +28,29 @@ namespace kmq {
 
   kindex::kindex() {}
 
-  kindex::kindex(const index_infos& i)
-    : m_infos(i), m_mutexes(i.nb_partitions())
+  kindex::kindex(const index_infos& i, bool cache)
+    : m_infos(i), m_mutexes(i.nb_partitions()), m_cache(cache)
   {
     m_partitions.resize(m_infos.nb_partitions());
+
+    if (m_cache)
+    {
+      for (std::size_t p = 0; p < m_infos.nb_partitions(); ++p)
+      {
+        init(p);
+      }
+    }
+  }
+
+  kindex::~kindex()
+  {
+    if (m_cache)
+    {
+      for (std::size_t p = 0; p < m_infos.nb_partitions(); ++p)
+      {
+        unmap(p);
+      }
+    }
   }
 
   void kindex::init(std::size_t p)

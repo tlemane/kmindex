@@ -12,7 +12,7 @@ namespace kmq {
   {
     m_fd = open(matrix_path.c_str(), O_RDONLY);
     m_mapped = mio::mmap_source(m_fd, 0, mio::map_entire_file);
-    posix_madvise(&m_mapped[0], m_mapped.length(), POSIX_MADV_SEQUENTIAL);
+//    posix_madvise(&m_mapped[0], m_mapped.length(), POSIX_MADV_SEQUENTIAL);
   }
 
   partition::~partition()

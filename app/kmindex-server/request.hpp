@@ -141,7 +141,7 @@ namespace kmq {
 
         if (data.contains("r"))
         {
-          if (!data["r"].is_number_float())
+          if (!data["r"].is_number())
             throw kmq_invalid_request(
               fmt::format("'r' should be a float in [0.0, 1.0]"));
           m_r = data["r"].get<double>();

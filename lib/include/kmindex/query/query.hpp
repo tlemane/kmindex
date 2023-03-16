@@ -55,7 +55,6 @@ namespace kmq {
           m_z_size(z_size),
           m_width(width),
           m_hasher(hasher),
-          m_pmutexes(m_nb_parts),
           m_smers(m_nb_parts)
       {
       }
@@ -69,21 +68,16 @@ namespace kmq {
       void add_query(const std::string name,
                      const std::string& seq)
       {
-        std::uint32_t qid = insert(name, seq.size() - m_smer_size + 1);
+        std::size_t n = seq.size() - m_smer_size + 1;
 
-        std::vector<qpart_type> tmp(m_nb_parts);
+        m_responses.push_back(
+            std::make_unique<query_response>(std::move(name), n, m_nb_samples, m_width));
+
+        std::uint32_t qid = m_responses.size() - 1;
+
         for (auto& mer : smer_iterator(seq, m_smer_size, m_hasher))
         {
-          tmp[mer.p].emplace_back(mer, qid);
-          //m_smers[mer.p].emplace_back(mer, qid);
-        }
-
-        {
-          for (std::size_t p = 0; p < tmp.size(); ++p)
-          {
-            std::unique_lock<spinlock> _(m_pmutexes[p]);
-            m_smers[p].insert(std::end(m_smers[p]), std::begin(tmp[p]), std::end(tmp[p]));
-          }
+          m_smers[mer.p].emplace_back(mer, qid);
         }
       }
 
@@ -123,13 +117,6 @@ namespace kmq {
       }
 
     private:
-      std::uint32_t insert(const std::string& name, std::size_t nb_smers)
-      {
-        std::unique_lock<spinlock> _(m_mutex);
-        m_responses.push_back(
-            std::make_unique<query_response>(std::move(name), nb_smers, m_nb_samples, m_width));
-        return m_responses.size() - 1;
-      }
 
     private:
       std::size_t m_nb_samples {0};
@@ -139,9 +126,6 @@ namespace kmq {
       std::size_t m_width {0};
 
       smer_hasher* m_hasher {nullptr};
-
-      spinlock m_mutex;
-      std::vector<spinlock> m_pmutexes;
 
       std::vector<query_response_t> m_responses;
       std::vector<qpart_type> m_smers;

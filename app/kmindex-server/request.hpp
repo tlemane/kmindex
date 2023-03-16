@@ -11,6 +11,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "utils.hpp"
+
 using json = nlohmann::json;
 
 namespace kmq {
@@ -114,8 +116,11 @@ namespace kmq {
           throw kmq_invalid_request("'index' entry is missing.");
         if (!data.contains("id"))
           throw kmq_invalid_request("'id' entry is missing.");
-        if (!data.contains("seq"))
-          throw kmq_invalid_request("'seq' entry is missing.");
+        if (!data.contains("seq") && !data.contains("fastx"))
+          throw kmq_invalid_request("'seq' or 'fastx' should be specified.");
+        if (data.contains("seq") && data.contains("fastx"))
+          throw kmq_invalid_request("'seq' and 'fastx' are mutually exclusive.");
+
         if (!data.contains("z"))
           throw kmq_invalid_request("'z' entry is missing.");
 
@@ -150,8 +155,26 @@ namespace kmq {
         for (auto& i : data["index"])
           m_index.push_back(i);
 
-        for (auto& i : data["seq"])
-          m_seq.push_back(i);
+        if (data.contains("seq"))
+        {
+          for (auto& i : data["seq"])
+            m_seq.push_back(i);
+        }
+        else
+        {
+          klibpp::KSeq record;
+
+          std::string fastx_str = data["fastx"];
+
+          string_iterator_wrapper it(fastx_str);
+          SeqStreamString iss(&it);
+
+          while (iss >> record)
+          {
+            spdlog::info(record.seq);
+            m_seq.emplace_back(std::move(record.seq));
+          }
+        }
 
         m_z = data["z"];
       }

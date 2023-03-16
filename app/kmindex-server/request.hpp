@@ -171,7 +171,6 @@ namespace kmq {
 
           while (iss >> record)
           {
-            spdlog::info(record.seq);
             m_seq.emplace_back(std::move(record.seq));
           }
         }

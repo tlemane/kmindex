@@ -2,7 +2,7 @@ FROM ubuntu:jammy
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV KMINDEX_VERSION v0.2.0
+ENV KMINDEX_VERSION v0.3.0
 
 ENV BUILD_INPUTS git cmake gcc g++ zlib1g zlib1g-dev libboost-all-dev make \
                  libspdlog-dev libspdlog1 bzip2 lbzip2 xxhash ca-certificates libbz2-dev
@@ -34,7 +34,7 @@ WORKDIR /tmp
 
 ENTRYPOINT ["kmindex"]
 
-LABEL version="0.2.0"
+LABEL version="0.3.0"
 LABEL description="kmindex"
 LABEL author="Teo Lemane"
 

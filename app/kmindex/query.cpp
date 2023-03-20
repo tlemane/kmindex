@@ -111,7 +111,7 @@ namespace kmq {
        ->as_flag()
        ->setter(options->aggregate);
 
-    cmd->add_param("--fast", "Allow the kernel to keep more pages in cache (see doc for details).")
+    cmd->add_param("--fast", "Keep more pages in cache (see doc for details).")
        ->as_flag()
        ->setter(options->cache);
 

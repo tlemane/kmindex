@@ -1,5 +1,8 @@
 # kmindex installation
 
+!!! note
+    **kmindex** is currently only available on GNU/Linux systems.
+
 ## **Conda** [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)
 
 ```bash

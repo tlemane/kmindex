@@ -6,7 +6,7 @@
 
 !!! tip "Options"
     ```
-    kmindex query v0.2.0
+    kmindex query v0.3.0
 
     DESCRIPTION
       Query index.
@@ -15,7 +15,7 @@
       kmindex query -i/--index <STR> -q/--fastx <STR> [-n/--names <STR>] [-z/--zvalue <INT>]
                     [-r/--threshold <FLOAT>] [-o/--output <STR>] [-s/--single-query <STR>]
                     [-f/--format <STR>] [-b/--batch-size <INT>] [-t/--threads <INT>]
-                    [-v/--verbose <STR>] [-h/--help] [--version]
+                    [-v/--verbose <STR>] [-a/--aggregate] [--fast] [-h/--help] [--version]
 
     OPTIONS
       [global]
@@ -28,6 +28,8 @@
         -s --single-query - Query identifier. All sequences are considered as a unique query.
         -f --format       - Output format [json|matrix] {json}
         -b --batch-size   - Size of query batches (0≈nb_seq/nb_thread). {0}
+        -a --aggregate    - Aggregate results from batches into one file. [⚑]
+           --fast         - Keep more pages in cache (see doc for details). [⚑]
 
       [common]
         -t --threads - Number of threads. {1}
@@ -53,7 +55,7 @@
     * `--zvalue <INT>`: Usually in $[0,6]$, see [findere algorithm]().
     * `--threshold <FLOAT>`: Report only ratios > `threshold`, in $[0.0,1.0]$.
 
-**Example:** Querying sequence `1` and `2` from `query.fasta` against the presence/absence index $D1$. The [kmindex](https://github.com/tlemane/kmindex) repository offers an `examples` directory where these commands can be tested. 
+**Example:** Querying sequence `1` and `2` from `query.fasta` against the presence/absence index $D1$. The [kmindex](https://github.com/tlemane/kmindex) repository offers an `examples` directory where these commands can be tested.
 
 ```bash
 kmindex query --index ./G --fastx query.fasta --names D1 --zvalue 3 --threshold 0 # (1)!

@@ -51,10 +51,13 @@ curl -X GET http://127.0.0.1:8080/kmindex/infos
 !!! note "json body"
     * `index`: An array of strings corresponding to the indexes to query.
     * `id`: A string used as query identifier.
-    * `seq`: An array of strings corresponding to the sequences to query. All sequences are considered as a unique query (same as `kmindex query --single-query <STR>`)
+    * `seq`: An array of strings corresponding to the sequences to query. All sequences are considered as a unique query (same as `kmindex query --single-query <STR>`).
+    * `fastx`: A string containing sequences in fasta/q format.
     * `format`: A string in ["json", "tsv"] corresponding to the output format.
     * `z`: The z parameter, see [z help](query.md#about-the-z-parameter) (default: 0).
     * `r`: A float in $[0,1]$, all ratios greater than `r` are reported (default: 0).
+
+`seq` and `fastx` are mutually exclusive.
 
 **Request**
 

@@ -48,7 +48,7 @@ namespace kmq {
         std::vector<std::size_t> order; order.reserve(m_infos.nb_partitions());
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
           order.push_back(p);
-        std::random_shuffle(std::begin(order), std::begin(order));
+        std::random_shuffle(std::begin(order), std::end(order));
 
         for (auto const& p : order)
           solve_one(bq, p);
@@ -72,7 +72,12 @@ namespace kmq {
 
       void solve_cache(batch_query& bq)
       {
+        std::vector<std::size_t> order; order.reserve(m_infos.nb_partitions());
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
+          order.push_back(p);
+        std::random_shuffle(std::begin(order), std::end(order));
+
+        for (auto const& p : order)
           solve_one_cache(bq, p);
       }
 
@@ -83,6 +88,7 @@ namespace kmq {
 
         std::sort(std::begin(smers), std::end(smers));
 
+        std::unique_lock<spinlock> lock(m_mutexes[p]);
         for (auto& [mer, qid] : smers)
         {
           m_partitions[p]->query(mer.h, responses[qid]->get(mer.i));

@@ -14,7 +14,7 @@ namespace kmq {
   {
     public:
 
-      query_result(query_response_t&& qr, std::size_t z, const index_infos& info);
+      query_result(query_response_t&& qr, std::size_t z, const index_infos& info, bool pos = false);
 
     public:
 
@@ -22,11 +22,17 @@ namespace kmq {
 
       void compute_abs();
 
+      void compute_ratios_pos();
+
+      void compute_abs_pos();
+
       std::size_t nbk() const;
 
       const std::vector<std::uint32_t>& counts() const;
 
       const std::vector<double>& ratios() const;
+
+      const std::vector<std::vector<std::uint8_t>>& positions() const;
 
       const std::string& name() const;
 
@@ -35,6 +41,7 @@ namespace kmq {
     private:
       std::vector<double> m_ratios;
       std::vector<std::uint32_t> m_counts;
+      std::vector<std::vector<std::uint8_t>> m_positions;
       query_response_t m_qr;
       std::size_t m_z;
       const index_infos& m_infos;

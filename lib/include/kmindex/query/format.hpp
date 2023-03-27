@@ -17,7 +17,8 @@ namespace kmq {
   enum class format
   {
     matrix,
-    json
+    json,
+    json_with_positions
   };
 
   enum format str_to_format(const std::string& f);
@@ -99,6 +100,22 @@ namespace kmq {
       json m_json;
   };
 
+  class json_wp_formatter : public json_formatter
+  {
+    public:
+      json_wp_formatter(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
   class matrix_formatter_abs : public matrix_formatter
   {
     public:
@@ -130,6 +147,23 @@ namespace kmq {
                                 const std::vector<query_result>& responses,
                                 std::ostream& os) override;
   };
+
+  class json_wp_formatter_abs : public json_formatter
+  {
+    public:
+      json_wp_formatter_abs(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
 
   query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw = 1);
 }

@@ -9,7 +9,9 @@ namespace kmq {
   {
     if (f == "matrix")
       return format::matrix;
-    return format::json;
+    else if (f == "json")
+      return format::json;
+    return format::json_with_positions;
   }
 
   query_formatter_base::query_formatter_base(double threshold)
@@ -121,6 +123,63 @@ namespace kmq {
     }
   }
 
+  json_wp_formatter::json_wp_formatter(double threshold)
+    : json_formatter(threshold)
+  {
+    m_json = json({});
+  }
+
+  void json_wp_formatter::format(const index_infos& infos,
+                              const query_result& response,
+                              std::ostream& os)
+  {
+    m_os = &os;
+    m_json[infos.name()][response.name()] = json({});
+
+    auto& j = m_json[infos.name()][response.name()];
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      if (response.ratios()[i] >= this->m_threshold)
+      {
+        auto jj = json({});
+        jj["R"] = response.ratios()[i];
+        jj["P"] = response.positions()[i];
+        j[infos.samples()[i]] = std::move(jj);
+      }
+    }
+  }
+
+  void json_wp_formatter::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
+  {
+    m_os = &os;
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::size_t nbk = this->aggregate(responses, global);
+
+    m_json[infos.name()] = json({});
+    m_json[infos.name()][name] = json({});
+
+    auto& j = m_json[infos.name()][name];
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      double v = global[i] / static_cast<double>(nbk);
+      if (v >= this->m_threshold)
+      {
+        auto jj = json::array({});
+        for (auto& r : responses)
+        {
+          jj.push_back(r.positions()[i]);
+        }
+        j[infos.samples()[i]]["R"] = v;
+        j[infos.samples()[i]]["P"] = std::move(jj);
+
+      }
+    }
+  }
+
   void json_formatter::merge_format(const index_infos& infos,
                                     const std::string& name,
                                     const std::vector<query_result>& responses,
@@ -219,6 +278,56 @@ namespace kmq {
     }
   }
 
+  json_wp_formatter_abs::json_wp_formatter_abs(double threshold)
+    : json_formatter(threshold)
+  {
+
+  }
+
+  void json_wp_formatter_abs::format(const index_infos& infos,
+                                  const query_result& response,
+                                  std::ostream& os)
+  {
+    m_os = &os;
+    m_json[infos.name()][response.name()] = json({});
+
+    auto& j = m_json[infos.name()][response.name()];
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      auto jj = json({});
+      jj["C"] = response.counts()[i];
+      jj["P"] = response.positions()[i];
+      j[infos.samples()[i]] = std::move(jj);
+    }
+  }
+
+  void json_wp_formatter_abs::merge_format(const index_infos& infos,
+                                        const std::string& name,
+                                        const std::vector<query_result>& responses,
+                                        std::ostream& os)
+  {
+    m_os = &os;
+    m_json[infos.name()][name] = json({});
+
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+
+    std::size_t nbq = this->aggregate_c(responses, global);
+
+    auto& j = m_json[infos.name()][name];
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      auto jj = json::array({});
+      for (auto& r : responses)
+      {
+        jj.push_back(r.positions()[i]);
+      }
+
+      j[infos.samples()[i]]["C"] = global[i] / nbq;
+      j[infos.samples()[i]]["P"] = std::move(jj);
+    }
+  }
+
   query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw)
   {
     switch (f)
@@ -229,6 +338,12 @@ namespace kmq {
       case format::json:
         return bw == 1 ? std::make_shared<json_formatter>(threshold)
                        : std::make_shared<json_formatter_abs>(threshold);
+      case format::json_with_positions:
+        if (bw == 1)
+          return std::make_shared<json_wp_formatter>(threshold);
+        else
+          std::make_shared<json_wp_formatter_abs>(threshold);
+
     }
 
     return nullptr;

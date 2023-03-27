@@ -18,7 +18,7 @@ Given a databank $D = \{S_1, ..., S_n\}$, with each $S_i$ being any genomic data
 
 1. Index a dataset:
 ```bash
-kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D --hard-min --kmer-size 25 --nb-cell 1000000 
+kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D --hard-min 2 --kmer-size 25 --nb-cell 1000000 
 ```
 
 2. Query the index:

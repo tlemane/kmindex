@@ -155,10 +155,8 @@ namespace kmq {
     if (opt->single.empty())
     {
       query_result_agg agg;
-      spdlog::info("AAAA");
       for (auto&& r : bq.response())
         agg.add(query_result(std::move(r), opt->z, infos, wpos));
-      spdlog::info("BBBB");
 
       bq.free_responses();
 

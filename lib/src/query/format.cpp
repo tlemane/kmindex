@@ -342,7 +342,7 @@ namespace kmq {
         if (bw == 1)
           return std::make_shared<json_wp_formatter>(threshold);
         else
-          std::make_shared<json_wp_formatter_abs>(threshold);
+          return std::make_shared<json_wp_formatter_abs>(threshold);
 
     }
 

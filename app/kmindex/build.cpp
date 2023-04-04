@@ -147,6 +147,7 @@ namespace kmq {
     opt->bloom_size = infos.bloom_size();
     opt->kmer_size = infos.smer_size();
     opt->minim_size = infos.minim_size();
+    opt->from = fmt::format("{}/{}", global.path(), opt->from);
   }
 
   std::string get_kmtricks_cmd(kmq_build_options_t opt)

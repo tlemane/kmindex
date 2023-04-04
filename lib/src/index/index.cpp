@@ -1,5 +1,5 @@
 #include <map>
-
+#include <unistd.h>
 #include <kmindex/index/index.hpp>
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/exceptions.hpp>
@@ -36,6 +36,16 @@ namespace kmq {
     if (m_indexes.count(name))
       throw std::runtime_error(fmt::format("'{}' already exists.", name));
     m_indexes[name] = index_infos(name, fs::absolute(km_path).string());
+  }
+
+  void index::remove_index(const std::string& name)
+  {
+    if (m_indexes.count(name))
+    {
+      m_indexes.erase(name);
+      std::string p = fmt::format("{}/{}", m_index_path, name);
+      ::unlink(p.c_str());
+    }
   }
 
   void index::save() const

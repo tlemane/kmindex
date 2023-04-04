@@ -17,7 +17,7 @@ namespace kmq {
     kmq_build_cli(m_cli_parser, m_kmq_build_opt);
     kmq_register_cli(m_cli_parser, m_kmq_register_opt);
     kmq_query_cli(m_cli_parser, m_kmq_query_opt);
-    //kmq_merge_cli(m_cli_parser, m_kmq_merge_opt);
+    kmq_merge_cli(m_cli_parser, m_kmq_merge_opt);
     kmq_infos_cli(m_cli_parser, m_kmq_infos_opt);
   }
 

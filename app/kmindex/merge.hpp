@@ -4,22 +4,18 @@
 #include <vector>
 #include <string>
 
+#include <kmindex/index/merge.hpp>
+
 #include "common.hpp"
 
 namespace kmq {
-
-  enum class rename_mode : std::uint8_t
-  {
-    file,
-    format,
-    none
-  };
 
   struct kmq_merge_options : kmq_options
   {
     std::vector<std::string> to_merge;
     std::string name;
     bool remove {false};
+    std::string new_path;
 
     std::string rename;
     rename_mode mode {rename_mode::none};

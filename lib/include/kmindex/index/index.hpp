@@ -20,6 +20,8 @@ namespace kmq {
       index(const std::string& index_path);
 
       void add_index(const std::string& name, const std::string& km_path);
+      void remove_index(const std::string& name);
+
       void save() const;
 
       iterator begin();
@@ -32,6 +34,7 @@ namespace kmq {
 
       std::vector<std::vector<std::string>> mergeable() const;
 
+      const std::string& path() const { return m_index_path; }
     private:
       void init(const std::string& ipath);
 

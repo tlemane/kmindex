@@ -9,7 +9,7 @@
 
 !!! tip "Options"
     ```
-    kmindex build v0.3.0
+    kmindex build v0.4.0
 
     DESCRIPTION
       Build index.
@@ -62,6 +62,10 @@
            --version - Show version and exit. [⚑]
         -v --verbose - Verbosity level [debug|info|warning|error]. {info}
     ```
+
+!!! note "`--from <STR>`"
+    Indexes build using parameters from a pre-registered index can be merged. See [`kmindex merge`](merge.md).
+
 
 ### **Input file format**
 

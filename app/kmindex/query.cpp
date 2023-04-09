@@ -95,10 +95,10 @@ namespace kmq {
       options->format = str_to_format(v);
     };
 
-    cmd->add_param("-f/--format", "Output format [json|matrix|json_pos]")
+    cmd->add_param("-f/--format", "Output format [json|matrix|json_vec]")
        ->meta("STR")
        ->def("json")
-       ->checker(bc::check::f::in("json|matrix|json_pos"))
+       ->checker(bc::check::f::in("json|matrix|json_vec"))
        ->setter_c(format_setter);
 
     cmd->add_param("-b/--batch-size", "Size of query batches (0≈nb_seq/nb_thread).")

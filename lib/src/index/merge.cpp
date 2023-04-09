@@ -1,4 +1,6 @@
 #include <kmindex/index/merge.hpp>
+#include <bitpacker/bitpacker.hpp>
+#include <nonstd/span.hpp>
 
 namespace kmq {
 
@@ -118,8 +120,7 @@ namespace kmq {
 
     m_index->add_index(m_new_name, m_new_path);
     m_index->save();
-    
-    //remove_old();
+    remove_old();
   }
 
   void index_merger::zero(std::size_t p) const
@@ -198,7 +199,7 @@ namespace kmq {
     m_buffer[p].resize((m_nb_samples + 7) / 8, 0);
 
     auto& buf = m_buffer[p];
-    
+   
     for (std::size_t i = 0; i < m_psize; ++i)
     {
       std::size_t bytes_per_line = (partitions[0].second + 7) / 8;
@@ -227,8 +228,6 @@ namespace kmq {
           }
           ++current;
         }
-        
-        //current += p_.second;
       }
       out.write(reinterpret_cast<char*>(buf.data()), buf.size());
       zero(p);
@@ -243,7 +242,6 @@ namespace kmq {
 
     for (std::size_t p = 0; p < m_nb_parts; ++p)
     {
-      //merge_one(p);
       pool.add_task([this, p](int i){
         unused(i);
         this->merge_one(p);
@@ -251,9 +249,137 @@ namespace kmq {
     }
 
     pool.join_all();
-
-    
   }
+
+  index_merger_abs::index_merger_abs(index* gindex,
+                                   const std::vector<std::string>& to_merge,
+                                   const std::string& new_path,
+                                   const std::string& new_name,
+                                   rename_mode mode,
+                                   bool rm,
+                                   std::size_t bw)
+    : index_merger(gindex, to_merge, new_path, new_name, mode, bw, rm)
+  {
+
+  }
+
+
+  void index_merger_abs::merge_one(std::size_t p) const
+  {
+    std::vector<std::pair<mio::mmap_source, std::size_t>> partitions;
+    partitions.reserve(m_to_merge.size());
+
+    for (auto& sub_name : m_to_merge)
+    {
+      auto& sub_index = m_index->get(sub_name);
+
+      std::string index_path = fmt::format("{}/{}", m_index->path(), sub_name);
+      partitions.push_back(
+        std::make_pair(
+          mio::mmap_source(fmt::format("{}/matrices/matrix_{}.cmbf", index_path, p), 49),
+          sub_index.nb_samples()
+        )
+      );
+    }
+
+    std::ofstream out(fmt::format("{}/matrices/matrix_{}.cmbf", m_new_path, p));
+
+    { 
+      std::uint64_t km_magic;
+      std::uint32_t km_version;
+      bool km_compress;
+
+      std::uint64_t km_matrix_magic;
+      std::uint32_t km_bits;
+      std::uint32_t km_id;
+      std::uint32_t km_part;
+      std::uint64_t km_first;
+      std::uint64_t km_window;
+
+      std::string index_path = fmt::format("{}/{}", m_index->path(), m_to_merge[0]);
+      std::ifstream inf(fmt::format("{}/matrices/matrix_{}.cmbf", index_path, p), std::ios::binary);
+
+      inf.read(reinterpret_cast<char*>(&km_magic), sizeof(km_magic));
+      inf.read(reinterpret_cast<char*>(&km_version), sizeof(km_version));
+      inf.read(reinterpret_cast<char*>(&km_compress), sizeof(km_compress));
+      inf.read(reinterpret_cast<char*>(&km_matrix_magic), sizeof(km_matrix_magic));
+      inf.read(reinterpret_cast<char*>(&km_bits), sizeof(km_bits));
+      inf.read(reinterpret_cast<char*>(&km_id), sizeof(km_id));
+      inf.read(reinterpret_cast<char*>(&km_part), sizeof(km_part));
+      inf.read(reinterpret_cast<char*>(&km_first), sizeof(km_first));
+      inf.read(reinterpret_cast<char*>(&km_window), sizeof(km_window));
+
+      out.write(reinterpret_cast<char*>(&km_magic), sizeof(km_magic));
+      out.write(reinterpret_cast<char*>(&km_version), sizeof(km_version));
+      out.write(reinterpret_cast<char*>(&km_compress), sizeof(km_compress));
+      out.write(reinterpret_cast<char*>(&km_matrix_magic), sizeof(km_matrix_magic));
+      out.write(reinterpret_cast<char*>(&km_bits), sizeof(km_bits));
+      out.write(reinterpret_cast<char*>(&km_id), sizeof(km_id));
+      out.write(reinterpret_cast<char*>(&km_part), sizeof(km_part));
+      out.write(reinterpret_cast<char*>(&km_first), sizeof(km_first));
+      out.write(reinterpret_cast<char*>(&km_window), sizeof(km_window));
+    }
+
+    m_buffer[p].resize(((m_nb_samples * m_bw) + 7) / 8, 0);
+
+    auto& buf = m_buffer[p];
+   
+    for (std::size_t i = 0; i < m_psize; ++i)
+    {
+      std::size_t bytes_per_line = ((partitions[0].second * m_bw) + 7) / 8;
+      std::size_t bits_per_line = bytes_per_line * 8;
+      
+      std::memcpy(
+        &buf[0],
+        partitions[0].first.begin() + (bytes_per_line * i),
+        bytes_per_line
+      );
+      
+      std::size_t current = partitions[0].second * m_bw;
+
+      for (std::size_t j = 1; j < partitions.size(); ++j)
+      {
+        auto& p_ = partitions[j];
+
+        bytes_per_line = ((p_.second * m_bw) + 7) / 8;
+        bits_per_line = bytes_per_line * 8;
+
+        auto s = nonstd::span<const std::uint8_t>(
+            reinterpret_cast<std::uint8_t*>(&p_.first[0]), bytes_per_line * m_psize);
+        for (std::size_t k = 0; k < p_.second; ++k)
+        {
+          bitpacker::insert(
+            buf,
+            current,
+            m_bw,
+            bitpacker::extract<std::uint8_t>(s, (k * m_bw) + bits_per_line * i, m_bw)
+          );
+
+          current += m_bw;
+        }
+      }
+      out.write(reinterpret_cast<char*>(buf.data()), buf.size());
+      zero(p);
+    }
+
+    remove_old(p);
+  }
+
+  void index_merger_abs::merge(ThreadPool& pool) const
+  {
+    copy_trees();
+
+    for (std::size_t p = 0; p < m_nb_parts; ++p)
+    {
+      pool.add_task([this, p](int i){
+        unused(i);
+        this->merge_one(p);
+      });
+    }
+
+    pool.join_all();
+  }
+
 
   index_merger_t make_merger(index* gindex,
                              const std::vector<std::string>& to_merge,
@@ -261,13 +387,16 @@ namespace kmq {
                              const std::string& new_name,
                              rename_mode mode,
                              bool rm,
-                             bool pa)
+                             std::size_t bw)
   {
-    if (pa)
+    if (bw == 1)
       return std::make_shared<index_merger_pa>(
         gindex, to_merge, new_path, new_name, mode, rm
       );
-    return nullptr;
+    else
+      return std::make_shared<index_merger_abs>(
+        gindex, to_merge, new_path, new_name, mode, rm, bw
+      );
   }
 
 

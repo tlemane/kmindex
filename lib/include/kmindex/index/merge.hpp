@@ -73,13 +73,28 @@ namespace kmq {
       void merge(ThreadPool& pool) const override final;
   };
 
+  class index_merger_abs : public index_merger
+  {
+    public:
+      index_merger_abs(index* gindex,
+                       const std::vector<std::string>& to_merge,
+                       const std::string& new_path,
+                       const std::string& new_name,
+                       rename_mode mode,
+                       bool rm,
+                       std::size_t bw);
+
+      void merge_one(std::size_t p) const override final;
+      void merge(ThreadPool& pool) const override final;
+  };
+
   index_merger_t make_merger(index* gindex,
                              const std::vector<std::string>& to_merge,
                              const std::string& new_path,
                              const std::string& new_name,
                              rename_mode mode,
                              bool rm,
-                             bool pa);
+                             std::size_t bw);
 
 
 

@@ -14,6 +14,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends wget ${BUILD_INPUTS} \
     && apt-get clean
 
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-linux-x86_64.tar.gz \
+    && tar -xzvf cmake-3.26.4-linux-x86_64.tar.gz
+
 RUN cd /home \
     && mkdir kmindex \
     && cd kmindex \
@@ -25,16 +28,17 @@ RUN cd /home \
     && rm -rf build \
     && mkdir -p build \
     && cd build \
-    && cmake .. -DPORTABLE_BUILD=ON \
+    && /home/cmake-3.26.4-linux-x86_64/bin/cmake .. -DPORTABLE_BUILD=ON \
     && make -j8 && make install -p /bin
 
-RUN rm -rf /home/kmindex
+RUN rm -rf /home/kmindex /home/cmake-3.26.4-linux-x86_64*
+
 
 WORKDIR /tmp
 
 ENTRYPOINT ["kmindex"]
 
-LABEL version="0.3.0"
+LABEL version="0.5.0"
 LABEL description="kmindex"
 LABEL author="Teo Lemane"
 

@@ -8,7 +8,7 @@ The server can be started using the *kmindex-server* binary, see options below.
 !!! note "Options"
 
     ```
-    kmindex-server v0.3.0
+    kmindex-server v0.5.0
 
     DESCRIPTION
       kmindex-server allows to perform queries via POST requests.

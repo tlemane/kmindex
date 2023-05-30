@@ -6,31 +6,31 @@
 
 !!! tip "Options"
     ```
-    kmindex query v0.4.0
-    
+    kmindex query v0.5.0
+
     DESCRIPTION
       Query index.
-    
+
     USAGE
-      kmindex query -i/--index <STR> -q/--fastx <STR> [-n/--names <STR>] [-z/--zvalue <INT>] 
-                    [-r/--threshold <FLOAT>] [-o/--output <STR>] [-s/--single-query <STR>] 
-                    [-f/--format <STR>] [-b/--batch-size <INT>] [-t/--threads <INT>] 
-                    [-v/--verbose <STR>] [-a/--aggregate] [--fast] [-h/--help] [--version] 
-    
+      kmindex query -i/--index <STR> -q/--fastx <STR> [-n/--names <STR>] [-z/--zvalue <INT>]
+                    [-r/--threshold <FLOAT>] [-o/--output <STR>] [-s/--single-query <STR>]
+                    [-f/--format <STR>] [-b/--batch-size <INT>] [-t/--threads <INT>]
+                    [-v/--verbose <STR>] [-a/--aggregate] [--fast] [-h/--help] [--version]
+
     OPTIONS
       [global]
-        -i --index        - Global index path. 
+        -i --index        - Global index path.
         -n --names        - Sub-indexes to query, comma separated. {all}
         -z --zvalue       - Index s-mers and query (s+z)-mers (findere algorithm). {0}
         -r --threshold    - Shared k-mers threshold. in [0.0, 1.0] {0.0}
         -o --output       - Output directory. {output}
-        -q --fastx        - Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query. 
-        -s --single-query - Query identifier. All sequences are considered as a unique query. 
+        -q --fastx        - Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query.
+        -s --single-query - Query identifier. All sequences are considered as a unique query.
         -f --format       - Output format [json|matrix|json_vec] {json}
         -b --batch-size   - Size of query batches (0≈nb_seq/nb_thread). {0}
         -a --aggregate    - Aggregate results from batches into one file. [⚑]
            --fast         - Keep more pages in cache (see doc for details). [⚑]
-    
+
       [common]
         -t --threads - Number of threads. {1}
         -h --help    - Show this message and exit. [⚑]

@@ -52,14 +52,15 @@ cd kmindex && ./install.sh # (2)!
 
 !!! tip "`install.sh`"
     ```
-    kmindex build script.
+    kmindex build script - v0.5.0.
     Usage:
-      ./install.sh [-r str] [-t int] [-j int] [-p str] [-n] [-h]
+      ./install.sh [-r str] [-t int] [-j int] [-p str] [-k int] [-n] [-h]
     Options:
       -r <Release|Debug> -> build type {Release}.
-      -t <0|1|2>         -> tests: 0 = disabled, 1 = compile, 2 = compile and run {2}.
+      -t <0|1|2>         -> tests: 0 = disabled, 1 = compile, 2 = compile and run {0}.
       -j <INT>           -> nb threads {8}.
-      -n                 -> portable x86-64 build {disable}.
+      -k <INT>           -> Max k-mer size (should be a multiple of 32) {256}
+      -n                 -> portable x86-64 build {disabled}.
       -p                 -> install path {./kmindex_install}
       -h                 -> show help.
     ```

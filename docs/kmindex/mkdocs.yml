@@ -6,6 +6,7 @@ nav:
     - 'Installation': 'installation.md'
     - 'Index construction': 'construction.md'
     - 'Index query': 'query.md'
+    - 'Index merge': 'merge.md'
   - 'Server':
     - 'Deploy': 'server-deploy.md'
     - 'Query': 'server-query.md'

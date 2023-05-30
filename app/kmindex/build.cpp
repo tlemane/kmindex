@@ -54,7 +54,7 @@ namespace kmq {
       ->setter(options->km_path);
 
     auto kg = cmd->add_group("kmtricks parameters", "See kmtricks pipeline --help");
-    kg->add_param("-k/--kmer-size", "Size of a k-mer. in [8, 31]")
+    kg->add_param("-k/--kmer-size", fmt::format("Size of a k-mer. in [8, {}])", MAX_KMER_SIZE - 1))
        ->def("31")
        ->meta("INT")
        ->checker(bc::check::f::range(8, MAX_KMER_SIZE - 1))

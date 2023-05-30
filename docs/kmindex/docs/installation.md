@@ -29,7 +29,7 @@ docker pull tlemane/kmindex
 
 Portable binary releases are available at [kmindex/releases](https://github.com/tlemane/kmindex/releases).
 
-[Download latest release](https://github.com/tlemane/kmindex/releases/latest/download/kmindex-v0.1.0-bin-Linux.tar.gz){ .md-button .md-button--primary }
+[Download latest release](https://github.com/tlemane/kmindex/releases/latest/download/kmindex-v0.5.0-bin-Linux.tar.gz){ .md-button .md-button--primary }
 
 ## **Install from sources**
 

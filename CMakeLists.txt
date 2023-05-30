@@ -12,7 +12,7 @@ option(WITH_TESTS "Compile tests" OFF)
 option(STATIC_BUILD "Static build" OFF)
 
 if (NOT MAX_KMER_SIZE)
-  set(MAX_KMER_SIZE 32)
+  set(MAX_KMER_SIZE 256)
 else()
   math(EXPR RESULT "(${MAX_KMER_SIZE} % 32)")
   if (${RESULT})

@@ -57,7 +57,7 @@ namespace kmq {
     kg->add_param("-k/--kmer-size", "Size of a k-mer. in [8, 31]")
        ->def("31")
        ->meta("INT")
-       ->checker(bc::check::f::range(8, 31))
+       ->checker(bc::check::f::range(8, MAX_KMER_SIZE - 1))
        ->setter(options->kmer_size);
 
     kg->add_param("-m/--minim-size", "Size of minimizers. in [4, 15]")
@@ -147,6 +147,8 @@ namespace kmq {
     opt->bloom_size = infos.bloom_size();
     opt->kmer_size = infos.smer_size();
     opt->minim_size = infos.minim_size();
+    opt->nb_partitions = infos.nb_partitions();
+    opt->bw = infos.bw();
     opt->from = fmt::format("{}/{}", global.path(), opt->from);
   }
 
@@ -230,7 +232,10 @@ namespace kmq {
     }
 
     if (!options->bloom_size && !options->nb_cell)
-      throw kmq_error("--bloom-size or --nb-cell must be provided.");
+    {
+      if (options->from.empty())
+        throw kmq_error("--bloom-size or --nb-cell must be provided.");
+    }
 
     if (options->bloom_size && options->nb_cell)
       throw kmq_error("--bloom-size and --nb-cell are mutually exclusive. Use --bloom-size for presence/absence indexing OR --nb-cell for log abundance indexing.");

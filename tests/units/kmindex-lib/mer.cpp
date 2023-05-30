@@ -38,10 +38,10 @@ TEST(kmindex_lib_mer, smer_iterator)
   EXPECT_EQ(infos.smer_size(), 25);
   EXPECT_EQ(infos.bw(), 1);
 
-  kmq::smer_hasher hh(r, h, infos.minim_size());
+  kmq::smer_hasher<32> hh(r, h, infos.minim_size());
 
   std::vector<kmq::smer> smers;
-  for (auto& e : kmq::smer_iterator(seq, infos.smer_size(), &hh))
+  for (auto& e : kmq::smer_iterator(seq, infos.smer_size(), hh))
     smers.push_back(e);
 
   EXPECT_EQ(smers.size(), parts.size());

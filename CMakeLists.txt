@@ -11,6 +11,17 @@ option(WITH_SERVER "Compile kmindex-server" ON)
 option(WITH_TESTS "Compile tests" OFF)
 option(STATIC_BUILD "Static build" OFF)
 
+if (NOT MAX_KMER_SIZE)
+  set(MAX_KMER_SIZE 32)
+else()
+  math(EXPR RESULT "(${MAX_KMER_SIZE} % 32)")
+  if (${RESULT})
+    message(FATAL_ERROR "MAX_KMER_SIZE should be a multiple of 32.")
+  endif()
+endif()
+
+add_compile_definitions(MAX_KMER_SIZE=${MAX_KMER_SIZE})
+
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE="Release")
 endif()

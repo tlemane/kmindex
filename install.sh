@@ -8,7 +8,8 @@ function kmindex_build ()
   cmake .. -DCMAKE_BUILD_TYPE=${1} \
            -DWITH_TESTS=${2} \
            -DPORTABLE_BUILD=${4} \
-           -DCMAKE_INSTALL_PREFIX=$(realpath ${6})
+           -DCMAKE_INSTALL_PREFIX=$(realpath ${6}) \
+           -DMAX_KMER_SIZE=${7}
 
   make -j${5}
 
@@ -21,14 +22,15 @@ function kmindex_build ()
 
 function usage ()
 {
-  echo "kmindex build script - v0.1.0."
+  echo "kmindex build script - v0.5.0."
   echo "Usage: "
-  echo "  ./install.sh [-r str] [-t int] [-j int] [-p str] [-n] [-h]"
+  echo "  ./install.sh [-r str] [-t int] [-j int] [-p str] [-k int] [-n] [-h]"
   echo "Options: "
   echo "  -r <Release|Debug> -> build type {Release}."
   echo "  -t <0|1|2>         -> tests: 0 = disabled, 1 = compile, 2 = compile and run {0}."
   echo "  -j <INT>           -> nb threads {8}."
-  echo "  -n                 -> portable x86-64 build {disable}."
+  echo "  -k <INT>           -> Max k-mer size (should be a multiple of 32) {256}"
+  echo "  -n                 -> portable x86-64 build {disabled}."
   echo "  -p                 -> install path {./kmindex_install}"
   echo "  -h                 -> show help."
   exit 1
@@ -45,6 +47,7 @@ tests_run=1
 jopt=8
 native="OFF"
 installp=$(realpath ./kmindex_install)
+max_ksize=256
 
 while getopts "r:t:j:p:nh" option; do
   case "$option" in
@@ -71,6 +74,9 @@ while getopts "r:t:j:p:nh" option; do
     p)
       installp=${OPTARG}
       ;;
+    k)
+      max_ksize=${OPTARG}
+      ;;
     h)
       usage
       ;;
@@ -80,4 +86,4 @@ while getopts "r:t:j:p:nh" option; do
   esac
 done
 
-kmindex_build ${mode} ${tests_str} ${tests_run} ${native} ${jopt} ${installp}
+kmindex_build ${mode} ${tests_str} ${tests_run} ${native} ${jopt} ${installp} ${max_ksize}

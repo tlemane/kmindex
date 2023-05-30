@@ -286,7 +286,7 @@ namespace kmq {
       ThreadPool pool(opt->nb_threads);
 
       kindex ki(infos, o->cache);
-      smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
+      //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
       std::atomic<std::size_t> batch_id = 0;
 
@@ -294,7 +294,7 @@ namespace kmq {
 
       for (std::size_t c = 0; c < opt->nb_threads; ++c)
       {
-        pool.add_task([&bqueue, &infos, &ki, &sh, &batch_id, &aggs, opt=o](int i){
+        pool.add_task([&bqueue, &infos, &ki, &batch_id, &aggs, opt=o](int i){
           unused(i);
           for (;;)
           {
@@ -304,7 +304,9 @@ namespace kmq {
                            infos.smer_size(),
                            opt->z,
                            infos.bw(),
-                           &sh);
+                           infos.get_repartition(),
+                           infos.get_hash_w(),
+                           infos.minim_size());
 
             bool end = false;
             std::size_t nq = 0;

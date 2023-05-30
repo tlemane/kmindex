@@ -110,6 +110,35 @@ namespace kmq {
     bool m_running{false};
   };
 
+  template<size_t MAX_K, size_t SIZE = 32>
+  struct loop_executor
+  {
+    template<template<size_t> typename Functor, typename... Args>
+    static void exec(size_t kmer_size, Args&&... args)
+    {
+      if (kmer_size < SIZE)
+      {
+        Functor<SIZE>()(std::forward<Args>(args)...);
+        return;
+      }
+      loop_executor<MAX_K, SIZE + 32>::template exec<Functor, Args...>(
+        kmer_size, std::forward<Args>(args)...);
+    }
+  };
+
+  template<size_t SIZE>
+  struct loop_executor<SIZE, SIZE>
+  {
+    template<template<size_t> typename Functor, typename... Args>
+    static void exec(size_t kmer_size, Args&&... args)
+    {
+      if (kmer_size < SIZE)
+        Functor<SIZE>()(std::forward<Args>(args)...);
+      else
+        throw std::runtime_error("No implementation found for this k-mer size.");
+    }
+  };
+
 }
 
 #endif /* end of include guard: UTILS_HPP_TKVBI1VR */

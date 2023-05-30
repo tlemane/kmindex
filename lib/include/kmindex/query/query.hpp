@@ -46,15 +46,26 @@ namespace kmq {
   {
     using qsmer_type = std::pair<smer, std::uint32_t>;
     using qpart_type = std::vector<qsmer_type>;
+    using repart_type = std::shared_ptr<km::Repartition>;
+    using hw_type = std::shared_ptr<km::HashWindow>;
 
     public:
-      batch_query(std::size_t nb_samples, std::size_t nb_partitions, std::size_t smer_size, std::size_t z_size, std::size_t width, smer_hasher* hasher)
+      batch_query(std::size_t nb_samples,
+                  std::size_t nb_partitions,
+                  std::size_t smer_size,
+                  std::size_t z_size,
+                  std::size_t width,
+                  repart_type repart,
+                  hw_type hw,
+                  std::size_t minim_size)
         : m_nb_samples(nb_samples),
           m_nb_parts(nb_partitions),
           m_smer_size(smer_size),
           m_z_size(z_size),
           m_width(width),
-          m_hasher(hasher),
+          m_repart(repart),
+          m_hw(hw),
+          m_msize(minim_size),
           m_smers(m_nb_parts)
       {
       }
@@ -75,11 +86,28 @@ namespace kmq {
 
         std::uint32_t qid = m_responses.size() - 1;
 
-        for (auto& mer : smer_iterator(seq, m_smer_size, m_hasher))
-        {
-          m_smers[mer.p].emplace_back(mer, qid);
-        }
+        loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(m_smer_size, m_smers, seq, qid, m_smer_size, m_repart, m_hw, m_msize);
       }
+
+      template<std::size_t MK>
+      struct smer_functor
+      {
+        void operator()(std::vector<qpart_type>& smers,
+                        const std::string& seq,
+                        std::uint32_t qid,
+                        std::size_t smer_size,
+                        repart_type& repart,
+                        hw_type& hw,
+                        std::size_t msize)
+        {
+          smer_hasher<MK> sh(repart, hw, msize);
+
+          for (auto& mer : smer_iterator<MK>(seq, smer_size, sh))
+          {
+            smers[mer.p].emplace_back(mer, qid);
+          }
+        }
+      };
 
       qpart_type& partition(std::size_t p)
       {
@@ -125,7 +153,9 @@ namespace kmq {
       std::size_t m_z_size {0};
       std::size_t m_width {0};
 
-      smer_hasher* m_hasher {nullptr};
+      repart_type m_repart {nullptr};
+      hw_type m_hw {nullptr};
+      std::size_t m_msize {0};
 
       std::vector<query_response_t> m_responses;
       std::vector<qpart_type> m_smers;

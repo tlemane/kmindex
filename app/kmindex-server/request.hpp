@@ -38,10 +38,17 @@ namespace kmq {
         {
           auto infos = gindex.get(i);
           kindex ki(infos);
-          smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
+          //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
           batch_query bq(
-            infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), m_z, infos.bw(), &sh);
+            infos.nb_samples(),
+            infos.nb_partitions(),
+            infos.smer_size(),
+            m_z,
+            infos.bw(),
+            infos.get_repartition(),
+            infos.get_hash_w(),
+            infos.minim_size());
 
           for (auto& s : m_seq)
           {
@@ -85,10 +92,17 @@ namespace kmq {
         {
           auto infos = gindex.get(i);
           kindex ki(infos);
-          smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
+          //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
           batch_query bq(
-            infos.nb_samples(), infos.nb_partitions(), infos.smer_size(), m_z, infos.bw(), &sh);
+            infos.nb_samples(),
+            infos.nb_partitions(),
+            infos.smer_size(),
+            m_z,
+            infos.bw(),
+            infos.get_repartition(),
+            infos.get_hash_w(),
+            infos.minim_size());
 
           for (auto& s : m_seq)
             bq.add_query(m_name, s);

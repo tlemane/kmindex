@@ -22,6 +22,10 @@ endif()
 
 add_compile_definitions(MAX_KMER_SIZE=${MAX_KMER_SIZE})
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(WITH_SERVER OFF)
+endif()
+
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE="Release")
 endif()

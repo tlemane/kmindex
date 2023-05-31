@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fmt/format.h>
+#include <vector>
 
 #include <filesystem>
 namespace fs = std::filesystem;

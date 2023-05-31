@@ -9,6 +9,7 @@
   #define KMTRICKS_PUBLIC
 #endif
 
+#include <array>
 #include <kmtricks/hash.hpp>
 #include <kmtricks/repartition.hpp>
 

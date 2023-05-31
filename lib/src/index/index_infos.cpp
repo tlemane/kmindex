@@ -271,7 +271,7 @@ namespace kmq {
     repart_file.read(reinterpret_cast<char*>(&_2), sizeof(_2));
 
     std::vector<std::uint16_t> buffer(_3);
-    repart_file.read(reinterpret_cast<char*>(buffer.data()), sizeof(_3) * _3);
+    repart_file.read(reinterpret_cast<char*>(buffer.data()), sizeof(std::uint16_t) * _3);
 
     h.add(buffer.data(), sizeof(std::uint16_t) * _3);
     h.finalize();

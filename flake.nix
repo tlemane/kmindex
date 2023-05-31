@@ -31,10 +31,10 @@
 
       kmindex = (with pkgs; stdenvNoCC.mkDerivation {
           pname = "kmindex";
-          version = "0.5.0";
+          version = "0.5.1";
           src = builtins.fetchGit {
             url = "https://github.com/tlemane/kmindex";
-            rev = "fb3f073442811a63483d1dc57e5f77df5fa428e0";
+            rev = "66da7d5e675c39de15cd0fc4cda87573d93efadf";
             submodules = true;
           };
           nativeBuildInputs = kmindexBuildInputs;

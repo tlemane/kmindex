@@ -1,7 +1,7 @@
 # kmindex installation
 
 !!! note
-    **kmindex** is currently only available on GNU/Linux systems.
+    **kmindex** is currently only available on GNU/Linux systems. Experimental support for macOS is available on the 'darwin' branch (only for the command line tool, kmindex-server will come later). Future releases should support macOS.
 
 ## **Conda** [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)
 
@@ -29,7 +29,7 @@ docker pull tlemane/kmindex
 
 Portable binary releases are available at [kmindex/releases](https://github.com/tlemane/kmindex/releases).
 
-[Download latest release](https://github.com/tlemane/kmindex/releases/latest/download/kmindex-v0.5.0-bin-Linux.tar.gz){ .md-button .md-button--primary }
+[Download latest release](https://github.com/tlemane/kmindex/releases/latest/download/kmindex-v0.5.1-bin-Linux.tar.gz){ .md-button .md-button--primary }
 
 ## **Install from sources**
 

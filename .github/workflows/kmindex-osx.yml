@@ -2,8 +2,23 @@ name: kmindex-osx
 
 on:
   push:
-    branches:
-      - 'darwin'
+    paths-ignore:
+      - '.github/workflows/doc.yml'
+      - 'README.md'
+      - 'docker/**'
+      - 'conda/**'
+      - 'scripts/**'
+      - '.gitignore'
+      - 'docs/kmindex/**'
+  pull_request:
+      paths-ignore:
+      - '.github/workflows/doc.yml'
+      - 'README.md'
+      - 'docker/**'
+      - 'conda/**'
+      - 'scripts/**'
+      - '.gitignore'
+      - 'docs/kmindex/**'
 
 jobs:
   macOS:

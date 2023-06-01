@@ -48,8 +48,9 @@ namespace kmq {
         std::vector<std::size_t> order; order.reserve(m_infos.nb_partitions());
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
           order.push_back(p);
+#ifndef __APPLE__
         std::random_shuffle(std::begin(order), std::end(order));
-
+#endif
         for (auto const& p : order)
           solve_one(bq, p);
       }
@@ -75,8 +76,9 @@ namespace kmq {
         std::vector<std::size_t> order; order.reserve(m_infos.nb_partitions());
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
           order.push_back(p);
+#ifndef __APPLE__
         std::random_shuffle(std::begin(order), std::end(order));
-
+#endif
         for (auto const& p : order)
           solve_one_cache(bq, p);
       }

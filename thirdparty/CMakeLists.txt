@@ -54,6 +54,7 @@ target_include_directories(kseqpp INTERFACE ${THIRD_DIR}/kseqpp/include ${THIRD_
 
 add_subdirectory(spdlog)
 
+if (WITH_SERVER)
 add_library(sws INTERFACE)
 ExternalProject_Add(
   SWS
@@ -66,6 +67,7 @@ ExternalProject_Add(
 )
 
 target_include_directories(sws SYSTEM INTERFACE ${THIRD_DIR}/Simple-Web-Server/)
+endif()
 
 add_library(sha1h INTERFACE)
 target_include_directories(sha1h INTERFACE ${THIRD_DIR}/sha1)

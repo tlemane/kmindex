@@ -1,0 +1,76 @@
+name: kmindex-osx
+
+on:
+  push:
+    branches:
+      - 'darwin'
+
+jobs:
+  macOS:
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [macos-11,macos-12]
+        build_type: [Release,Debug]
+
+    runs-on: ${{ matrix.distro }}
+    name: macOS - ${{ matrix.distro }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Dependencies
+        run: |
+          brew install cmake boost
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir build
+          cd build
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON
+
+      - name: Build
+        shell: bash
+        run: |
+          cd build
+          make
+
+      - name: Test
+        shell: bash
+        run: |
+          cd build
+          ctest --verbose
+
+      - name: Package
+        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        shell: bash
+        run: cd build && make package
+
+      - name: Get tag name
+        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        id: tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
+
+      - name: Release archive
+        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          mkdir archive_files
+          mv build/kmindex-${{ steps.tag.outputs.TAG }}-bin-Darwin.tar.gz archive_files
+
+      - name: Release
+        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          release_name: Release ${{ steps.tag.outputs.TAG }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: 'archive_files/*'
+          file_glob: true
+          tag: ${{ github.ref }}
+          body: |
+            kmindex v${{ steps.tags.outputs.TAG }}
+          prerelease: true
+
+

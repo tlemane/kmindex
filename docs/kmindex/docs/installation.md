@@ -1,9 +1,9 @@
 # kmindex installation
 
 !!! note
-    **kmindex** is currently only available on GNU/Linux systems. Experimental support for macOS is available on the 'darwin' branch (only for the command line tool, kmindex-server will come later). Future releases should support macOS.
+    **kmindex** supports GNU/Linux systems, and macOS since v0.5.2.
 
-## **Conda** [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)
+## **Conda** [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex) ![anaconda-platform](https://img.shields.io/conda/pn/tlemane/kmindex?logo=anaconda)
 
 ```bash
 conda create -p kmindex_env

@@ -1,7 +1,8 @@
 # kmindex
 
 [![License](http://img.shields.io/:license-affero-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
-[![kmindex](https://github.com/tlemane/kmindex/workflows/kmindex/badge.svg)](https://github.com/tlemane/kmindex/actions/workflows/kmindex.yml)
+[![kmindex](https://img.shields.io/github/actions/workflow/status/tlemane/kmindex/kmindex.yml?label=Linux)](https://github.com/tlemane/kmindex/actions/workflows/kmindex.yml)
+[![kmindex-osx](https://img.shields.io/github/actions/workflow/status/tlemane/kmindex/kmindex-osx.yml?label=macOS)](https://github.com/tlemane/kmindex/actions/workflows/kmindex-osx.yml)
 [![release](https://img.shields.io/github/v/release/tlemane/kmindex)](https://github.com/tlemane/kmindex/releases)
 [![dockerhub](https://img.shields.io/docker/v/tlemane/kmindex?label=tlemane/kmindex&logo=docker)](https://hub.docker.com/r/tlemane/kmindex/)
 [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)
@@ -18,7 +19,7 @@ Given a databank $D = \{S_1, ..., S_n\}$, with each $S_i$ being any genomic data
 
 1. Index a dataset:
 ```bash
-kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D --hard-min 2 --kmer-size 25 --nb-cell 1000000 
+kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D --hard-min 2 --kmer-size 25 --nb-cell 1000000
 ```
 
 2. Query the index:

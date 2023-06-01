@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24.0)
-project(kmindex VERSION 0.5.1 LANGUAGES C CXX)
+project(kmindex VERSION 0.5.2 LANGUAGES C CXX)
 
 set(PROJECT_DESCRIPTION "kmindex")
 

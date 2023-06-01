@@ -6,7 +6,7 @@
 
 !!! tip "Options"
     ```
-    kmindex query v0.5.0
+    kmindex query v0.5.2
 
     DESCRIPTION
       Query index.

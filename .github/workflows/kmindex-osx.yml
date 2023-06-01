@@ -11,10 +11,10 @@ jobs:
       fail-fast: false
       matrix:
         distro: [macos-11,macos-12]
-        build_type: [Release,Debug]
+        build_type: Release
 
     runs-on: ${{ matrix.distro }}
-    name: macOS - ${{ matrix.distro }}
+    name: ${{ matrix.distro }} - ${{ matrix.build_type }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -44,24 +44,24 @@ jobs:
           ctest --verbose
 
       - name: Package
-        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
         shell: bash
         run: cd build && make package
 
       - name: Get tag name
-        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
         id: tag
         run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
 
       - name: Release archive
-        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
         shell: bash
         run: |
           mkdir archive_files
           mv build/kmindex-${{ steps.tag.outputs.TAG }}-bin-Darwin.tar.gz archive_files
 
       - name: Release
-        if: matrix.distro == 'macos-11' && matrix.build_type == 'Release' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
         uses: svenstaro/upload-release-action@v2
         with:
           release_name: Release ${{ steps.tag.outputs.TAG }}

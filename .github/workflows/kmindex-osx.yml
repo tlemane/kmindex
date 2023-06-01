@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         distro: [macos-11,macos-12]
-        build_type: Release
+        build_type: [Release]
 
     runs-on: ${{ matrix.distro }}
     name: ${{ matrix.distro }} - ${{ matrix.build_type }}

@@ -23,7 +23,8 @@ endif()
 add_compile_definitions(MAX_KMER_SIZE=${MAX_KMER_SIZE})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(WITH_SERVER OFF)
+  set(FORCE_BUILD_FMT ON)
+  set(FORCE_BUILD_SPDLOG ON)
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)

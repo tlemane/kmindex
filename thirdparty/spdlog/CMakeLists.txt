@@ -41,7 +41,7 @@ if (NOT FORCE_BUILD_SPDLOG AND NOT FORCE_BUILD_ALL)
 
 endif()
 
-set(SPDLOG_URL "https://github.com/gabime/spdlog/archive/refs/tags/v1.9.2.tar.gz")
+set(SPDLOG_URL "https://github.com/gabime/spdlog/archive/refs/tags/v1.11.0.tar.gz")
 set(SPDLOG_HASH "287c6492c25044fd2da9947ab120b2bd")
 set(SPDLOG_DIR ${EXT_INSTALL_DIR}/spdlog)
 

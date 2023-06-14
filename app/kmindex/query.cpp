@@ -95,10 +95,10 @@ namespace kmq {
       options->format = str_to_format(v);
     };
 
-    cmd->add_param("-f/--format", "Output format [json|matrix|json_vec]")
+    cmd->add_param("-f/--format", "Output format [json|yaml|matrix|bin|json_vec|yaml_vec|bin_vec]")
        ->meta("STR")
        ->def("json")
-       ->checker(bc::check::f::in("json|matrix|json_vec"))
+       ->checker(bc::check::f::in("json|yaml|matrix|bin|json_vec|yaml_vec|bin_vec"))
        ->setter_c(format_setter);
 
     cmd->add_param("-b/--batch-size", "Size of query batches (0≈nb_seq/nb_thread).")
@@ -151,7 +151,9 @@ namespace kmq {
 
     bq.free_smers();
 
-    bool wpos = opt->format == format::json_with_positions;
+    bool wpos = (opt->format == format::json_with_positions) ||
+                (opt->format == format::yaml_with_positions) ||
+                (opt->format == format::bin_with_positions);
     if (opt->single.empty())
     {
       query_result_agg agg;
@@ -177,7 +179,7 @@ namespace kmq {
           nq,
           output,
           infos.name(),
-          opt->format == format::matrix ? "tsv" : "json",
+          extension(opt->format),
           timer.formatted());
     }
     else
@@ -234,6 +236,22 @@ namespace kmq {
     }
   }
 
+  void merge_yaml(std::size_t n, const std::string& index_name, const std::string& output)
+  {
+    std::ofstream out(fmt::format("{}/{}.yaml", output, index_name), std::ios::out);
+
+    for (std::size_t b = 0; b < n; ++b)
+    {
+      std::string line;
+      std::ifstream inf(fmt::format("{}/batch_{}/{}.yaml", output, b, index_name), std::ios::in);
+
+      while (std::getline(inf, line))
+      {
+        out << line << '\n';
+      }
+    }
+  }
+
   void merge_results(const std::string& output, format f, const std::string& index_name)
   {
     auto it = fs::directory_iterator(output);
@@ -248,6 +266,9 @@ namespace kmq {
       case format::matrix:
         merge_tsv(n, index_name, output);
         break;
+      case format::yaml:
+      case format::yaml_with_positions:
+        merge_yaml(n, index_name, output);
     }
   }
 
@@ -286,7 +307,6 @@ namespace kmq {
       ThreadPool pool(opt->nb_threads);
 
       kindex ki(infos, o->cache);
-      //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
       std::atomic<std::size_t> batch_id = 0;
 
@@ -350,21 +370,19 @@ namespace kmq {
         spdlog::info("aggregate query results ({} sequences)", aggs.size());
         aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
         spdlog::info("query '{}' processed, results dumped at {}/{}.{}",
-          o->single, o->output, infos.name(), o->format == format::matrix ? "tsv" : "json");
+          o->single, o->output, infos.name(), extension(o->format));
       }
       else
       {
         if (o->aggregate && ((o->batch_size > 0) || (o->nb_threads > 1)))
         {
-          std::string ext = o->format == format::matrix ? "tsv" : "json";
-
           merge_results(o->output, o->format, infos.name());
 
           spdlog::info("Index '{}' processed, results dumped at {}/{}.{} ({}).",
                        infos.name(),
                        o->output,
                        infos.name(),
-                       ext,
+                       extension(o->format),
                        timer.formatted());
         }
         else

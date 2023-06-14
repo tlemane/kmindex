@@ -1,6 +1,5 @@
 #include <kmindex/query/format.hpp>
 #include <kmindex/utils.hpp>
-
 #include <iostream>
 
 namespace kmq {
@@ -11,7 +10,35 @@ namespace kmq {
       return format::matrix;
     else if (f == "json")
       return format::json;
-    return format::json_with_positions;
+    else if (f == "yaml")
+      return format::yaml;
+    else if (f == "bin")
+      return format::bin;
+    else if (f == "yaml_vec")
+      return format::yaml_with_positions;
+    else if (f == "json_vec")
+      return format::json_with_positions;
+    else
+      return format::bin_with_positions;
+  }
+
+  std::string extension(enum format f)
+  {
+    switch (f)
+    {
+      case format::matrix:
+        return "tsv";
+      case format::json:
+      case format::json_with_positions:
+        return "json";
+      case format::yaml:
+      case format::yaml_with_positions:
+        return "yaml";
+      case format::bin:
+      case format::bin_with_positions:
+        return "bin";
+    }
+    return "";
   }
 
   query_formatter_base::query_formatter_base(double threshold)
@@ -123,6 +150,79 @@ namespace kmq {
     }
   }
 
+  bin_formatter::bin_formatter(double threshold)
+    : query_formatter_base(threshold)
+  {
+  }
+
+  void bin_formatter::write_header(std::ostream& ss, const index_infos& infos, result_type rtype)
+  {
+    if (m_first)
+    {
+      m_rw = std::make_unique<qres_writer>(ss, infos.bw(), infos.nb_samples(), rtype);
+      m_first = false;
+    }
+  }
+
+  void bin_formatter::format(const index_infos& infos,
+                             const query_result& response,
+                             std::ostream& os)
+  {
+    write_header(os, infos, result_type::ratio);
+    m_rw->write(response.name(), response.ratios());
+  }
+
+  void bin_formatter::merge_format(const index_infos& infos,
+                                   const std::string& name,
+                                   const std::vector<query_result>& responses,
+                                   std::ostream& os)
+  {
+  }
+
+  yaml_formatter::yaml_formatter(double threshold)
+    : query_formatter_base(threshold)
+  {
+  }
+
+  yaml_formatter::~yaml_formatter()
+  {
+  }
+
+  void yaml_formatter::format(const index_infos& infos,
+                              const query_result& response,
+                              std::ostream& os)
+  {
+    os << response.name() << ":\n";
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      if (response.ratios()[i] >= this->m_threshold)
+        os << "  - " << infos.samples()[i] << ": " << response.ratios()[i] << '\n';
+    }
+    os << '\n';
+  }
+
+  void yaml_formatter::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
+  {
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::size_t nbk = this->aggregate(responses, global);
+
+    os << name << ":\n";
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      double v = global[i] / static_cast<double>(nbk);
+      if (v >= this->m_threshold)
+        os << "  - " << infos.samples()[i] << ": " << v << '\n';
+    }
+
+    os << '\n';
+  }
+
+
   json_wp_formatter::json_wp_formatter(double threshold)
     : json_formatter(threshold)
   {
@@ -175,9 +275,93 @@ namespace kmq {
         }
         j[infos.samples()[i]]["R"] = v;
         j[infos.samples()[i]]["P"] = std::move(jj);
-
       }
     }
+  }
+
+  yaml_wp_formatter::yaml_wp_formatter(double threshold)
+    : yaml_formatter(threshold)
+  {
+  }
+
+  yaml_wp_formatter::~yaml_wp_formatter()
+  {}
+
+  void yaml_wp_formatter::format(const index_infos& infos,
+                              const query_result& response,
+                              std::ostream& os)
+  {
+    os << response.name() << ":\n";
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      if (response.ratios()[i] >= this->m_threshold)
+      {
+        os << "  - " << infos.samples()[i] << ":\n";
+        os << "    - R: " << response.ratios()[i] << "\n";
+        os << "    - P: " << '[';
+
+        for (std::size_t j = 0; j < response.positions()[i].size() - 1; ++j)
+        {
+          os << std::to_string(response.positions()[i][j]) << ",";
+        }
+        os << std::to_string(response.positions()[i].back()) << "]\n";
+      }
+    }
+    os << '\n';
+  }
+
+  void yaml_wp_formatter::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
+  {
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::size_t nbk = this->aggregate(responses, global);
+
+    os << name << ":\n";
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      double v = global[i] / static_cast<double>(nbk);
+      if (v >= this->m_threshold)
+      {
+        os << "  - " << infos.samples()[i] << ":\n";
+        os << "    - R: " << v << "\n";
+        os << "    - P: " << "\n";
+
+        for (auto& r : responses)
+        {
+          os << "      - " << r.name() << ": [";
+          for (std::size_t j = 0; j < r.positions()[i].size() - 1; ++j)
+          {
+            os << std::to_string(r.positions()[i][j]) << ",";
+          }
+          os << std::to_string(r.positions()[i].back()) << "]\n";
+        }
+      }
+    }
+    os << '\n';
+  }
+
+  bin_wp_formatter::bin_wp_formatter(double threshold)
+    : bin_formatter(threshold)
+  {
+  }
+
+  void bin_wp_formatter::format(const index_infos& infos,
+                                const query_result& response,
+                                std::ostream& os)
+  {
+    write_header(os, infos, result_type::ratio_and_dist);
+    m_rw->write(response.name(), response.ratios(), response.positions());
+  }
+
+  void bin_wp_formatter::merge_format(const index_infos& infos,
+                                      const std::string& name,
+                                      const std::vector<query_result>& responses,
+                                      std::ostream& os)
+  {
   }
 
   void json_formatter::merge_format(const index_infos& infos,
@@ -278,6 +462,65 @@ namespace kmq {
     }
   }
 
+  yaml_formatter_abs::yaml_formatter_abs(double threshold)
+    : yaml_formatter(threshold)
+  {
+
+  }
+
+  void yaml_formatter_abs::format(const index_infos& infos,
+                                  const query_result& response,
+                                  std::ostream& os)
+  {
+    os << response.name() << ":\n";
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      os << "  - " << infos.samples()[i] << ": " << response.counts()[i] << '\n';
+    }
+
+    os << '\n';
+  }
+
+  void yaml_formatter_abs::merge_format(const index_infos& infos,
+                                        const std::string& name,
+                                        const std::vector<query_result>& responses,
+                                        std::ostream& os)
+  {
+    os << name << ":\n";
+
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+
+    std::size_t nbq = this->aggregate_c(responses, global);
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      os << "  - " << infos.samples()[i] << ": " << global[i] / nbq << '\n';
+    }
+
+    os << '\n';
+  }
+
+  bin_formatter_abs::bin_formatter_abs(double threshold)
+    : bin_formatter(threshold)
+  {
+  }
+
+  void bin_formatter_abs::format(const index_infos& infos,
+                                const query_result& response,
+                                std::ostream& os)
+  {
+    write_header(os, infos, result_type::ratio);
+    m_rw->write(response.name(), response.counts());
+  }
+
+  void bin_formatter_abs::merge_format(const index_infos& infos,
+                                      const std::string& name,
+                                      const std::vector<query_result>& responses,
+                                      std::ostream& os)
+  {
+  }
+
   json_wp_formatter_abs::json_wp_formatter_abs(double threshold)
     : json_formatter(threshold)
   {
@@ -328,6 +571,88 @@ namespace kmq {
     }
   }
 
+  yaml_wp_formatter_abs::yaml_wp_formatter_abs(double threshold)
+    : yaml_formatter(threshold)
+  {
+
+  }
+
+  void yaml_wp_formatter_abs::format(const index_infos& infos,
+                                    const query_result& response,
+                                    std::ostream& os)
+  {
+    os << response.name() << ":\n";
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      os << "  - " << infos.samples()[i] << ":\n";
+      os << "    - C: " << response.counts()[i] << '\n';
+      os << "    - P: [";
+
+      for (std::size_t j = 0; j < response.positions().size() - 1; ++j)
+      {
+        os << response.positions()[i][j] << ',';
+      }
+      os << response.positions()[i].back() << "]\n";
+    }
+
+    os << '\n';
+  }
+
+  void yaml_wp_formatter_abs::merge_format(const index_infos& infos,
+                                          const std::string& name,
+                                          const std::vector<query_result>& responses,
+                                          std::ostream& os)
+  {
+    os << name << ":\n";
+
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+
+    std::size_t nbq = this->aggregate_c(responses, global);
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      os << "  - " << infos.samples()[i] << ":\n";
+      os << "    - C: " << global[i] / nbq << '\n';
+      os << "    - P:\n";
+
+      auto jj = json::array({});
+      for (auto& r : responses)
+      {
+        os << "    - P:\n";
+        os << "      - " << r.name() << ": [";
+
+        for (std::size_t j = 0; j < r.positions().size() - 1; ++j)
+        {
+          os << r.positions()[i][j] << ',';
+        }
+        os << r.positions()[i].back() << "]\n";
+      }
+    }
+
+    os << '\n';
+  }
+
+  bin_wp_formatter_abs::bin_wp_formatter_abs(double threshold)
+    : bin_formatter(threshold)
+  {
+  }
+
+  void bin_wp_formatter_abs::format(const index_infos& infos,
+                                const query_result& response,
+                                std::ostream& os)
+  {
+    write_header(os, infos, result_type::ratio_and_dist);
+    m_rw->write(response.name(), response.counts(), response.positions());
+  }
+
+  void bin_wp_formatter_abs::merge_format(const index_infos& infos,
+                                      const std::string& name,
+                                      const std::vector<query_result>& responses,
+                                      std::ostream& os)
+  {
+  }
+
   query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw)
   {
     switch (f)
@@ -338,12 +663,24 @@ namespace kmq {
       case format::json:
         return bw == 1 ? std::make_shared<json_formatter>(threshold)
                        : std::make_shared<json_formatter_abs>(threshold);
+      case format::yaml:
+        return bw == 1 ? std::make_shared<yaml_formatter>(threshold)
+                       : std::make_shared<yaml_formatter_abs>(threshold);
+      case format::bin:
+        return bw == 1 ? std::make_shared<bin_formatter>(threshold)
+                       : std::make_shared<bin_formatter_abs>(threshold);
       case format::json_with_positions:
         if (bw == 1)
           return std::make_shared<json_wp_formatter>(threshold);
-        else
-          return std::make_shared<json_wp_formatter_abs>(threshold);
-
+        return std::make_shared<json_wp_formatter_abs>(threshold);
+      case format::yaml_with_positions:
+        if (bw == 1)
+          return std::make_shared<yaml_wp_formatter>(threshold);
+        return std::make_shared<yaml_wp_formatter_abs>(threshold);
+      case format::bin_with_positions:
+        if (bw == 1)
+          return std::make_shared<bin_wp_formatter>(threshold);
+        return std::make_shared<bin_wp_formatter_abs>(threshold);
     }
 
     return nullptr;

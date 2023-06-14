@@ -42,6 +42,9 @@ int main(int argc, char* argv[])
       case kmq::kmq_commands::kmq_merge:
         kmq::main_merge(options);
         break;
+      case kmq::kmq_commands::kmq_dump:
+        kmq::main_dump(options);
+        break;
     }
 
   } catch (const bc::ex::BCliError& e) {

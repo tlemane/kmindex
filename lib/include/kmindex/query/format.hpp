@@ -9,6 +9,7 @@
 #include <kmindex/query/query.hpp>
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/index/index_infos.hpp>
+#include <kmindex/query/io.hpp>
 
 using json = nlohmann::json;
 
@@ -18,10 +19,16 @@ namespace kmq {
   {
     matrix,
     json,
-    json_with_positions
+    json_with_positions,
+    yaml,
+    yaml_with_positions,
+    bin,
+    bin_with_positions
   };
 
   enum format str_to_format(const std::string& f);
+
+  std::string extension(enum format f);
 
   class query_formatter_base
   {
@@ -100,6 +107,111 @@ namespace kmq {
       json m_json;
   };
 
+  class yaml_formatter : public query_formatter_base
+  {
+    public:
+      yaml_formatter(double threshold);
+      ~yaml_formatter();
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class bin_formatter : public query_formatter_base
+  {
+    public:
+      bin_formatter(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+
+    protected:
+      void write_header(std::ostream& os, const index_infos& infos, result_type rtype);
+      std::unique_ptr<qres_writer> m_rw {nullptr};
+
+    private:
+      bool m_first {true};
+  };
+
+  class bin_formatter_abs : public bin_formatter
+  {
+    public:
+      bin_formatter_abs(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class bin_wp_formatter : public bin_formatter
+  {
+    public:
+      bin_wp_formatter(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class bin_wp_formatter_abs : public bin_formatter
+  {
+    public:
+      bin_wp_formatter_abs(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class yaml_wp_formatter : public yaml_formatter
+  {
+    public:
+      yaml_wp_formatter(double threshold);
+      ~yaml_wp_formatter();
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
   class json_wp_formatter : public json_formatter
   {
     public:
@@ -136,6 +248,39 @@ namespace kmq {
   {
     public:
       json_formatter_abs(double threshold);
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class yaml_formatter_abs : public yaml_formatter
+  {
+    public:
+      yaml_formatter_abs(double threshold);
+
+
+    public:
+      virtual void format(const index_infos& infos,
+                          const query_result& response,
+                          std::ostream& os) override;
+
+      virtual void merge_format(const index_infos&,
+                                const std::string& name,
+                                const std::vector<query_result>& responses,
+                                std::ostream& os) override;
+  };
+
+  class yaml_wp_formatter_abs : public yaml_formatter
+  {
+    public:
+      yaml_wp_formatter_abs(double threshold);
 
     public:
       virtual void format(const index_infos& infos,

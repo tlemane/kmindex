@@ -84,7 +84,7 @@ namespace kmq {
         throw kmq_error("Work in progress, dump supports only yaml output.");
     }
 
-    if (outstream)
+    if (o->output != "stdout")
       delete outstream;
   }
 }

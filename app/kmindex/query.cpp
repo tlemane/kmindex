@@ -14,6 +14,19 @@
 
 #include <atomic_queue/atomic_queue.h>
 
+#ifdef __linux__
+  #ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+  #endif
+  #include <linux/version.h>
+  #include <fcntl.h>
+  #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
+    #include <unistd.h>
+  #else
+    #include <sys/sendfile.h>
+  #endif
+#endif
+
 namespace kmq {
 
   struct fastx_record {
@@ -252,6 +265,36 @@ namespace kmq {
     }
   }
 
+  void merge_bin(std::size_t n, const std::string& index_name, const std::string& output)
+  {
+    std::string out_path = fmt::format("{}/{}.bin", output, index_name);
+    int fd_out = open(out_path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0x01B6);
+    {
+      std::ifstream inf(fmt::format("{}/batch_0/{}.bin", output, index_name), std::ios::in | std::ios::binary);
+
+      header h; h.load(inf);
+      int n = write(fd_out, reinterpret_cast<char*>(&h), sizeof(h));
+      if (n == -1)
+        throw kmq_error(fmt::format("Unable to write at {}.", fmt::format("{}/{}.bin", output, index_name)));
+    }
+
+    for (std::size_t b = 0; b < n; ++b)
+    {
+      std::string p = fmt::format("{}/batch_{}/{}.bin", output, b, index_name);
+      int fd = open(p.c_str(), O_RDONLY);
+      std::size_t c = lseek(fd, 0L, SEEK_END) - sizeof(header);
+      lseek(fd, sizeof(header), SEEK_CUR);
+
+      #ifdef __linux__
+        #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
+          copy_file_range(fd, nullptr, fd_out, nullptr, c, 0);
+        #else
+          senfile(fd_out, fd, nullptr, c);
+        #endif
+      #endif
+    }
+  }
+
   void merge_results(const std::string& output, format f, const std::string& index_name)
   {
     auto it = fs::directory_iterator(output);
@@ -269,6 +312,11 @@ namespace kmq {
       case format::yaml:
       case format::yaml_with_positions:
         merge_yaml(n, index_name, output);
+        break;
+      case format::bin:
+      case format::bin_with_positions:
+        merge_bin(n, index_name, output);
+        break;
     }
   }
 

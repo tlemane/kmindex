@@ -15,11 +15,36 @@ namespace kmq {
     abs
   };
 
+  inline std::string index_type_str(enum index_type it)
+  {
+    switch (it)
+    {
+      case index_type::pa:
+        return "pa";
+      case index_type::abs:
+        return "abs";
+    }
+  }
+
   enum class result_type : std::uint16_t {
     ratio,
     dist,
     ratio_and_dist
   };
+
+  inline std::string result_type_str(enum result_type rt)
+  {
+    switch (rt)
+    {
+      case result_type::ratio:
+        return "ratio";
+      case result_type::dist:
+        return "dist";
+      case result_type::ratio_and_dist:
+        return "ratio_and_dist";
+    }
+  }
+
 
   #pragma pack(1)
   struct header {
@@ -33,7 +58,7 @@ namespace kmq {
         rtype(rtype) {}
 
     constexpr static std::array<std::uint8_t, 8> magic_def = {
-      'K', 'M', 'I', 'N', 'D', 'E', 'X', '\n'
+      'K', 'M', 'I', 'N', 'D', 'E', 'X', '\0'
     };
 
     std::array<std::uint8_t, 8> magic;
@@ -45,7 +70,7 @@ namespace kmq {
     index_type itype;
     result_type rtype;
 
-    std::array<std::uint8_t, 44> free;
+    std::array<std::uint8_t, 44> free = {0};
 
     void load(std::istream& is)
     {
@@ -62,6 +87,7 @@ namespace kmq {
       if (magic != magic_def)
         throw kmq_error("Not a kmindex file.");
     }
+
   };
   #pragma pack()
 
@@ -129,10 +155,11 @@ namespace kmq {
 
       void write_abs(const std::vector<std::uint32_t>& counts)
       {
-        std::vector<std::uint8_t> c(counts.size()); c.reserve(counts.size());
+        std::vector<std::uint8_t> c; c.reserve(counts.size());
         for (const auto& e : counts)
+        {
           c.push_back(e);
-
+        }
         m_os.write(reinterpret_cast<const char*>(c.data()), c.size() * sizeof(std::uint8_t));
       }
 
@@ -164,6 +191,7 @@ namespace kmq {
         : m_is(path, std::ios::binary | std::ios::in)
       {
         m_header.load(m_is);
+
         m_item.results.resize(m_header.nb_samples);
 
         if (m_header.rtype == result_type::dist || m_header.rtype == result_type::ratio_and_dist)
@@ -216,6 +244,7 @@ namespace kmq {
                 os << "    - C: " << m_item.results[i].abs << '\n';
 
               os << "    - P: [";
+
               for (std::size_t j = 0; j < m_item.distributions[i].size() - 1; ++j)
                 os << std::to_string(m_item.distributions[i][j]) << ',';
               os << std::to_string(m_item.distributions[i].back()) << "]\n";
@@ -257,7 +286,17 @@ namespace kmq {
 
       void read_rc()
       {
-        m_is.read(reinterpret_cast<char*>(m_item.results.data()), m_header.nb_samples * sizeof(qresult::result));
+        if (m_header.itype == index_type::pa)
+          m_is.read(reinterpret_cast<char*>(m_item.results.data()), m_header.nb_samples * sizeof(qresult::result));
+        else
+        {
+          std::vector<std::uint8_t> buf(m_header.nb_samples);
+          m_is.read(reinterpret_cast<char*>(buf.data()), m_header.nb_samples * sizeof(std::uint8_t));
+          for (std::size_t i = 0; i < m_item.results.size(); ++i)
+          {
+            m_item.results[i].abs = static_cast<std::uint64_t>(buf[i]);
+          }
+        }
       }
 
       void read_dist()

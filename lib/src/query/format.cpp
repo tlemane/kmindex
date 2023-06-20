@@ -591,9 +591,9 @@ namespace kmq {
 
       for (std::size_t j = 0; j < response.positions().size() - 1; ++j)
       {
-        os << response.positions()[i][j] << ',';
+        os << std::to_string(response.positions()[i][j]) << ',';
       }
-      os << response.positions()[i].back() << "]\n";
+      os << std::to_string(response.positions()[i].back()) << "]\n";
     }
 
     os << '\n';
@@ -624,9 +624,9 @@ namespace kmq {
 
         for (std::size_t j = 0; j < r.positions().size() - 1; ++j)
         {
-          os << r.positions()[i][j] << ',';
+          os << std::to_string(r.positions()[i][j]) << ',';
         }
-        os << r.positions()[i].back() << "]\n";
+        os << std::to_string(r.positions()[i].back()) << "]\n";
       }
     }
 

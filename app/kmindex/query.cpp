@@ -289,7 +289,7 @@ namespace kmq {
         #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
           copy_file_range(fd, nullptr, fd_out, nullptr, c, 0);
         #else
-          senfile(fd_out, fd, nullptr, c);
+          sendfile(fd_out, fd, nullptr, c);
         #endif
       #endif
     }

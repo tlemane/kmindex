@@ -589,7 +589,8 @@ namespace kmq {
       os << "    - C: " << response.counts()[i] << '\n';
       os << "    - P: [";
 
-      for (std::size_t j = 0; j < response.positions().size() - 1; ++j)
+      std::cout << response.name() << ' ' << response.positions().size() << std::endl;
+      for (std::size_t j = 0; j < response.positions()[i].size() - 1; ++j)
       {
         os << std::to_string(response.positions()[i][j]) << ',';
       }
@@ -616,7 +617,6 @@ namespace kmq {
       os << "    - C: " << global[i] / nbq << '\n';
       os << "    - P:\n";
 
-      auto jj = json::array({});
       for (auto& r : responses)
       {
         os << "    - P:\n";

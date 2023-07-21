@@ -28,3 +28,5 @@ kmindex query --index ./G --fastx query.fasta --zvalue 3
 ```
 
 **Full documentation** is available at [https://tlemane.github.io/kmindex](https://tlemane.github.io/kmindex)
+
+**Pre-print paper** is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.05.31.543043v3.abstract)

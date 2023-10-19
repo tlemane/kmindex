@@ -97,8 +97,8 @@ In presence/absence mode, the index only contains the presence/absence pattern o
 
 The [kmindex](https://github.com/tlemane/kmindex) repository offers an `examples` directory where these commands can be tested.
 ```bash
-kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min --kmer-size 25 --bloom-size 1000000 # (1)!
-kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min --kmer-size 25 --bloom-size 1000000 # (2)!
+kmindex build --fof fof1.txt --run-dir D1_index --index ./G --register-as D1 --hard-min 1 --kmer-size 25 --bloom-size 1000000 # (1)!
+kmindex build --fof fof2.txt --run-dir D2_index --index ./G --register-as D2 --hard-min 1 --kmer-size 25 --bloom-size 1000000 # (2)!
 ```
 
 1. Creates a directory `G` containing the index for the `D1` dataset

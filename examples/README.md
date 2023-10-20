@@ -1,4 +1,4 @@
-Here is an exemple of how to use `kmindex`. We build two indexes, `D1` and `D2`, each containing 2 samples. These indexes are registered in a global index `G`. The `data` directory contains data and scripts to easily execute the commands presented here.
+Here is an example of how to use `kmindex`. We build two indexes, `D1` and `D2`, each containing 2 samples. These indexes are registered in a global index `G`. The `data` directory contains data and scripts to easily execute the commands presented here.
 
 ## CLI Examples
 

@@ -30,4 +30,5 @@ kmindex query --index ./G --fastx query.fasta --zvalue 3
 **Full documentation** is available at [https://tlemane.github.io/kmindex](https://tlemane.github.io/kmindex)
 
 **Citation** Lemane, Téo, et al. "[Indexing and real-time user-friendly queries in terabyte-sized complex genomic datasets with kmindex and ORA](https://t.co/hH3GOY5YiP)" Nature Computational Science 4.2 (2024): 104-109.
+
 **Pre-print paper** is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.05.31.543043v3.abstract)

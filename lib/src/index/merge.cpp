@@ -127,7 +127,7 @@ namespace kmq {
   {
     std::fill(m_buffer[p].begin(), m_buffer[p].end(), 0);
   }
-  
+
   index_merger_pa::index_merger_pa(index* gindex,
                                    const std::vector<std::string>& to_merge,
                                    const std::string& new_path,
@@ -160,7 +160,7 @@ namespace kmq {
 
     std::ofstream out(fmt::format("{}/matrices/matrix_{}.cmbf", m_new_path, p));
 
-    { 
+    {
       std::uint64_t km_magic;
       std::uint32_t km_version;
       bool km_compress;
@@ -199,19 +199,21 @@ namespace kmq {
     m_buffer[p].resize((m_nb_samples + 7) / 8, 0);
 
     auto& buf = m_buffer[p];
-   
+
     for (std::size_t i = 0; i < m_psize; ++i)
     {
       std::size_t bytes_per_line = (partitions[0].second + 7) / 8;
       std::size_t bits_per_line = bytes_per_line * 8;
-      
+
       std::memcpy(
         &buf[0],
         partitions[0].first.begin() + (bytes_per_line * i),
         bytes_per_line
       );
-      
+
       std::size_t current = partitions[0].second;
+
+      bool prev_mul = ((current % 8) == 0);
 
       for (std::size_t j = 1; j < partitions.size(); ++j)
       {
@@ -219,16 +221,31 @@ namespace kmq {
 
         bytes_per_line = (p_.second + 7) / 8;
         bits_per_line = bytes_per_line * 8;
-        
-        for (std::size_t k = 0; k < p_.second; ++k)
+
+        if (prev_mul)
         {
-          if (BITCHECK(p_.first, k + bits_per_line * i))
+          std::memcpy(
+            &buf[current / 8],
+            p_.first.begin() + (bytes_per_line * i),
+            bytes_per_line
+          );
+
+          current += bits_per_line;
+          prev_mul = ((current % 8) == 0);
+        }
+        else
+        {
+          for (std::size_t k = 0; k < p_.second; ++k)
           {
-            BITSET(buf, current);
+            if (BITCHECK(p_.first, k + bits_per_line * i))
+            {
+              BITSET(buf, current);
+            }
+            ++current;
           }
-          ++current;
         }
       }
+
       out.write(reinterpret_cast<char*>(buf.data()), buf.size());
       zero(p);
     }
@@ -284,7 +301,7 @@ namespace kmq {
 
     std::ofstream out(fmt::format("{}/matrices/matrix_{}.cmbf", m_new_path, p));
 
-    { 
+    {
       std::uint64_t km_magic;
       std::uint32_t km_version;
       bool km_compress;
@@ -323,18 +340,18 @@ namespace kmq {
     m_buffer[p].resize(((m_nb_samples * m_bw) + 7) / 8, 0);
 
     auto& buf = m_buffer[p];
-   
+
     for (std::size_t i = 0; i < m_psize; ++i)
     {
       std::size_t bytes_per_line = ((partitions[0].second * m_bw) + 7) / 8;
       std::size_t bits_per_line = bytes_per_line * 8;
-      
+
       std::memcpy(
         &buf[0],
         partitions[0].first.begin() + (bytes_per_line * i),
         bytes_per_line
       );
-      
+
       std::size_t current = partitions[0].second * m_bw;
 
       for (std::size_t j = 1; j < partitions.size(); ++j)

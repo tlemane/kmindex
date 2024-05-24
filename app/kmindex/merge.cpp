@@ -209,6 +209,26 @@ namespace kmq {
 
     index gindex(o->global_index_path);
 
+    std::deque<std::string> q;
+    std::vector<std::string> to_merge = o->to_merge;
+
+    for (auto& n : o->to_merge)
+    {
+      if ((gindex.get(n).nb_samples() % 8) == 0)
+      {
+        q.push_front(n);
+      }
+      else
+      {
+        q.push_back(n);
+      }
+    }
+
+    for (auto& n : q)
+    {
+      to_merge.push_back(n);
+    }
+
     auto merger = make_merger(
       &gindex, o->to_merge, o->new_path, o->name, o->mode, o->remove, gindex.get(o->to_merge[0]).bw());
 

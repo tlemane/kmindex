@@ -210,7 +210,7 @@ namespace kmq {
     index gindex(o->global_index_path);
 
     std::deque<std::string> q;
-    std::vector<std::string> to_merge = o->to_merge;
+    std::vector<std::string> to_merge;
 
     for (auto& n : o->to_merge)
     {
@@ -230,7 +230,7 @@ namespace kmq {
     }
 
     auto merger = make_merger(
-      &gindex, o->to_merge, o->new_path, o->name, o->mode, o->remove, gindex.get(o->to_merge[0]).bw());
+      &gindex, to_merge, o->new_path, o->name, o->mode, o->remove, gindex.get(to_merge[0]).bw());
 
     ThreadPool pool(o->nb_threads);
     merger->merge(pool);

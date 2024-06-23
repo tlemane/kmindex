@@ -22,7 +22,7 @@ function kmindex_build ()
 
 function usage ()
 {
-  echo "kmindex build script - v0.5.0."
+  echo "kmindex build script - v0.5.3."
   echo "Usage: "
   echo "  ./install.sh [-r str] [-t int] [-j int] [-p str] [-k int] [-n] [-h]"
   echo "Options: "
@@ -49,7 +49,7 @@ native="OFF"
 installp=$(realpath ./kmindex_install)
 max_ksize=256
 
-while getopts "r:t:j:p:nh" option; do
+while getopts "k:r:t:j:p:nh" option; do
   case "$option" in
     r)
       mode=${OPTARG}

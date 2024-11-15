@@ -42,6 +42,9 @@ int main(int argc, char* argv[])
       case kmq::kmq_commands::kmq_merge:
         kmq::main_merge(options);
         break;
+      case kmq::kmq_commands::kmq_query_blob:
+	kmq::main_queryblob(options);
+	break;
     }
 
   } catch (const bc::ex::BCliError& e) {

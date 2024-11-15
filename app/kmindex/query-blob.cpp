@@ -153,8 +153,6 @@ namespace kmq {
   {
     kmq_queryb_options_t o = std::static_pointer_cast<struct kmq_queryb_options>(opt);
 
-    Timer gtime;
-
     index global(o->global_index_path);
 
     spdlog::info(
@@ -165,12 +163,16 @@ namespace kmq {
       o->index_names = global.all();
     }
     else
-
-    spdlog::info("Sub-indexes to query: [{}]", fmt::join(o->index_names, ","));
+   	 spdlog::info("Sub-indexes to query: [{}]", fmt::join(o->index_names, ","));
 
     if (!o->single.empty())
       spdlog::warn("--single-query: all query results are kept in memory");
 
+    ThreadPool poolL(opt->nb_threads);
+
+
+    poolL.add_task([&o, &global](int i){
+		    
     for (auto& index_name : o->index_names)
     {
       Timer timer;
@@ -194,7 +196,7 @@ namespace kmq {
       std::size_t n = record.seq.size() - infos.smer_size() + 1;
       std::vector<std::unique_ptr<blob_partition>> m_partitions;
       auto r = std::make_unique<query_response>(record.name, n, infos.nb_samples(), infos.bw());
-      std::vector<qpart_type> m_smers;
+      std::vector<qpart_type> m_smers (infos.nb_partitions());
 
       auto repart = infos.get_repartition();
       auto hw = infos.get_hash_w();
@@ -206,28 +208,29 @@ namespace kmq {
         m_partitions.push_back(std::make_unique<blob_partition>(s, infos.nb_samples(), infos.bw(), &itp_client));
       }
 
-      ThreadPool pool(opt->nb_threads);
+      //ThreadPool pool(opt->nb_threads);
 
       for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
       {
-        pool.add_task([&m_smers, &m_partitions, &r, p](int i) {
+  //      pool.add_task([&m_smers, &m_partitions, &r, p](int i) {
           auto& smers = m_smers[p];
           std::sort(std::begin(smers), std::end(smers));
           for (auto& [mer, qid] : smers)
           {
             m_partitions[p]->query(mer.h, r->get(mer.i));
           }
-        });
+    //    });
       }
 
-      pool.join_all();
+      //pool.join_all();
 
       query_result_agg aggs;
       aggs.add(query_result(std::move(r), o->z, infos, false));
       aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
 
-    spdlog::info("Done ({}).", gtime.formatted());
+    }
+    });
+    poolL.join_all();
   }
-}
 
 }

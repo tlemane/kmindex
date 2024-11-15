@@ -16,7 +16,8 @@ namespace kmq {
     kmq_query,
     kmq_register,
     kmq_merge,
-    kmq_index_infos
+    kmq_index_infos,
+    kmq_query_blob
   };
 
   struct kmq_options

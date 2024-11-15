@@ -171,28 +171,24 @@ namespace kmq {
     if (o->blob_mode)
     {
       ThreadPool poolL(opt->nb_threads);
+     
+      std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
+      auto azure_client = BlobServiceClient::CreateFromConnectionString(connectionString);
+      auto itp_client = BlobContainerClient(azure_client.GetBlobContainerClient("indextheplanet"));
+
+      klibpp::SeqStreamIn iss(o->input.c_str());
+      klibpp::KSeq record;
+      iss >> record;
 
       for (auto& index_name : o->index_names)
       {
-        poolL.add_task([&o, &global, &index_name](int i){
+        poolL.add_task([&o, &global, &index_name, &itp_client, &record](int i){
 
-          Timer timer;
           auto infos = global.get(index_name);
 
           spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
 
-          klibpp::SeqStreamIn iss(o->input.c_str());
-          queue_type bqueue;
-
-
           kindex ki(infos, o->cache, o->blob_mode);
-
-          klibpp::KSeq record;
-          iss >> record;
-
-          std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
-          auto azure_client = BlobServiceClient::CreateFromConnectionString(connectionString);
-          auto itp_client = BlobContainerClient(azure_client.GetBlobContainerClient("indextheplanet"));
 
           std::size_t n = record.seq.size() - infos.smer_size() + 1;
           std::vector<std::unique_ptr<blob_partition>> m_partitions;

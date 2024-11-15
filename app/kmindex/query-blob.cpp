@@ -168,69 +168,126 @@ namespace kmq {
     if (!o->single.empty())
       spdlog::warn("--single-query: all query results are kept in memory");
 
-    ThreadPool poolL(opt->nb_threads);
-
-
-    poolL.add_task([&o, &global](int i){
-		    
-    for (auto& index_name : o->index_names)
+    if (o->blob_mode)
     {
-      Timer timer;
-      auto infos = global.get(index_name);
 
-      spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
+      ThreadPool poolL(opt->nb_threads);
 
-      klibpp::SeqStreamIn iss(o->input.c_str());
-      queue_type bqueue;
+      poolL.add_task([&o, &global](int i){
+
+        for (auto& index_name : o->index_names)
+        {
+          Timer timer;
+          auto infos = global.get(index_name);
+
+          spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
+
+          klibpp::SeqStreamIn iss(o->input.c_str());
+          queue_type bqueue;
 
 
-      kindex ki(infos, o->cache, o->blob_mode);
+          kindex ki(infos, o->cache, o->blob_mode);
 
-      klibpp::KSeq record;
-      iss >> record;
+          klibpp::KSeq record;
+          iss >> record;
 
-      std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
-      auto azure_client = BlobServiceClient::CreateFromConnectionString(connectionString);
-      auto itp_client = BlobContainerClient(azure_client.GetBlobContainerClient("indextheplanet"));
+          std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
+          auto azure_client = BlobServiceClient::CreateFromConnectionString(connectionString);
+          auto itp_client = BlobContainerClient(azure_client.GetBlobContainerClient("indextheplanet"));
 
-      std::size_t n = record.seq.size() - infos.smer_size() + 1;
-      std::vector<std::unique_ptr<blob_partition>> m_partitions;
-      auto r = std::make_unique<query_response>(record.name, n, infos.nb_samples(), infos.bw());
-      std::vector<qpart_type> m_smers (infos.nb_partitions());
+          std::size_t n = record.seq.size() - infos.smer_size() + 1;
+          std::vector<std::unique_ptr<blob_partition>> m_partitions;
+          auto r = std::make_unique<query_response>(record.name, n, infos.nb_samples(), infos.bw());
+          std::vector<qpart_type> m_smers (infos.nb_partitions());
 
-      auto repart = infos.get_repartition();
-      auto hw = infos.get_hash_w();
-      loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(infos.smer_size(), m_smers, record.seq, 0, infos.smer_size(), repart, hw, infos.minim_size());
+          auto repart = infos.get_repartition();
+          auto hw = infos.get_hash_w();
+          loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(infos.smer_size(), m_smers, record.seq, 0, infos.smer_size(), repart, hw, infos.minim_size());
 
-      for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
-      {
-        auto s = infos.get_partition(p).substr(10);
-        m_partitions.push_back(std::make_unique<blob_partition>(s, infos.nb_samples(), infos.bw(), &itp_client));
-      }
-
-      //ThreadPool pool(opt->nb_threads);
-
-      for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
-      {
-  //      pool.add_task([&m_smers, &m_partitions, &r, p](int i) {
-          auto& smers = m_smers[p];
-          std::sort(std::begin(smers), std::end(smers));
-          for (auto& [mer, qid] : smers)
+          for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
           {
-            m_partitions[p]->query(mer.h, r->get(mer.i));
+            auto s = infos.get_partition(p).substr(10);
+            m_partitions.push_back(std::make_unique<blob_partition>(s, infos.nb_samples(), infos.bw(), &itp_client));
           }
-    //    });
+
+          for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
+          {
+              auto& smers = m_smers[p];
+              std::sort(std::begin(smers), std::end(smers));
+              for (auto& [mer, qid] : smers)
+              {
+                m_partitions[p]->query(mer.h, r->get(mer.i));
+              }
+          }
+
+          query_result_agg aggs;
+          aggs.add(query_result(std::move(r), o->z, infos, false));
+          aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
+
+        }
+        });
+      poolL.join_all();
+    }
+    else
+    {
+      for (auto& index_name : o->index_names)
+      {
+        Timer timer;
+        auto infos = global.get(index_name);
+
+        spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
+
+        klibpp::SeqStreamIn iss(o->input.c_str());
+        queue_type bqueue;
+
+
+        kindex ki(infos, o->cache, o->blob_mode);
+
+        klibpp::KSeq record;
+        iss >> record;
+
+        std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
+        auto azure_client = BlobServiceClient::CreateFromConnectionString(connectionString);
+        auto itp_client = BlobContainerClient(azure_client.GetBlobContainerClient("indextheplanet"));
+
+        std::size_t n = record.seq.size() - infos.smer_size() + 1;
+        std::vector<std::unique_ptr<blob_partition>> m_partitions;
+        auto r = std::make_unique<query_response>(record.name, n, infos.nb_samples(), infos.bw());
+        std::vector<qpart_type> m_smers (infos.nb_partitions());
+
+        auto repart = infos.get_repartition();
+        auto hw = infos.get_hash_w();
+        loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(infos.smer_size(), m_smers, record.seq, 0, infos.smer_size(), repart, hw, infos.minim_size());
+
+        for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
+        {
+          auto s = infos.get_partition(p).substr(10);
+          m_partitions.push_back(std::make_unique<blob_partition>(s, infos.nb_samples(), infos.bw(), &itp_client));
+        }
+
+        ThreadPool pool(opt->nb_threads);
+
+        for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
+        {
+            pool.add_task([&m_smers, &m_partitions, &r, p](int i) {
+            auto& smers = m_smers[p];
+            std::sort(std::begin(smers), std::end(smers));
+            for (auto& [mer, qid] : smers)
+            {
+              m_partitions[p]->query(mer.h, r->get(mer.i));
+            }
+          });
+        }
+
+        pool.join_all();
+
+        query_result_agg aggs;
+        aggs.add(query_result(std::move(r), o->z, infos, false));
+        aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
+
       }
-
-      //pool.join_all();
-
-      query_result_agg aggs;
-      aggs.add(query_result(std::move(r), o->z, infos, false));
-      aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
 
     }
-    });
-    poolL.join_all();
   }
 
 }

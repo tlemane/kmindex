@@ -28,12 +28,18 @@ namespace kmq {
 
   kindex::kindex() {}
 
-  kindex::kindex(const index_infos& i, bool cache)
-    : m_infos(i), m_mutexes(i.nb_partitions()), m_cache(cache)
+  kindex::kindex(const index_infos& i, bool cache, bool blob_mode)
+    : m_infos(i), m_mutexes(i.nb_partitions()), m_cache(cache), blob_mode(blob_mode)
   {
     m_partitions.resize(m_infos.nb_partitions());
 
-    if (m_cache)
+    if (blob_mode)
+    {
+      std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
+      azure_client = std::make_unique<BlobServiceClient>(BlobServiceClient::CreateFromConnectionString(connectionString));
+      itp_client = std::make_unique<BlobContainerClient>(azure_client->GetBlobContainerClient(connectionString));
+    }
+    else if (m_cache)
     {
       for (std::size_t p = 0; p < m_infos.nb_partitions(); ++p)
       {
@@ -55,7 +61,15 @@ namespace kmq {
 
   void kindex::init(std::size_t p)
   {
-    m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples(), m_infos.bw());
+    if (blob_mode)
+    {
+      auto s = m_infos.get_partition(p).substr(10);
+      m_partitions[p] = std::make_unique<blob_partition>(s, m_infos.nb_samples(), m_infos.bw(), itp_client.get());
+    }
+    else
+    {
+      m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples(), m_infos.bw());
+    }
   }
 
   void kindex::unmap(std::size_t p)

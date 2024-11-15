@@ -27,6 +27,8 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:sha1h>
   $<BUILD_INTERFACE:semver>
   $<BUILD_INTERFACE:bitpack>
+  $<BUILD_INTERFACE:Azure::azure-identity>
+  $<BUILD_INTERFACE:Azure::azure-storage-blobs>
 )
 
 add_dependencies(${KMINDEX_LIB} deps)

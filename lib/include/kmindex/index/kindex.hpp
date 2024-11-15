@@ -7,19 +7,35 @@
 #include <kmindex/spinlock.hpp>
 #include <mio/mmap.hpp>
 
+#include <azure/core.hpp>
+#include <azure/identity/default_azure_credential.hpp>
+#include <azure/storage/blobs.hpp>
+#include <vector>
+#include <string>
+
+using namespace Azure::Identity;
+using namespace Azure::Storage::Blobs;
+
 
 #include <iostream>
 
 namespace kmq {
 
-  class partition
+  class partition_interface
+  {
+    public:
+      virtual void query(std::uint64_t pos, std::uint8_t* dest) = 0;
+      virtual ~partition_interface() {};
+  };
+
+  class partition : public partition_interface
   {
     public:
       partition(const std::string& matrix_path, std::size_t nb_samples, std::size_t width);
 
       ~partition();
 
-      void query(std::uint64_t pos, std::uint8_t* dest);
+      virtual void query(std::uint64_t pos, std::uint8_t* dest);
 
     private:
       int m_fd {0};
@@ -28,13 +44,42 @@ namespace kmq {
       std::size_t m_bytes {0};
   };
 
+  class blob_partition : public partition_interface
+  {
+    public:
+      blob_partition(const std::string& blob_name, std::size_t nb_samples, std::size_t width, BlobContainerClient* bcc)
+      : m_nb_samples(nb_samples), m_bytes(((nb_samples * width) + 7) / 8)
+      {
+        m_client = std::make_unique<BlockBlobClient>(bcc->GetBlockBlobClient(blob_name));
+      }
+      ~blob_partition() {}
+
+      virtual void query(std::uint64_t pos, std::uint8_t* dest)
+      {
+        Azure::Storage::Blobs::DownloadBlobToOptions options;
+        Azure::Core::Http::HttpRange range;
+        range.Offset = (m_bytes * pos) + 49;
+        range.Length = m_bytes;
+        options.Range = range;
+        options.TransferOptions.InitialChunkSize = m_bytes;
+        options.TransferOptions.ChunkSize = m_bytes;
+        options.TransferOptions.Concurrency = 1;
+        m_client->DownloadTo(dest, m_bytes, options);
+      }
+
+      private:
+        std::size_t m_nb_samples {0};
+        std::size_t m_bytes {0};
+        std::unique_ptr<BlockBlobClient> m_client;
+  };
+
   class kindex
   {
     public:
 
       kindex();
       ~kindex();
-      kindex(const index_infos& i, bool cache = false);
+      kindex(const index_infos& i, bool cache = false, bool blob_mode = true);
 
       void init(std::size_t p);
       void unmap(std::size_t p);
@@ -108,9 +153,13 @@ namespace kmq {
       index_infos& infos();
     private:
       index_infos m_infos;
-      std::vector<std::unique_ptr<partition>> m_partitions;
+      std::vector<std::unique_ptr<partition_interface>> m_partitions;
       std::vector<spinlock> m_mutexes;
       bool m_cache {false};
+
+      bool blob_mode {false};
+      std::unique_ptr<BlobServiceClient> azure_client;
+      std::unique_ptr<BlobContainerClient> itp_client;
   };
 }
 

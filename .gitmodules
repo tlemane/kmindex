@@ -19,3 +19,6 @@
 [submodule "thirdparty/atomic_queue"]
 	path = thirdparty/atomic_queue
 	url = https://github.com/max0x7ba/atomic_queue
+[submodule "thirdparty/vcpkg"]
+	path = thirdparty/vcpkg
+	url = https://github.com/microsoft/vcpkg.git

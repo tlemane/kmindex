@@ -7,6 +7,7 @@
 #include "build.hpp"
 #include "index_infos.hpp"
 #include "merge.hpp"
+#include "query-blob.hpp"
 
 namespace kmq {
 
@@ -26,6 +27,7 @@ namespace kmq {
       kmq_build_options_t m_kmq_build_opt {nullptr};
       kmq_infos_options_t m_kmq_infos_opt {nullptr};
       kmq_merge_options_t m_kmq_merge_opt {nullptr};
+      kmq_queryb_options_t m_kmq_queryb_opt {nullptr};
   };
 }
 

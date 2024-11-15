@@ -19,6 +19,7 @@ namespace kmq {
     kmq_query_cli(m_cli_parser, m_kmq_query_opt);
     kmq_merge_cli(m_cli_parser, m_kmq_merge_opt);
     kmq_infos_cli(m_cli_parser, m_kmq_infos_opt);
+    kmq_queryblob_cli(m_cli_parser, m_kmq_queryb_opt);
   }
 
   std::tuple<kmq_commands, kmq_options_t> kmq_cli::parse(int argc, char* argv[])

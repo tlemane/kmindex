@@ -170,13 +170,12 @@ namespace kmq {
 
     if (o->blob_mode)
     {
-
       ThreadPool poolL(opt->nb_threads);
 
-      poolL.add_task([&o, &global](int i){
+      for (auto& index_name : o->index_names)
+      {
+        poolL.add_task([&o, &global, &index_name](int i){
 
-        for (auto& index_name : o->index_names)
-        {
           Timer timer;
           auto infos = global.get(index_name);
 
@@ -224,8 +223,8 @@ namespace kmq {
           aggs.add(query_result(std::move(r), o->z, infos, false));
           aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
 
-        }
         });
+      }
       poolL.join_all();
     }
     else

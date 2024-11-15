@@ -115,6 +115,9 @@ namespace kmq {
        ->as_flag()
        ->setter(options->cache);
 
+    cmd->add_param("--blob-mode", "Use Azure SDK")
+       ->as_flag()
+       ->setter(options->blob_mode);
 
     add_common_options(cmd, options, true, 1);
 
@@ -285,7 +288,7 @@ namespace kmq {
 
       ThreadPool pool(opt->nb_threads);
 
-      kindex ki(infos, o->cache);
+      kindex ki(infos, o->cache, o->blob_mode);
       //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
       std::atomic<std::size_t> batch_id = 0;

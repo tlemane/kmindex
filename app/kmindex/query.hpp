@@ -19,6 +19,7 @@ namespace kmq {
     double sk_threshold {0};
     std::size_t batch_size {0};
     bool cache {false};
+    bool blob_mode {false};
     bool aggregate {false};
   };
 

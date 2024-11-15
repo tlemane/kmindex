@@ -37,7 +37,7 @@ namespace kmq {
     {
       std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
       azure_client = std::make_unique<BlobServiceClient>(BlobServiceClient::CreateFromConnectionString(connectionString));
-      itp_client = std::make_unique<BlobContainerClient>(azure_client->GetBlobContainerClient(connectionString));
+      itp_client = std::make_unique<BlobContainerClient>(azure_client->GetBlobContainerClient("indextheplanet"));
     }
     else if (m_cache)
     {

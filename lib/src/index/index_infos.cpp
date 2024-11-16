@@ -22,6 +22,8 @@ namespace kmq {
     : m_name(name)
   {
     init(jdata);
+    if (m_path.back() == '/')
+       m_path.pop_back();
   }
 
   std::shared_ptr<km::HashWindow> index_infos::get_hash_w() const

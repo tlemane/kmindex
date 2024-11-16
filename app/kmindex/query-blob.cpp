@@ -153,7 +153,9 @@ namespace kmq {
   {
     kmq_queryb_options_t o = std::static_pointer_cast<struct kmq_queryb_options>(opt);
 
+    Timer gtime;
     index global(o->global_index_path);
+
 
     spdlog::info(
       "Global index: '{}'", fs::absolute(o->global_index_path + "/").parent_path().filename().string());
@@ -184,11 +186,10 @@ namespace kmq {
       {
         poolL.add_task([&o, &global, &index_name, &itp_client, &record](int i){
 
+          Timer timer;
           auto infos = global.get(index_name);
 
           spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
-
-          kindex ki(infos, o->cache, o->blob_mode);
 
           std::size_t n = record.seq.size() - infos.smer_size() + 1;
           std::vector<std::unique_ptr<blob_partition>> m_partitions;
@@ -198,11 +199,11 @@ namespace kmq {
           auto repart = infos.get_repartition();
           auto hw = infos.get_hash_w();
           loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(infos.smer_size(), m_smers, record.seq, 0, infos.smer_size(), repart, hw, infos.minim_size());
-
+		
           for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
           {
             auto s = infos.get_partition(p).substr(10);
-            m_partitions.push_back(std::make_unique<blob_partition>(s, infos.nb_samples(), infos.bw(), &itp_client));
+	    m_partitions.push_back(std::make_unique<blob_partition>(s, infos.nb_samples(), infos.bw(), &itp_client));
           }
 
           for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
@@ -214,14 +215,15 @@ namespace kmq {
                 m_partitions[p]->query(mer.h, r->get(mer.i));
               }
           }
-
+	  
           query_result_agg aggs;
           aggs.add(query_result(std::move(r), o->z, infos, false));
           aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
-
+	  spdlog::info("Index '{}' processed. ({})", infos.name(), timer.formatted());
         });
       }
       poolL.join_all();
+      spdlog::info("Done ({}).", gtime.formatted());
     }
     else
     {
@@ -235,8 +237,6 @@ namespace kmq {
         klibpp::SeqStreamIn iss(o->input.c_str());
         queue_type bqueue;
 
-
-        kindex ki(infos, o->cache, o->blob_mode);
 
         klibpp::KSeq record;
         iss >> record;

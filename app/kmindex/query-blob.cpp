@@ -166,7 +166,7 @@ namespace kmq {
     }
     else
     {
-      if (o->index_names[0][0] = '@')
+      if (o->index_names[0][0] == '@')
       {
         std::ifstream fs(o->index_names[0]);
         o->index_names.clear();

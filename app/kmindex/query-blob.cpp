@@ -165,7 +165,17 @@ namespace kmq {
       o->index_names = global.all();
     }
     else
-   	 spdlog::info("Sub-indexes to query: [{}]", fmt::join(o->index_names, ","));
+    {
+      if (o->index_names[0][0] = '@')
+      {
+        std::ifstream fs(o->index_names[0]);
+        o->index_names.clear();
+        for (std::string line; std::getline(fs, line);)
+        {
+          o->index_names.push_back(line);
+        }
+      }
+    }
 
     if (!o->single.empty())
       spdlog::warn("--single-query: all query results are kept in memory");
@@ -173,7 +183,7 @@ namespace kmq {
     if (o->blob_mode)
     {
       ThreadPool poolL(opt->nb_threads);
-     
+
       std::string connectionString = std::getenv("AZURE_STORAGE_CONNECTION_STRING");
       auto azure_client = BlobServiceClient::CreateFromConnectionString(connectionString);
       auto itp_client = BlobContainerClient(azure_client.GetBlobContainerClient("indextheplanet"));
@@ -199,7 +209,7 @@ namespace kmq {
           auto repart = infos.get_repartition();
           auto hw = infos.get_hash_w();
           loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(infos.smer_size(), m_smers, record.seq, 0, infos.smer_size(), repart, hw, infos.minim_size());
-		
+
           for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
           {
             auto s = infos.get_partition(p).substr(10);
@@ -215,7 +225,7 @@ namespace kmq {
                 m_partitions[p]->query(mer.h, r->get(mer.i));
               }
           }
-	  
+
           query_result_agg aggs;
           aggs.add(query_result(std::move(r), o->z, infos, false));
           aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);

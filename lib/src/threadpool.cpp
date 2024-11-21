@@ -4,7 +4,7 @@ namespace kmq {
 
   ThreadPool::ThreadPool(size_type threads)
   {
-    if (threads < _n) _n = threads;
+    _n = threads;
     for (size_t i = 0; i < _n; i++)
     {
       _pool.push_back(std::thread(&ThreadPool::worker, this, i));

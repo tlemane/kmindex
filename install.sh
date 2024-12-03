@@ -49,7 +49,7 @@ native="OFF"
 installp=$(realpath ./kmindex_install)
 max_ksize=256
 
-while getopts "r:t:j:p:nh" option; do
+while getopts "r:t:j:k:p:nh" option; do
   case "$option" in
     r)
       mode=${OPTARG}

@@ -66,7 +66,8 @@ namespace kmq {
   }
 
   std::size_t query_formatter_base::aggregate_c(const std::vector<query_result>& queries,
-                                                std::vector<std::uint32_t>& global)
+                                                std::vector<std::uint32_t>& global,
+                                                std::vector<double>& ratios)
   {
     std::size_t nbq = 0;
 
@@ -80,7 +81,14 @@ namespace kmq {
                      std::begin(qr.counts()),
                      std::begin(global),
                      std::plus<std::uint32_t>{}
+      );
                      // [](auto& lhs, auto& rhs) { return std::min(lhs, rhs); }
+      std::transform(std::begin(ratios),
+                     std::end(ratios),
+                     std::begin(qr.ratios()),
+                     std::begin(ratios),
+                     std::plus<double>{}
+
       );
     }
 
@@ -369,8 +377,8 @@ namespace kmq {
     this->write_headers(os, infos);
 
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
-
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     for (auto& c : global)
       c /= nbq;
@@ -395,7 +403,8 @@ namespace kmq {
     auto& j = m_json[infos.name()][response.name()];
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      j[infos.samples()[i]] = response.counts()[i];
+      if (response.ratios()[i] >= this->m_threshold)
+        j[infos.samples()[i]] = response.counts()[i];
     }
   }
 
@@ -409,13 +418,15 @@ namespace kmq {
 
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
 
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     auto& j = m_json[infos.name()][name];
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      j[infos.samples()[i]] = global[i] / nbq;
+      if ((ratios[i] / nbq) >= this->m_threshold)
+        j[infos.samples()[i]] = global[i] / nbq;
     }
   }
 
@@ -480,10 +491,14 @@ namespace kmq {
     auto& j = m_json[infos.name()][response.name()];
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      auto jj = json({});
-      jj["C"] = response.counts()[i];
-      jj["P"] = response.positions()[i];
-      j[infos.samples()[i]] = std::move(jj);
+      if (response.ratios()[i] >= this->m_threshold)
+      {
+        auto jj = json({});
+        jj["C"] = response.counts()[i];
+        jj["P"] = response.positions()[i];
+        jj["R"] = response.ratios()[i];
+        j[infos.samples()[i]] = std::move(jj);
+      }
     }
   }
 
@@ -497,20 +512,27 @@ namespace kmq {
 
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
 
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     auto& j = m_json[infos.name()][name];
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      auto jj = json::array({});
-      for (auto& r : responses)
+      double v = ratios[i] / nbq;
+      if (v >= this->m_threshold)
       {
-        jj.push_back(r.positions()[i]);
+        auto jj = json::array({});
+        for (auto& r : responses)
+        {
+          jj.push_back(r.positions()[i]);
+        }
+
+        j[infos.samples()[i]]["C"] = global[i] / nbq;
+        j[infos.samples()[i]]["P"] = std::move(jj);
+        j[infos.samples()[i]]["R"] = v;
       }
 
-      j[infos.samples()[i]]["C"] = global[i] / nbq;
-      j[infos.samples()[i]]["P"] = std::move(jj);
     }
   }
 
@@ -572,28 +594,37 @@ namespace kmq {
 
   query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw)
   {
-    switch (f)
+    if (bw == 1)
     {
-      case format::matrix:
-        return bw == 1 ? std::make_shared<matrix_formatter>(threshold)
-                       : std::make_shared<matrix_formatter_abs>(threshold);
-      case format::json:
-        return bw == 1 ? std::make_shared<json_formatter>(threshold)
-                       : std::make_shared<json_formatter_abs>(threshold);
-      case format::jsonl:
-        return bw == 1 ? std::make_shared<jsonl_formatter>(threshold)
-                       : std::make_shared<jsonl_formatter_abs>(threshold);
-      case format::jsonl_with_positions:
-        if (bw == 1)
+      switch(f)
+      {
+        case format::matrix:
+          return std::make_shared<matrix_formatter>(threshold);
+        case format::json:
+          return std::make_shared<json_formatter>(threshold);
+        case format::jsonl:
+          return std::make_shared<jsonl_formatter>(threshold);
+        case format::jsonl_with_positions:
           return std::make_shared<jsonl_wp_formatter>(threshold);
-        else
-          return std::make_shared<jsonl_wp_formatter_abs>(threshold);
-      case format::json_with_positions:
-        if (bw == 1)
+        case format::json_with_positions:
           return std::make_shared<json_wp_formatter>(threshold);
-        else
+      }
+    }
+    else
+    {
+      switch(f)
+      {
+        case format::matrix:
+          return std::make_shared<matrix_formatter_abs>(threshold);
+        case format::json:
+          return std::make_shared<json_formatter_abs>(threshold);
+        case format::json_with_positions:
           return std::make_shared<json_wp_formatter_abs>(threshold);
-
+        case format::jsonl:
+          return std::make_shared<jsonl_formatter_abs>(threshold);
+        case format::jsonl_with_positions:
+          return std::make_shared<jsonl_wp_formatter_abs>(threshold);
+      }
     }
 
     return nullptr;

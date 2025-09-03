@@ -51,7 +51,7 @@ namespace kmq {
     protected:
       std::size_t aggregate(const std::vector<query_result>& queries, std::vector<uint32_t>& global);
 
-      std::size_t aggregate_c(const std::vector<query_result>& queries, std::vector<uint32_t>& global);
+      std::size_t aggregate_c(const std::vector<query_result>& queries, std::vector<uint32_t>& global, std::vector<double>& ratios);
     protected:
       double m_threshold {0};
   };

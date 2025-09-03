@@ -138,6 +138,7 @@ namespace kmq {
       for (std::size_t s = 0; s < m_ratios.size(); ++s)
       {
         m_counts[s] += kres_abs[s];
+        m_ratios[s] += static_cast<bool>(kres_abs[s]);
         m_positions[s].push_back(kres_abs[s]);
       }
 
@@ -147,6 +148,7 @@ namespace kmq {
     for (std::size_t i = 0; i < m_ratios.size(); ++i)
     {
       m_counts[i] = m_counts[i] / m_nbk;
+      m_ratios[i] = m_ratios[i] / static_cast<double>(m_nbk);
     }
 
   }
@@ -177,6 +179,7 @@ namespace kmq {
       for (std::size_t s = 0; s < m_ratios.size(); ++s)
       {
         m_counts[s] += kres_abs[s];
+        m_ratios[s] += static_cast<bool>(kres_abs[s]);
       }
 
       std::fill(kres_abs.begin(), kres_abs.end(), std::numeric_limits<std::uint32_t>::max());
@@ -185,6 +188,7 @@ namespace kmq {
     for (std::size_t i = 0; i < m_ratios.size(); ++i)
     {
       m_counts[i] = m_counts[i] / m_nbk;
+      m_ratios[i] = m_ratios[i] / static_cast<double>(m_nbk);
     }
   }
 

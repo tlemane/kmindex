@@ -95,10 +95,10 @@ namespace kmq {
       options->format = str_to_format(v);
     };
 
-    cmd->add_param("-f/--format", "Output format [json|matrix|json_vec]")
+    cmd->add_param("-f/--format", "Output format [json|matrix|json_vec|jsonl|jsonl_vec]")
        ->meta("STR")
        ->def("json")
-       ->checker(bc::check::f::in("json|matrix|json_vec"))
+       ->checker(bc::check::f::in("json|matrix|json_vec|jsonl|jsonl_vec"))
        ->setter_c(format_setter);
 
     cmd->add_param("-b/--batch-size", "Size of query batches (0≈nb_seq/nb_thread).")
@@ -151,7 +151,7 @@ namespace kmq {
 
     bq.free_smers();
 
-    bool wpos = opt->format == format::json_with_positions;
+    bool wpos = opt->format == format::json_with_positions || opt->format == format::jsonl_with_positions;
     if (opt->single.empty())
     {
       query_result_agg agg;
@@ -206,6 +206,22 @@ namespace kmq {
     out << std::setw(4) << data << std::endl;
   }
 
+  void merge_jsonl(std::size_t n, const std::string& index_name, const std::string& output)
+  {
+    std::ofstream out(fmt::format("{}/{}.jsonl", output, index_name), std::ios::out);
+
+    for (std::size_t b = 0; b < n; ++b)
+    {
+      std::string line;
+      std::ifstream inf(fmt::format("{}/batch_{}/{}.jsonl", output, b, index_name), std::ios::in);
+
+      while (std::getline(inf, line))
+      {
+        out << line << '\n';
+      }
+    }
+  }
+
   void merge_tsv(std::size_t n, const std::string& index_name, const std::string& output)
   {
     std::ofstream out(fmt::format("{}/{}.tsv", output, index_name), std::ios::out);
@@ -244,6 +260,10 @@ namespace kmq {
       case format::json:
       case format::json_with_positions:
         merge_json(n, index_name, output);
+        break;
+      case format::jsonl:
+      case format::jsonl_with_positions:
+        merge_jsonl(n, index_name, output);
         break;
       case format::matrix:
         merge_tsv(n, index_name, output);
@@ -350,13 +370,13 @@ namespace kmq {
         spdlog::info("aggregate query results ({} sequences)", aggs.size());
         aggs.output(infos, o->output, o->format, o->single, o->sk_threshold);
         spdlog::info("query '{}' processed, results dumped at {}/{}.{}",
-          o->single, o->output, infos.name(), o->format == format::matrix ? "tsv" : "json");
+          o->single, o->output, infos.name(), format_to_fext(o->format));
       }
       else
       {
         if (o->aggregate && ((o->batch_size > 0) || (o->nb_threads > 1)))
         {
-          std::string ext = o->format == format::matrix ? "tsv" : "json";
+          std::string ext = format_to_fext(o->format);
 
           merge_results(o->output, o->format, infos.name());
 

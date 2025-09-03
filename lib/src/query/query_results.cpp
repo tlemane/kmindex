@@ -248,7 +248,7 @@ namespace kmq {
     fs::create_directory(output_dir);
 
     std::ofstream out(
-      fmt::format("{}/{}.{}", output_dir, infos.name(), f == format::matrix ? "tsv" : "json"));
+      fmt::format("{}/{}.{}", output_dir, infos.name(), format_to_fext(f)));
 
     auto formatter = make_formatter(f, threshold, infos.bw());
 

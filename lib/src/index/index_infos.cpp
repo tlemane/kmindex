@@ -36,7 +36,24 @@ namespace kmq {
 
   std::string index_infos::get_partition(std::size_t partition) const
   {
-    return fmt::format("{}/matrices/matrix_{}.cmbf", m_path, partition);
+    if (m_is_compressed)
+    {
+      return fmt::format("{}/matrices/blocks{}", m_path, partition);
+    }
+    else
+    {
+      return fmt::format("{}/matrices/matrix_{}.cmbf", m_path, partition);
+    }
+  }
+
+  std::string index_infos::get_compression_config() const
+  {
+    return fmt::format("{}/compression.cfg", m_path);
+  }
+
+  bool index_infos::is_compressed_index() const
+  {
+    return m_is_compressed;
   }
 
   std::string index_infos::name() const
@@ -184,16 +201,11 @@ namespace kmq {
 
     m_bloom_size = hw->bloom_size();
 
-    auto d = fs::directory_iterator(fmt::format("{}/matrices", m_path));
-    m_nb_partitions = [&](){
-      std::size_t c = 0;
-      for (auto& f : d)
-      {
-        if (f.is_regular_file())
-          ++c;
-      }
-      return c;
-    }();
+    {
+      std::ifstream hwf(fmt::format("{}/hash.info", m_path), std::ios::binary | std::ios::in);
+      hwf.seekg(sizeof(std::uint64_t));
+      hwf.read(reinterpret_cast<char*>(&m_nb_partitions), sizeof(m_nb_partitions));
+    }
 
     std::ifstream in_opt(fmt::format("{}/options.txt", m_path));
 
@@ -248,6 +260,7 @@ namespace kmq {
 
     m_kmtver = semver::version(trim(kmt_ver_str.substr(10)));
     m_kmver = kmindex_version;
+    m_is_compressed = fs::exists(get_compression_config());
   }
 
   std::string index_infos::km_sha1() const
@@ -298,6 +311,8 @@ namespace kmq {
 
     m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
     m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
+
+    m_is_compressed = fs::exists(get_compression_config());
   }
 
 }

@@ -38,7 +38,7 @@ namespace kmq {
 
   void compressed_partition::query(std::uint64_t pos, std::uint8_t* dest)
   {
-    std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
+    //std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
   }
 
   kindex::kindex() {}
@@ -70,7 +70,14 @@ namespace kmq {
 
   void kindex::init(std::size_t p)
   {
-    m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples(), m_infos.bw());
+    if (m_infos.is_compressed_index())
+    {
+      m_partitions[p] = std::make_unique<compressed_partition>(m_infos.get_partition(p), m_infos.get_compression_config(), m_infos.nb_samples(), m_infos.bw());
+    }
+    else
+    {
+      m_partitions[p] = std::make_unique<partition>(m_infos.get_partition(p), m_infos.nb_samples(), m_infos.bw());
+    }
   }
 
   void kindex::unmap(std::size_t p)

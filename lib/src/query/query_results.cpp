@@ -118,18 +118,19 @@ namespace kmq {
     std::vector<std::uint32_t> kres_abs(m_counts.size(), std::numeric_limits<std::uint32_t>::max());
     std::fill(m_counts.begin(), m_counts.end(), std::numeric_limits<std::uint32_t>::min());
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
-
+    
     for (auto& v : m_positions)
       v.reserve(m_nbk);
 
     // for each k-mers
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
       // for each s-mers in the k-mer
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        auto s = nonstd::span<const std::uint8_t>(&data[j], m_qr->block_size());
+        auto s = nonstd::span<const std::uint8_t>(&data[j], block_size);
         for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_infos.bw())
         {
           kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_infos.bw()), kres_abs[k]);
@@ -162,15 +163,16 @@ namespace kmq {
     std::vector<std::uint32_t> kres_abs(m_counts.size(), std::numeric_limits<std::uint32_t>::max());
     std::fill(m_counts.begin(), m_counts.end(), std::numeric_limits<std::uint32_t>::min());
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
 
     // for each k-mers
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
       // for each s-mers in the k-mer
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        auto s = nonstd::span<const std::uint8_t>(&data[j], m_qr->block_size());
+        auto s = nonstd::span<const std::uint8_t>(&data[j], block_size);
         for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_infos.bw())
         {
           kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_infos.bw()), kres_abs[k]);

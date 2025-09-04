@@ -41,13 +41,14 @@ namespace kmq {
     std::vector<uint8_t> kres(m_qr->block_size(), 255);
     std::vector<std::uint32_t> count(m_ratios.size(), 0);
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
 
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        for(std::size_t k = 0; k < m_qr->block_size(); ++k)
+        for(std::size_t k = 0; k < block_size; ++k)
         {
           kres[k] &= data[j+k];
         }
@@ -76,16 +77,17 @@ namespace kmq {
     std::vector<uint8_t> kres(m_qr->block_size(), 255);
     std::vector<std::uint32_t> count(m_ratios.size(), 0);
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
 
     for (auto& v : m_positions)
       v.reserve(m_nbk);
 
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        for(std::size_t k = 0; k < m_qr->block_size(); ++k)
+        for(std::size_t k = 0; k < block_size; ++k)
         {
           kres[k] &= data[j+k];
         }

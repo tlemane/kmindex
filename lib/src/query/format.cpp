@@ -465,7 +465,8 @@ namespace kmq {
 
     std::map<std::string, std::uint32_t> samples;
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
@@ -574,7 +575,8 @@ namespace kmq {
 
     std::map<std::string, json> samples;
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
@@ -586,6 +588,7 @@ namespace kmq {
       json sample;
       sample["C"] = global[i] / nbq;
       sample["P"] = std::move(jjj);
+      sample["R"] = ratios[i] / nbq;
       samples[infos.samples()[i]] = std::move(sample);
     }
     jj["samples"] = std::move(samples);

@@ -26,6 +26,21 @@ namespace kmq {
     std::memcpy(dest, m_mapped.begin() + (m_bytes * pos) + 49, m_bytes);
   }
 
+  compressed_partition::compressed_partition(const std::string& matrix_path, const std::string& config_path, std::size_t nb_samples, std::size_t width)
+    : m_nb_samples(nb_samples), m_bytes(((nb_samples * width) + 7) / 8)
+  {
+    //ptr_bd = std::make_unique<BlockDecompressorZSTD>(config_path, matrix_path, matrix_path + "_ef");
+  }
+
+  compressed_partition::~compressed_partition()
+  {
+  }
+
+  void compressed_partition::query(std::uint64_t pos, std::uint8_t* dest)
+  {
+    std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
+  }
+
   kindex::kindex() {}
 
   kindex::kindex(const index_infos& i, bool cache)

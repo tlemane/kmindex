@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [macos-11,macos-12]
+        distro: [macos-13,macos-14]
         build_type: [Release]
 
     runs-on: ${{ matrix.distro }}
@@ -59,24 +59,24 @@ jobs:
           ctest --verbose
 
       - name: Package
-        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-13' && startsWith(github.event.ref, 'refs/tags/v')
         shell: bash
         run: cd build && make package
 
       - name: Get tag name
-        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-13' && startsWith(github.event.ref, 'refs/tags/v')
         id: tag
         run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
 
       - name: Release archive
-        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-13' && startsWith(github.event.ref, 'refs/tags/v')
         shell: bash
         run: |
           mkdir archive_files
           mv build/kmindex-${{ steps.tag.outputs.TAG }}-bin-Darwin.tar.gz archive_files
 
       - name: Release
-        if: matrix.distro == 'macos-11' && startsWith(github.event.ref, 'refs/tags/v')
+        if: matrix.distro == 'macos-13' && startsWith(github.event.ref, 'refs/tags/v')
         uses: svenstaro/upload-release-action@v2
         with:
           release_name: Release ${{ steps.tag.outputs.TAG }}

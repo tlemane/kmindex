@@ -34,6 +34,11 @@ namespace kmq {
     return m_repart;
   }
 
+  std::string index_infos::get_directory() const
+  {
+    return m_path;
+  }
+  
   std::string index_infos::get_partition(std::size_t partition) const
   {
     if (m_is_compressed)
@@ -44,6 +49,11 @@ namespace kmq {
     {
       return fmt::format("{}/matrices/matrix_{}.cmbf", m_path, partition);
     }
+  }
+
+  std::string index_infos::get_sum_partition(std::size_t partition) const
+  {
+    return fmt::format("{}/matrices/sum_{}.vec", m_path, partition);
   }
 
   std::string index_infos::get_compression_config() const
@@ -185,7 +195,7 @@ namespace kmq {
 
   void index_infos::is_km_index() const
   {
-    std::string p = fmt::format("{}/matrices/matrix_0.cmbf", m_path);
+    std::string p = fmt::format("{}/kmtricks.fof", m_path);
 
     if (!fs::exists(p))
       throw kmq_io_error(fmt::format("{} is not a kmtricks index.", m_path));
@@ -261,6 +271,12 @@ namespace kmq {
     m_kmtver = semver::version(trim(kmt_ver_str.substr(10)));
     m_kmver = kmindex_version;
     m_is_compressed = fs::exists(get_compression_config());
+    
+    for (std::size_t i = 0; i < m_nb_partitions; ++i)
+    {
+      if (!fs::exists(get_partition(i)))
+        throw kmq_io_error(fmt::format("Partition file {} does not exist.", get_partition(i)));
+    }
   }
 
   std::string index_infos::km_sha1() const

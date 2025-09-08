@@ -105,9 +105,9 @@ namespace kmq {
       smer_hasher() = default;
 
       smer_hasher(repart_type r, hw_type h, std::size_t minim_size)
-        : m_r(r), m_h(h), m_msize(minim_size)
+        : m_r(r), m_h(h), m_msize(minim_size), m_window(h->get_window_size_bits())
       {
-
+        
       }
 
       smer operator()(const kmer_type& k, std::uint32_t i) const
@@ -117,7 +117,7 @@ namespace kmq {
           return {
             i,
             m_r->get_partition(kmer_minimizer(k, m_msize)),
-            XXH64(k.get_data64(), 8, 0) % m_h->get_window_size_bits()
+            XXH64(k.get_data64(), 8, 0) % m_window
           };
         }
         else if constexpr (MK == 64)
@@ -125,7 +125,7 @@ namespace kmq {
           return {
             i,
             m_r->get_partition(kmer_minimizer(k, m_msize)),
-            XXH64(k.get_data64(), 16, 0) % m_h->get_window_size_bits()
+            XXH64(k.get_data64(), 16, 0) % m_window
           };
         }
         else
@@ -133,7 +133,7 @@ namespace kmq {
           return {
             i,
             m_r->get_partition(kmer_minimizer(k, m_msize)),
-            XXH64(k.get_data64(), kmer_type::m_n_data, 0) % m_h->get_window_size_bits()
+            XXH64(k.get_data64(), kmer_type::m_n_data, 0) % m_window
           };
         }
       }
@@ -141,6 +141,7 @@ namespace kmq {
       repart_type m_r {nullptr};
       hw_type m_h {nullptr};
       std::size_t m_msize {0};
+      std::size_t m_window {0};
   };
 
   template<std::size_t MK>

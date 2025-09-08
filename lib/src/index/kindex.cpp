@@ -5,6 +5,8 @@
 #include <kmindex/index/kindex.hpp>
 #include <sys/mman.h>
 
+#include <zstd/BlockDecompressorZSTD.h>
+
 namespace kmq {
 
   partition::partition(const std::string& matrix_path, std::size_t nb_samples, std::size_t width)
@@ -29,7 +31,7 @@ namespace kmq {
   compressed_partition::compressed_partition(const std::string& matrix_path, const std::string& config_path, std::size_t nb_samples, std::size_t width)
     : m_nb_samples(nb_samples), m_bytes(((nb_samples * width) + 7) / 8)
   {
-    //ptr_bd = std::make_unique<BlockDecompressorZSTD>(config_path, matrix_path, matrix_path + "_ef");
+    m_ptr_bd = std::make_unique<BlockDecompressorZSTD>(config_path, matrix_path, matrix_path + ".ef");
   }
 
   compressed_partition::~compressed_partition()
@@ -38,7 +40,7 @@ namespace kmq {
 
   void compressed_partition::query(std::uint64_t pos, std::uint8_t* dest)
   {
-    //std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
+    std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
   }
 
   kindex::kindex() {}

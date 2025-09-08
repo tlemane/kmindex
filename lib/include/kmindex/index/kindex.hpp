@@ -7,6 +7,7 @@
 #include <kmindex/spinlock.hpp>
 #include <mio/mmap.hpp>
 
+#include <BlockDecompressor.h>
 
 #include <iostream>
 
@@ -45,7 +46,7 @@ namespace kmq {
       virtual void query(std::uint64_t pos, std::uint8_t* dest);
 
     private:
-      //std::unique_ptr<BlockDecompressor> m_ptr_bd;
+      std::unique_ptr<BlockDecompressor> m_ptr_bd;
       std::size_t m_nb_samples {0};
       std::size_t m_bytes {0};
   };

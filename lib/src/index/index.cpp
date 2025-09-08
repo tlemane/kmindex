@@ -110,6 +110,11 @@ namespace kmq {
     throw kmq_invalid_index(fmt::format("'{}' is not registered by this instance", name));
   }
 
+  bool index::has(const std::string& name) const
+  {
+    return m_indexes.count(name) > 0;
+  }
+
 
   std::vector<std::vector<std::string>> index::mergeable() const
   {

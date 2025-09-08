@@ -54,9 +54,13 @@ namespace kmq {
       std::shared_ptr<km::HashWindow> get_hash_w() const;
       std::shared_ptr<km::Repartition> get_repartition() const;
       std::string get_partition(std::size_t partition) const;
-
+      std::string get_directory() const;
+      std::string get_sum_partition(std::size_t partition) const;
       std::string get_compression_config() const;
       bool is_compressed_index() const;
+      void set_compress(bool v = true) { m_is_compressed = v; }
+      
+      bool has_sum_index() const { return fs::exists(get_sum_partition(0)); }
 
       std::string name() const;
       std::size_t bloom_size() const;

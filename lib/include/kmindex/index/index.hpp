@@ -29,6 +29,7 @@ namespace kmq {
 
       const index_infos& get(const std::string& name) const;
       index_infos& get(const std::string& name);
+      bool has(const std::string& name) const;
 
       std::vector<std::string> all() const;
 

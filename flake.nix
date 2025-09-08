@@ -26,6 +26,7 @@
         pkgs.nlohmann_json
         pkgs.fmt_8
         pkgs.gtest
+        pkgs.zstd
         pkgs.spdlog
       ];
 

@@ -13,6 +13,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog
   semver
   atomic_queue
+  zstd_ext
 )
 
 if (STATIC_BUILD)

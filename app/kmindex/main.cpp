@@ -42,6 +42,15 @@ int main(int argc, char* argv[])
       case kmq::kmq_commands::kmq_merge:
         kmq::main_merge(options);
         break;
+      case kmq::kmq_commands::kmq_compress:
+        kmq::main_compress(options);
+        break;
+      case kmq::kmq_commands::kmq_sum_index:
+        kmq::main_sum_index(options);
+        break;
+      case kmq::kmq_commands::kmq_sum_query:
+        kmq::main_sum_query(options);
+        break;
     }
 
   } catch (const bc::ex::BCliError& e) {

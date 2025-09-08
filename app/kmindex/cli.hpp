@@ -6,7 +6,10 @@
 #include "query.hpp"
 #include "build.hpp"
 #include "index_infos.hpp"
+#include "compress.hpp"
 #include "merge.hpp"
+#include "index_sum.hpp"
+#include "query_sum.hpp"
 
 namespace kmq {
 
@@ -26,6 +29,9 @@ namespace kmq {
       kmq_build_options_t m_kmq_build_opt {nullptr};
       kmq_infos_options_t m_kmq_infos_opt {nullptr};
       kmq_merge_options_t m_kmq_merge_opt {nullptr};
+      kmq_compress_options_t m_kmq_compress_opt {nullptr};
+      kmq_sum_index_options_t m_kmq_sum_index_opt {nullptr};
+      kmq_sum_query_options_t m_kmq_sum_query_opt {nullptr};
   };
 }
 

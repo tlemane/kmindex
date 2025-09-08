@@ -16,7 +16,10 @@ namespace kmq {
     kmq_query,
     kmq_register,
     kmq_merge,
-    kmq_index_infos
+    kmq_index_infos,
+    kmq_compress,
+    kmq_sum_index,
+    kmq_sum_query
   };
 
   struct kmq_options

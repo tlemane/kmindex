@@ -9,6 +9,7 @@ namespace kmq {
   {
     std::string index_name;
     std::string index_path;
+    std::string from_file;
   };
 
   using kmq_register_options_t = std::shared_ptr<struct kmq_register_options>;

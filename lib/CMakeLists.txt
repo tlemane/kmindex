@@ -27,6 +27,9 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:sha1h>
   $<BUILD_INTERFACE:semver>
   $<BUILD_INTERFACE:bitpack>
+  $<BUILD_INTERFACE:sdsl-lite>
+  $<BUILD_INTERFACE:zstd_ext>
+  $<BUILD_INTERFACE:block_compressor>
 )
 
 add_dependencies(${KMINDEX_LIB} deps)

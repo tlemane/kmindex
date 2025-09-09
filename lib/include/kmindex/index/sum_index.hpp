@@ -95,6 +95,8 @@ namespace kmq {
     void operator()(const unsigned char* source,
                              const std::size_t bytes_per_entry,
                              const std::size_t nb_entry,
+                             const std::size_t nb_samples,
+                             double correction,
                              std::uint64_t* dest) const noexcept
     {
       for (std::size_t i = 0; i < nb_entry; i++)
@@ -120,6 +122,12 @@ namespace kmq {
           c += __builtin_popcount(source[i * bytes_per_entry + j]);
         }
       
+        if (correction > 0.0)
+        {
+          double est = (static_cast<double>(c) - correction * static_cast<double>(nb_samples)) / (1.0 - correction);
+          c = est < 0.0 ? 0 : static_cast<std::size_t>(std::llround(est));
+        }
+
         bp::pack(dest, i, c);
       }
     }
@@ -263,7 +271,7 @@ namespace kmq {
       ~sum_index() = default;
 
     public:
-      void sum_partition(std::size_t part_id)
+      void sum_partition(std::size_t part_id, double correction) const
       {
         auto p_path = m_infos->get_partition(part_id);
         std::size_t bloom_size = m_infos->bloom_size() / m_infos->nb_partitions();
@@ -277,6 +285,8 @@ namespace kmq {
           &mapped[0] + 49,
           m_bytes_per_entry,
           bloom_size,
+          m_infos->nb_samples(),
+          correction,
           sums.data()
         );
 

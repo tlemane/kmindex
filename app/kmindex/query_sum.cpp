@@ -15,54 +15,14 @@ namespace kmq {
   {
     using bp = bit_packer<W>;
 
-    template<std::size_t... offsets>
-    std::size_t window_mean(std::size_t start, const std::uint64_t* array, std::size_t n, double fp, std::index_sequence<offsets...>) const noexcept
+    void operator()(std::uint64_t* packed, std::size_t n, std::ostream& os) const noexcept
     {
-      std::size_t s = (bp::unpack(array, start + offsets) + ... );
-      std::size_t obs = s / sizeof...(offsets);
-
-      double est = (static_cast<double>(obs) - fp * n) / (1.0 - fp);
-      return est < 0.0 ? 0 : static_cast<std::size_t>(est);
-    }
-
-    template<std::size_t K>
-    void process_window(std::uint64_t* packed, std::size_t n, double fp, std::ostream& os) const noexcept
-    {
-      auto mean0 = window_mean(0, packed, n, fp, std::make_index_sequence<K>{});
-      os << mean0;
-    
-      for (std::size_t i = 1; i + K <= n; i++)
+      for (std::size_t i = 0; i < n - 1; i++)
       {
-        auto mean = window_mean(i, packed, n, fp, std::make_index_sequence<K>{});
-        os << ',' << mean;
+        os << bp::unpack(packed, i) << ',';
       }
-    }
-
-    void operator()(std::uint64_t* packed, std::size_t n, std::size_t z, double sk, std::ostream& os) const noexcept
-    {
-      if (z == 0)
-      {
-        for (std::size_t i = 0; i < n - 1; i++)
-        {
-          os << bp::unpack(packed, i) << ',';
-        }
-        os << bp::unpack(packed, n - 1);
-        return;
-      }
-
-      std::size_t k = 1 + z;
-      switch (k)
-      {
-        case 2: process_window<2>(packed, n, sk, os); break;
-        case 3: process_window<3>(packed, n, sk, os); break;
-        case 4: process_window<4>(packed, n, sk, os); break;
-        case 5: process_window<5>(packed, n, sk, os); break;
-        case 6: process_window<6>(packed, n, sk, os); break;
-        case 7: process_window<7>(packed, n, sk, os); break;
-        case 8: process_window<8>(packed, n, sk, os); break;
-        default:
-          break;
-      }
+      os << bp::unpack(packed, n - 1);
+      return;
     }
   };
 
@@ -96,12 +56,6 @@ namespace kmq {
        ->def("0")
        ->checker(bc::check::f::range(0, 8))
        ->setter(options->z);
-
-    cmd->add_param("-f/--fp", "")
-       ->meta("FLOAT")
-       ->def("0.25")
-       ->checker(bc::check::f::range(0.0, 1.0))
-       ->setter(options->sk_threshold);
 
     auto not_dir = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
       return std::make_tuple(!fs::exists(v), bc::utils::format_error(p, v, "Directory already exists."));
@@ -199,8 +153,6 @@ namespace kmq {
           static_cast<int>(std::log2(infos.nb_samples())) + 1,
           r->storage().data(),
           r->query_size(),
-          o->z,
-          o->sk_threshold,
           out
         );
 

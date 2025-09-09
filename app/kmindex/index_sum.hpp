@@ -8,6 +8,9 @@ namespace kmq {
   struct kmq_sum_index_options : kmq_options
   {
     std::string index_name;
+    double correction {0.0};
+    bool estimate_correction {false};
+    std::size_t nbk {10000};
   };
 
   using kmq_sum_index_options_t = std::shared_ptr<struct kmq_sum_index_options>;

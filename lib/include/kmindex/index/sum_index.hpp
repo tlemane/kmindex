@@ -124,7 +124,7 @@ namespace kmq {
       
         if (correction > 0.0)
         {
-          double est = (static_cast<double>(c) - correction * static_cast<double>(nb_samples)) / (1.0 - correction);
+          double est = static_cast<double>(c) - correction * static_cast<double>(nb_samples);
           c = est < 0.0 ? 0 : static_cast<std::size_t>(std::llround(est));
         }
 

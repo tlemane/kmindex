@@ -133,6 +133,67 @@ namespace kmq {
     }
   };
 
+  inline std::size_t bit_to_col(std::size_t byte_idx, std::size_t bit_idx)
+  {
+    return byte_idx * 8 + (7 - bit_idx);
+  }
+
+  inline std::vector<std::array<double,256>> build_weighted_lut(std::size_t nb_samples,
+                                                       const std::vector<double>& p)
+  {
+    std::size_t bytes_per_entry = (nb_samples + 7) / 8;
+    std::vector<std::array<double,256>> lut(bytes_per_entry);
+
+    for (std::size_t j = 0; j < bytes_per_entry; ++j)
+    {
+      for (int val = 0; val < 256; ++val)
+      {
+        double s = 0.0;
+        for (int bit = 0; bit < 8; ++bit)
+        {
+          std::size_t col = bit_to_col(j, bit);
+          if (col >= nb_samples)
+            continue; 
+          
+          if (val & (1 << bit))
+          {
+            s += (1.0 - p[col]);
+          }
+        }
+        lut[j][val] = s;
+      }
+    }
+    return lut;
+  }
+
+  template<std::size_t W>
+  struct weighted_sum_packer
+  {
+    using bp = bit_packer<W>; 
+
+    void operator()(const unsigned char* source,
+                    std::size_t bytes_per_entry,
+                    std::size_t nb_entry,
+                    std::size_t nb_samples,
+                    const std::vector<std::array<double,256>>& lut,
+                    std::uint64_t* dest) const noexcept
+    {
+        for (std::size_t i = 0; i < nb_entry; i++)
+        {
+          double c = 0.0;
+
+          for (std::size_t j = 0; j < bytes_per_entry; ++j)
+          {
+            unsigned char val = source[i * bytes_per_entry + j];
+            c += lut[j][val];
+          }
+
+          std::size_t count = static_cast<std::size_t>(std::llround(c));
+          bp::pack(dest, i, count);
+        }
+    }
+  };
+
   class sum_query_response
   {
     public:
@@ -271,7 +332,7 @@ namespace kmq {
       ~sum_index() = default;
 
     public:
-      void sum_partition(std::size_t part_id, double correction) const
+      void sum_partition(std::size_t part_id, std::vector<double>& corrections) const
       {
         auto p_path = m_infos->get_partition(part_id);
         std::size_t bloom_size = m_infos->bloom_size() / m_infos->nb_partitions();
@@ -280,15 +341,30 @@ namespace kmq {
         auto mapped = mio::basic_mmap_source<unsigned char>(fd, 0, mio::map_entire_file);
         posix_madvise(&mapped[0], mapped.length(), POSIX_MADV_SEQUENTIAL);
         
-        runtime_dispatch<32, 1, 1, std::equal_to<std::size_t>>::execute<sum_packer>(
-          m_width,
-          &mapped[0] + 49,
-          m_bytes_per_entry,
-          bloom_size,
-          m_infos->nb_samples(),
-          correction,
-          sums.data()
-        );
+        if (corrections.size() == 1)
+        {
+          runtime_dispatch<32, 1, 1, std::equal_to<std::size_t>>::execute<sum_packer>(
+            m_width,
+            &mapped[0] + 49,
+            m_bytes_per_entry,
+            bloom_size,
+            m_infos->nb_samples(),
+            corrections[0],
+            sums.data()
+          );
+        }
+        else
+        {
+          runtime_dispatch<32, 1, 1, std::equal_to<std::size_t>>::execute<weighted_sum_packer>(
+            m_width,
+            &mapped[0] + 49,
+            m_bytes_per_entry,
+            bloom_size,
+            m_infos->nb_samples(),
+            build_weighted_lut(m_infos->nb_samples(), corrections),
+            sums.data()
+          );
+        }
 
         mapped.unmap();
         ::close(fd);

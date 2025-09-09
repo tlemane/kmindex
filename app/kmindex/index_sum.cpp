@@ -35,11 +35,11 @@ namespace kmq {
        ->as_flag()
        ->setter(options->estimate_correction);
 
-    cmd->add_param("-n/--nbk", "Number of k-mers to use for estimating the correction factor (if -e).")
+    cmd->add_param("-s/--nbk", "Number of k-mers to use for estimating the correction factor (if -e).")
        ->meta("INT")
        ->def("10000")
        ->checker(bc::check::is_number)
-       ->setter(options->nbk);
+       ->setter(options->nbkc);
 
     add_common_options(cmd, options, true);
 
@@ -115,7 +115,7 @@ namespace kmq {
 
     if (o->estimate_correction)
     {
-      o->correction = estimate_correction(sub, o->nb_threads, o->nbk);
+      o->correction = estimate_correction(sub, o->nb_threads, o->nbkc);
       spdlog::info("Estimated false positive rate correction factor: {}", o->correction);
     }
 

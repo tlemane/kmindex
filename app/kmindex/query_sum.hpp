@@ -11,6 +11,7 @@ namespace kmq {
     std::vector<std::string> index_names;
     std::size_t z {0};
     std::string output;
+    double sk_threshold {0.25};
   };
 
   using kmq_sum_query_options_t = std::shared_ptr<struct kmq_sum_query_options>;

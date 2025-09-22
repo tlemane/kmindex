@@ -61,6 +61,32 @@ namespace kmq {
     return fmt::format("{}/compression.cfg", m_path);
   }
 
+  bool index_infos::has_compressed_partitions() const
+  {
+    return fs::exists(fmt::format("{}/matrices/blocks0", m_path)) &&
+           fs::exists(fmt::format("{}/matrices/blocks0.ef", m_path));
+  }
+
+  void index_infos::use_fof(const std::string& fof_path)
+  {
+    std::ifstream in(fof_path, std::ios::in);
+    check_fstream_good(fof_path, in);
+
+    std::size_t i = 0;
+    for (std::string line; std::getline(in, line);)
+    {
+      if (!line.empty())
+      {
+        m_samples[i++] = trim(split(line, ':')[0]);
+      }
+    }
+  }
+
+  bool index_infos::has_uncompressed_partitions() const
+  {
+    return fs::exists(fmt::format("{}/matrices/matrix_0.cmbf", m_path));
+  }
+
   bool index_infos::is_compressed_index() const
   {
     return m_is_compressed;

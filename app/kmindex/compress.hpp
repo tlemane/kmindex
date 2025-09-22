@@ -12,6 +12,10 @@ namespace kmq {
     bool reorder {false};
     std::size_t block_size {8}; // in MB
     bool delete_old {false};
+
+    std::size_t sampling {20000};
+    std::size_t column_blocks {1};
+    bool check {false}; 
   };
 
   using kmq_compress_options_t = std::shared_ptr<struct kmq_compress_options>;

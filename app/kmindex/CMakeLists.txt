@@ -14,8 +14,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   semver
   atomic_queue
   zstd_ext
+  bitmatrixshuffle
 )
-
 if (STATIC_BUILD)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--whole-archive

@@ -115,6 +115,11 @@ namespace kmq {
        ->as_flag()
        ->setter(options->cache);
 
+    cmd->add_param("-u/--uncompressed", "Use uncompressed partitions (if available).")
+       ->as_flag()
+       ->hide()
+       ->setter(options->uncompressed);
+
 
     add_common_options(cmd, options, true, 1);
 
@@ -297,6 +302,22 @@ namespace kmq {
     {
       Timer timer;
       auto infos = global.get(index_name);
+
+      if (o->uncompressed)
+      {
+        if (infos.has_uncompressed_partitions())
+        {
+          spdlog::info("Using uncompressed partitions for index '{}'.", index_name);
+          infos.set_compress(false);
+          auto fof_bak = fmt::format("{}/kmtricks.fof.bak", infos.get_directory());
+          if (fs::exists(fof_bak))
+            infos.use_fof(fof_bak);
+        }
+        else
+        {
+          spdlog::warn("Index '{}' has no uncompressed partitions, using compressed ones.", index_name);
+        }
+      }
 
       spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
 

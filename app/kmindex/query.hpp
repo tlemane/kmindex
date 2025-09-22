@@ -20,6 +20,7 @@ namespace kmq {
     std::size_t batch_size {0};
     bool cache {false};
     bool aggregate {false};
+    bool uncompressed {false};
   };
 
   using kmq_query_options_t = std::shared_ptr<struct kmq_query_options>;

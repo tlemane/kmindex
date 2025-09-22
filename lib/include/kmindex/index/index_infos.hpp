@@ -57,8 +57,12 @@ namespace kmq {
       std::string get_directory() const;
       std::string get_sum_partition(std::size_t partition) const;
       std::string get_compression_config() const;
+      void use_fof(const std::string& fof_path);
       bool is_compressed_index() const;
       void set_compress(bool v = true) { m_is_compressed = v; }
+
+      bool has_uncompressed_partitions() const;
+      bool has_compressed_partitions() const;
       
       bool has_sum_index() const { return fs::exists(get_sum_partition(0)); }
 

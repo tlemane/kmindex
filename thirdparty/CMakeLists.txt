@@ -86,4 +86,4 @@ add_library(deps INTERFACE)
 add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)
 
 add_subdirectory(sdsl EXCLUDE_FROM_ALL)
-add_subdirectory(BlockCompressor EXCLUDE_FROM_ALL)
+add_subdirectory(BitmatrixShuffle EXCLUDE_FROM_ALL)

@@ -10,6 +10,22 @@
 
 namespace kmq {
 
+  inline std::string random_sequence(std::size_t n)
+  {
+    static const char alphanum[] =
+      "ACGT";
+
+    std::string s;
+    s.reserve(n);
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return s;
+  }
+
   enum class kmq_commands
   {
     kmq_build,

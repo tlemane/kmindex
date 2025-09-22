@@ -35,34 +35,18 @@ namespace kmq {
        ->as_flag()
        ->setter(options->estimate_correction);
 
-    cmd->add_param("-s/--nbk", "Number of k-mers to use for estimating the correction factor (if -e).")
+    cmd->add_param("-s/--nbk", "Number of k-mers to use for estimating the correction factor (only with -e).")
        ->meta("INT")
        ->def("10000")
        ->checker(bc::check::is_number)
        ->setter(options->nbkc);
-
+    
     add_common_options(cmd, options, true);
 
     return options;
   }
 
-  std::string random_sequence(std::size_t n)
-  {
-    static const char alphanum[] =
-      "ACGT";
-
-    std::string s;
-    s.reserve(n);
-
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      s += alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-
-    return s;
-  }
-
-  std::pair<std::vector<double>, double> estimate_correction(const index_infos& infos, std::size_t nb_threads, std::size_t nbk)
+  double estimate_correction(const index_infos& infos, std::size_t nb_threads, std::size_t nbk)
   {
     auto seq = random_sequence(nbk);
     
@@ -89,7 +73,7 @@ namespace kmq {
     pool.join_all();
 
     query_result res(std::move(bq.response().front()), 0, infos, false);
-    return { res.ratios(), std::accumulate(res.ratios().begin(), res.ratios().end(), 0.0) / infos.nb_samples() };
+    return std::accumulate(res.ratios().begin(), res.ratios().end(), 0.0) / infos.nb_samples();
   }
 
   void main_sum_index(kmq_options_t opt)
@@ -113,19 +97,10 @@ namespace kmq {
 
     spdlog::info("Process index '{}'", o->index_name);
 
-    std::vector<double> cs;
-
     if (o->estimate_correction)
     {
-      auto ec = estimate_correction(sub, o->nb_threads, o->nbkc);
-      cs = std::move(ec.first);
-      o->correction = ec.second;
+      o->correction = estimate_correction(sub, o->nb_threads, o->nbkc);
       spdlog::info("Estimated false positive rate correction factor: {}", o->correction);
-    }
-
-    if (cs.empty())
-    {
-      cs.push_back(o->correction);
     }
 
     sum_index builder(&sub);
@@ -133,9 +108,9 @@ namespace kmq {
     ThreadPool pool(o->nb_threads);
     for (std::size_t p = 0; p < sub.nb_partitions(); ++p)
     {
-      pool.add_task([p, &builder, &cs](int) { 
+      pool.add_task([p, &builder, c=o->correction](int) { 
         spdlog::info("Process partition {}", p);
-        builder.sum_partition(p, cs);
+        builder.sum_partition(p, c);
         spdlog::info("Done partition {}", p);
       });
     }

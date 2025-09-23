@@ -222,7 +222,7 @@ namespace kmq {
       spdlog::info("Reordering columns using {} sampled rows and {} column blocks.", o->sampling, o->column_blocks);
       auto mpath = sub.get_partition(1);
       spdlog::info("Compute permutation from '{}'.", mpath);
-      bms::compute_order_from_matrix_columns(mpath, 49, sub.nb_samples(), sub.bloom_size() / sub.nb_partitions(), 0, o->sampling, perm_orders);
+      bms::compute_order_from_matrix_columns(mpath, 49, sub.nb_samples(), sub.bloom_size() / sub.nb_partitions(), o->column_blocks, o->sampling, perm_orders);
       immutable_filling_columns_inplace(perm_orders, sub.nb_samples());
       auto opath = fmt::format("{}/permutations.bin", sub.get_directory());
       std::ofstream ofs(opath, std::ios::out | std::ios::binary);

@@ -125,7 +125,7 @@ namespace kmq {
 
       const std::size_t FILL = COLUMNS - SAMPLES;
       const std::size_t A = COLUMNS - 8;
-      const std::size_t B = COLUMNS - 8 + SAMPLES - 1;
+      const std::size_t B = COLUMNS - 8 + FILL - 1;
 
       std::size_t k = 0;
 

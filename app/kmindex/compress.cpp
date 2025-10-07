@@ -97,6 +97,11 @@ namespace kmq {
       return (x | 0x7ULL) - (x & 0x7ULL);
   }
   
+  bool epsilon_equal(double a, double b, double epsilon = 1e-6)
+  {
+      return std::abs(a - b) < epsilon;
+  }
+
   bool compare_query_results(const query_result& a, const query_result& b, std::vector<std::size_t>& perms)
   {
     if (perms.size() == 0)
@@ -107,7 +112,7 @@ namespace kmq {
     {
       for (std::size_t i = 0; i < perms.size(); ++i)
       {
-        if (a.ratios()[rev8(perms[rev8(i)])] != b.ratios()[i])
+        if (!epsilon_equal(a.ratios()[rev8(perms[rev8(i)])], b.ratios()[i]))
         {
           return false;
         }
@@ -312,7 +317,7 @@ namespace kmq {
     }
 
     sub.set_compress(false); // required to get the right partition path for deletion
-    if (o->delete_old)
+    if (o->delete_old && valid)
     {
       spdlog::info("Deleting uncompressed matrices.", o->index_name);
       for (std::size_t i = 0; i < sub.nb_partitions(); ++i)

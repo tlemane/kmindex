@@ -6,7 +6,7 @@
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/utils.hpp>
 #include <kmindex/version.hpp>
-
+#include <iostream>
 #include <fmt/format.h>
 #include <sha1.hpp>
 
@@ -24,6 +24,43 @@ namespace kmq {
     init(jdata);
   }
 
+  index_infos::index_infos(const std::string& name, simdjson::ondemand::value jdata, const std::string_view path)
+    : m_name(name)
+  {
+    using namespace simdjson;
+    ondemand::object obj = jdata;
+
+    m_path = fs::read_symlink(fmt::format("{}/{}", path, m_name)).string();
+    m_nb_partitions = obj["nb_partitions"];
+    m_bloom_size    = obj["bloom_size"];
+    m_nb_samples    = obj["nb_samples"];
+    m_smer_size     = obj["smer_size"];
+    m_minim_size    = obj["minim_size"];
+    m_index_size    = obj["index_size"];
+    m_bw            = obj["bw"];
+
+    m_sha1 = std::string(std::string_view(obj["sha1"]));
+
+    std::string kmindex_ver  = std::string(std::string_view(obj["kmindex_version"]));
+    std::string kmtricks_ver = std::string(std::string_view(obj["kmtricks_version"]));
+    ondemand::array samples_arr = obj["samples"];
+    m_samples.clear();
+    m_samples.reserve(m_nb_samples);
+
+    for (ondemand::value v : samples_arr) {
+        m_samples.emplace_back(std::string(std::string_view(v)));
+    }
+
+    m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
+    m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));
+
+
+    m_kmver  = semver::version(kmindex_ver);
+    m_kmtver = semver::version(kmtricks_ver);
+
+    m_is_compressed = fs::exists(get_compression_config());
+  }
+
   std::shared_ptr<km::HashWindow> index_infos::get_hash_w() const
   {
     return m_hashw;
@@ -38,7 +75,7 @@ namespace kmq {
   {
     return m_path;
   }
-  
+
   std::string index_infos::get_partition(std::size_t partition) const
   {
     if (m_is_compressed)
@@ -297,7 +334,7 @@ namespace kmq {
     m_kmtver = semver::version(trim(kmt_ver_str.substr(10)));
     m_kmver = kmindex_version;
     m_is_compressed = fs::exists(get_compression_config());
-    
+
     for (std::size_t i = 0; i < m_nb_partitions; ++i)
     {
       if (!fs::exists(get_partition(i)))

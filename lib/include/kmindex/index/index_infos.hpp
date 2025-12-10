@@ -15,6 +15,7 @@
 
 #include <nlohmann/json.hpp>
 #include <semver.hpp>
+#include <simdjson.h>
 
 using json = nlohmann::json;
 
@@ -49,6 +50,7 @@ namespace kmq {
       index_infos() {}
       index_infos(const std::string& name, const std::string& km_dir);
       index_infos(const std::string& name, const json& jdata);
+      index_infos(const std::string& name, simdjson::ondemand::value jdata, std::string_view path);
 
 
       std::shared_ptr<km::HashWindow> get_hash_w() const;
@@ -63,7 +65,7 @@ namespace kmq {
 
       bool has_uncompressed_partitions() const;
       bool has_compressed_partitions() const;
-      
+
       bool has_sum_index() const { return fs::exists(get_sum_partition(0)); }
 
       std::string name() const;

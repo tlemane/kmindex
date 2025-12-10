@@ -6,7 +6,7 @@
 #include <kmindex/utils.hpp>
 
 #include <nlohmann/json.hpp>
-
+#include <simdjson.h>
 using json = nlohmann::json;
 namespace kmq {
 
@@ -21,13 +21,30 @@ namespace kmq {
 
   void index::init(const std::string& index_path)
   {
-    std::ifstream inf(fmt::format("{}/index.json", m_index_path), std::ios::in);
-    check_fstream_good(index_path, inf);
-    json data = json::parse(inf);
+    using namespace simdjson;
 
-    for (auto& e : data["index"].items())
+    // std::ifstream inf(fmt::format("{}/index.json", m_index_path), std::ios::in);
+    // check_fstream_good(index_path, inf);
+    // json data = json::parse(inf);
+    //
+    // for (auto& e : data["index"].items())
+    // {
+    //   m_indexes[e.key()] = index_infos(e.key(), data);
+    // }
+    //
+    padded_string json =
+        padded_string::load(fmt::format("{}/index.json", m_index_path));
+
+    ondemand::parser parser;
+    ondemand::document data = parser.iterate(json);
+
+    auto path = std::string_view(data["path"]);
+    ondemand::object index_obj = data["index"];
+
+    for (ondemand::field e : index_obj)
     {
-      m_indexes[e.key()] = index_infos(e.key(), data);
+        std::string key{ e.unescaped_key().value() };
+        m_indexes[key] = index_infos(key, e.value(), path);
     }
   }
 

@@ -38,6 +38,46 @@ namespace kmq {
     }
   }
 
+  template<typename T>
+  void write_json_array_to_stream(std::ostream& os, const std::vector<T>& v) noexcept
+  {
+    os << '[';
+
+    for (std::size_t i = 0; i < v.size() - 1; i++)
+    {
+      if constexpr(std::is_same_v<T, std::uint8_t>)
+        os << static_cast<std::uint32_t>(v[i]) << ',';
+      else
+        os << v[i] << ',';
+    }
+    if constexpr(std::is_same_v<T, std::uint8_t>)
+      os << static_cast<std::uint32_t>(v.back());
+    else
+      os << v.back();
+
+    os << ']';
+  }
+
+  void write_json_string_to_stream(std::ostream& os, const std::string& s) noexcept
+  {
+    os << '"' << s << '"';
+  }
+
+  template<typename T>
+  void write_json_string_value_to_stream(std::ostream& os, const std::string& k, T v)
+  {
+    write_json_string_to_stream(os, k);
+    os << ':' << v;
+  }
+
+  void write_json_string_string_to_stream(std::ostream& os, const std::string& k, const std::string& v)
+  {
+    write_json_string_to_stream(os, k);
+    os << ":";
+    write_json_string_to_stream(os, v);
+  }
+
+
   query_formatter_base::query_formatter_base(double threshold)
     : m_threshold(threshold)
   {
@@ -183,6 +223,28 @@ namespace kmq {
     }
     jj["samples"] = std::move(samples);
     (*m_os) << jj.dump() << "\n";
+
+    // os << '{';
+    // write_json_string_string_to_stream(os, "index", infos.name());
+    // os << ',';
+    // write_json_string_string_to_stream(os,"query", response.name());
+    //
+    // os << ',';
+    // write_json_string_to_stream(os, "sample");
+    // os << ":{";
+    //
+    // bool some = false;
+    // for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    // {
+    //   if (response.ratios()[i] >= this->m_threshold)
+    //   {
+    //     if (some)
+    //       os << ',';
+    //     write_json_string_value_to_stream(os, infos.samples()[i], response.ratios()[i]);
+    //     some = true;
+    //   }
+    // }
+    // os << "}\n";
   }
 
   json_wp_formatter::json_wp_formatter(double threshold)
@@ -254,7 +316,7 @@ namespace kmq {
     auto jj = json({});
     jj["index"] = infos.name();
     jj["query"] = response.name();
-    
+
     std::map<std::string, json> samples;
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
@@ -269,6 +331,36 @@ namespace kmq {
     }
     jj["samples"] = std::move(samples);
     os << jj.dump() << "\n";
+
+    //os << '{';
+    //write_json_string_string_to_stream(os, "index", infos.name());
+    //os << ',';
+    //write_json_string_string_to_stream(os,"query", response.name());
+
+    //os << ',';
+    //write_json_string_to_stream(os, "sample");
+    //os << ":{";
+
+    //bool some = false;
+    //for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    //{
+    //  if (response.ratios()[i] >= this->m_threshold)
+    //  {
+    //    if (some)
+    //      os << ',';
+    //    write_json_string_to_stream(os, infos.samples()[i]);
+    //    os << ":{";
+    //    write_json_string_value_to_stream(os, "R", response.ratios()[i]);
+    //    os << ',';
+    //    write_json_string_to_stream(os, "P");
+    //    os << ':';
+    //    write_json_array_to_stream(os, response.positions()[i]);
+    //    os << '}';
+    //    some = true;
+    //  }
+    //}
+    //os << "}\n";
+
   }
 
   void jsonl_wp_formatter::merge_format(const index_infos& infos,

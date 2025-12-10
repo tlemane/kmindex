@@ -16,6 +16,7 @@ namespace kmq {
     m_kmq_compress_opt = std::make_shared<struct kmq_compress_options>(kmq_compress_options{});
     m_kmq_sum_index_opt = std::make_shared<struct kmq_sum_index_options>(kmq_sum_index_options{});
     m_kmq_sum_query_opt = std::make_shared<struct kmq_sum_query_options>(kmq_sum_query_options{});
+    m_kmq_query2_opt = std::make_shared<struct kmq_query2_options>(kmq_query2_options{});
     kmq_build_cli(m_cli_parser, m_kmq_build_opt);
     kmq_register_cli(m_cli_parser, m_kmq_register_opt);
     kmq_query_cli(m_cli_parser, m_kmq_query_opt);
@@ -24,6 +25,7 @@ namespace kmq {
     kmq_compress_cli(m_cli_parser, m_kmq_compress_opt);
     kmq_sum_index_cli(m_cli_parser, m_kmq_sum_index_opt);
     kmq_sum_query_cli(m_cli_parser, m_kmq_sum_query_opt);
+    kmq_query2_cli(m_cli_parser, m_kmq_query2_opt);
   }
 
   std::tuple<kmq_commands, kmq_options_t> kmq_cli::parse(int argc, char* argv[])
@@ -57,6 +59,8 @@ namespace kmq {
       return std::make_tuple(kmq_commands::kmq_sum_index, m_kmq_sum_index_opt);
     else if (m_cli_parser->is("sum-query"))
       return std::make_tuple(kmq_commands::kmq_sum_query, m_kmq_sum_query_opt);
+    else if (m_cli_parser->is("query2"))
+      return std::make_tuple(kmq_commands::kmq_query2, m_kmq_query2_opt);
     else
       exit(EXIT_FAILURE);
   }

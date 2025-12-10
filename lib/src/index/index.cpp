@@ -38,6 +38,11 @@ namespace kmq {
     m_indexes[name] = index_infos(name, fs::absolute(km_path).string());
   }
 
+  bool index::has_index(const std::string& name)
+  {
+    return m_indexes.count(name) != 0;
+  }
+
   void index::remove_index(const std::string& name)
   {
     if (m_indexes.count(name))

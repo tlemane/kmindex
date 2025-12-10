@@ -35,7 +35,8 @@ namespace kmq {
     kmq_index_infos,
     kmq_compress,
     kmq_sum_index,
-    kmq_sum_query
+    kmq_sum_query,
+    kmq_query2
   };
 
   struct kmq_options

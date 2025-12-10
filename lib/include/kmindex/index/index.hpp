@@ -21,6 +21,7 @@ namespace kmq {
 
       void add_index(const std::string& name, const std::string& km_path);
       void remove_index(const std::string& name);
+      bool has_index(const std::string& name);
 
       void save() const;
 

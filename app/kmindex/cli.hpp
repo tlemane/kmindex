@@ -10,6 +10,7 @@
 #include "merge.hpp"
 #include "index_sum.hpp"
 #include "query_sum.hpp"
+#include "query2.hpp"
 
 namespace kmq {
 
@@ -32,6 +33,7 @@ namespace kmq {
       kmq_compress_options_t m_kmq_compress_opt {nullptr};
       kmq_sum_index_options_t m_kmq_sum_index_opt {nullptr};
       kmq_sum_query_options_t m_kmq_sum_query_opt {nullptr};
+      kmq_query2_options_t m_kmq_query2_opt {nullptr};
   };
 }
 

@@ -19,7 +19,7 @@ namespace kmq {
     public:
       index(const std::string& index_path);
 
-      void add_index(const std::string& name, const std::string& km_path);
+      void add_index(const std::string& name, const std::string& km_path, register_mode rm = register_mode::symlink);
       void remove_index(const std::string& name);
       bool has_index(const std::string& name);
 

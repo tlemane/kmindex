@@ -17,7 +17,7 @@ namespace kmq {
       ->meta("STR")
       ->setter(options->global_index_path);
 
-    cmd->add_param("-n/--name", "Index name. (ignored with --from-file)") 
+    cmd->add_param("-n/--name", "Index name. (ignored with --from-file)")
        ->meta("STR")
        ->def("")
        ->setter(options->index_name);
@@ -32,6 +32,21 @@ namespace kmq {
        ->def("")
        ->setter(options->from_file)
        ->checker(bc::check::is_file);
+
+    auto mode_setter = [options](const std::string& v) {
+      if (v == "symlink")
+        options->mode = register_mode::symlink;
+      else if (v == "copy")
+        options->mode = register_mode::copy;
+      else
+        options->mode = register_mode::move;
+    };
+
+    cmd->add_param("-m/--mode", "Register mode [symlink|copy|move]")
+       ->meta("STR")
+       ->def("symlink")
+       ->setter_c(mode_setter)
+       ->checker(bc::check::f::in("symlink|copy|move"));
 
     add_common_options(cmd, options);
 
@@ -66,7 +81,7 @@ namespace kmq {
         {
           throw kmq_error(fmt::format("Line {}: name is missing in '{}'", line_no, line));
         }
-        
+
         if (parts[1].empty())
         {
           throw kmq_error(fmt::format("Line {}: path is missing in '{}'", line_no, line));
@@ -84,12 +99,12 @@ namespace kmq {
         }
 
         spdlog::info("Register index '{}' as '{}'", parts[1], parts[0]);
-        i.add_index(parts[0], parts[1]);
+        i.add_index(parts[0], parts[1], o->mode);
       }
     }
     else
     {
-      i.add_index(o->index_name, o->index_path);
+      i.add_index(o->index_name, o->index_path, o->mode);
     }
 
     i.save();

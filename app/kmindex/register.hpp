@@ -2,6 +2,7 @@
 #define REGISTER_HPP_X3UGAJR1
 
 #include "common.hpp"
+#include <kmindex/index/index.hpp>
 
 namespace kmq {
 
@@ -10,6 +11,7 @@ namespace kmq {
     std::string index_name;
     std::string index_path;
     std::string from_file;
+    register_mode mode;
   };
 
   using kmq_register_options_t = std::shared_ptr<struct kmq_register_options>;

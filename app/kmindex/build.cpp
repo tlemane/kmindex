@@ -25,7 +25,7 @@ namespace kmq {
        ->checker(bc::check::is_file)
        ->setter(options->fof);
 
-    cmd->add_param("-d/--run-dir", "kmtricks runtime directory.")
+    cmd->add_param("-d/--run-dir", "kmtricks runtime directory. Use '@inplace' to build inside the global index directory")
        ->meta("STR")
        ->setter(options->directory);
 
@@ -252,9 +252,21 @@ namespace kmq {
     else
       spdlog::info("Build index '{}' using '{}' parameters...", options->name, options->from);
 
+    index i(options->global_index_path);
+
+    bool inplace = false;
+    if (options->directory == "@inplace")
+    {
+      spdlog::info("Inplace construction at: {}/{}", options->global_index_path, options->name);
+      options->directory = fs::absolute(fmt::format("{}/{}", options->global_index_path, options->name)).string();
+      inplace = true;
+    }
+
     execute_kmtricks(options, km_cmd);
 
     spdlog::info("Register index '{}'...", options->name);
-    register_index(options);
+    i.add_index(options->name, options->directory, inplace ? register_mode::inplace : register_mode::symlink);
+    i.save();
+
   }
 }

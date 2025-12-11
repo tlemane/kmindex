@@ -38,21 +38,20 @@ namespace kmq {
     ondemand::parser parser;
     ondemand::document data = parser.iterate(json);
 
-    auto path = std::string_view(data["path"]);
     ondemand::object index_obj = data["index"];
 
     for (ondemand::field e : index_obj)
     {
         std::string key{ e.unescaped_key().value() };
-        m_indexes[key] = index_infos(key, e.value(), path);
+        m_indexes[key] = index_infos(key, e.value(), fs::absolute(m_index_path).string());
     }
   }
 
-  void index::add_index(const std::string& name, const std::string& km_path)
+  void index::add_index(const std::string& name, const std::string& km_path, register_mode rm)
   {
     if (m_indexes.count(name))
       throw std::runtime_error(fmt::format("'{}' already exists.", name));
-    m_indexes[name] = index_infos(name, fs::absolute(km_path).string());
+    m_indexes[name] = index_infos(name, fs::absolute(km_path).string(), rm);
   }
 
   bool index::has_index(const std::string& name)
@@ -78,9 +77,47 @@ namespace kmq {
 
     for (auto& [name, i] : m_indexes)
     {
-      if (!fs::is_symlink(fmt::format("{}/{}", m_index_path, name)))
-        fs::create_directory_symlink(i.path(), fmt::format("{}/{}", m_index_path, name));
+      if (!fs::exists(fmt::format("{}/{}", m_index_path, name)))
+      {
+        switch (i.rmode()) {
+          case register_mode::symlink: {
+            fs::create_directory_symlink(i.path(), fmt::format("{}/{}", m_index_path, name));
+            break;
+          }
+          case register_mode::copy: {
+            auto target = fmt::format("{}/{}", m_index_path, name);
+            fs::create_directories(target);
+            std::error_code ec;
+            fs::copy(i.path(), target, fs::copy_options::recursive, ec);
+            if (ec)
+            {
+              throw kmq_io_error(fmt::format("Registering (copy) failed for {}", name));
+            }
+            break;
+          }
+          case register_mode::move_or_copy:
+          case register_mode::move: {
+            auto target = fmt::format("{}/{}", m_index_path, name);
+            std::error_code ec;
+            fs::rename(i.path(), target, ec);
+            if (ec)
+            {
+              if (i.rmode() == register_mode::move)
+                throw kmq_io_error(fmt::format("Registering (move) failed for {}. Try 'move_or_copy' mode.", name));
 
+              fs::create_directories(target);
+              fs::copy(i.path(), target, fs::copy_options::recursive, ec);
+              if (ec)
+              {
+                throw kmq_io_error(fmt::format("Registering (move_or_copy) failed for {}.", name));
+              }
+              fs::remove_all(i.path());
+            }
+            break;
+          }
+          default: break;
+        }
+      }
       data["index"][name]["nb_samples"] = i.nb_samples();
       data["index"][name]["index_size"] = i.index_size();
       data["index"][name]["bloom_size"] = i.bloom_size();

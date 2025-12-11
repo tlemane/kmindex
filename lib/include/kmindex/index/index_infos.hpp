@@ -21,6 +21,14 @@ using json = nlohmann::json;
 
 namespace kmq {
 
+  enum class register_mode {
+    symlink,
+    copy,
+    move,
+    move_or_copy,
+    inplace,
+  };
+
   class index_infos
   {
     private:
@@ -44,14 +52,14 @@ namespace kmq {
       semver::version m_kmtver;
 
       bool m_is_compressed {false};
+      register_mode m_rmode {register_mode::symlink};
 
     public:
 
       index_infos() {}
-      index_infos(const std::string& name, const std::string& km_dir);
+      index_infos(const std::string& name, const std::string& km_dir, register_mode rm = register_mode::symlink);
       index_infos(const std::string& name, const json& jdata);
       index_infos(const std::string& name, simdjson::ondemand::value jdata, std::string_view path);
-
 
       std::shared_ptr<km::HashWindow> get_hash_w() const;
       std::shared_ptr<km::Repartition> get_repartition() const;
@@ -89,6 +97,8 @@ namespace kmq {
 
       const semver::version& km_version() const;
       const semver::version& kmt_version() const;
+
+      register_mode rmode() const { return m_rmode; }
 
     private:
       void init();

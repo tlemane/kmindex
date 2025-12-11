@@ -12,8 +12,8 @@
 
 namespace kmq {
 
-  index_infos::index_infos(const std::string& name, const std::string& km_dir)
-    : m_name(name), m_path(km_dir)
+  index_infos::index_infos(const std::string& name, const std::string& km_dir, register_mode rm)
+    : m_name(name), m_path(km_dir), m_rmode(rm)
   {
     init();
   }
@@ -30,19 +30,19 @@ namespace kmq {
     using namespace simdjson;
     ondemand::object obj = jdata;
 
-    m_path = fs::read_symlink(fmt::format("{}/{}", path, m_name)).string();
-    m_nb_partitions = obj["nb_partitions"];
+    m_path = fmt::format("{}/{}", path, m_name);
+    if (fs::is_symlink(m_path))
+      m_path = fs::read_symlink(m_path).string();
+
     m_bloom_size    = obj["bloom_size"];
-    m_nb_samples    = obj["nb_samples"];
-    m_smer_size     = obj["smer_size"];
-    m_minim_size    = obj["minim_size"];
-    m_index_size    = obj["index_size"];
     m_bw            = obj["bw"];
-
-    m_sha1 = std::string(std::string_view(obj["sha1"]));
-
+    m_index_size    = obj["index_size"];
     std::string kmindex_ver  = std::string(std::string_view(obj["kmindex_version"]));
     std::string kmtricks_ver = std::string(std::string_view(obj["kmtricks_version"]));
+    m_nb_partitions = obj["nb_partitions"];
+    m_minim_size    = obj["minim_size"];
+    m_nb_samples    = obj["nb_samples"];
+
     ondemand::array samples_arr = obj["samples"];
     m_samples.clear();
     m_samples.reserve(m_nb_samples);
@@ -50,6 +50,10 @@ namespace kmq {
     for (ondemand::value v : samples_arr) {
         m_samples.emplace_back(std::string(std::string_view(v)));
     }
+
+    m_sha1 = std::string(std::string_view(obj["sha1"]));
+    m_smer_size     = obj["smer_size"];
+
 
     m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
     m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));

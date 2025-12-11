@@ -117,12 +117,11 @@ namespace kmq {
     kmq_query2_options_t o = std::static_pointer_cast<struct kmq_query2_options>(opt);
 
     Timer gtime;
-    {
-      spdlog::info("Loading global index: {}", o->global_index_path);
-      Timer load_time;
-      index global(o->global_index_path);
-      spdlog::info("Global index loaded ({}).", load_time.formatted());
-    }
+
+    spdlog::info("Loading global index: {}", o->global_index_path);
+    Timer load_time;
+    index global(o->global_index_path);
+    spdlog::info("Global index loaded ({}).", load_time.formatted());
 
     spdlog::info(
       "Global index: '{}'", fs::absolute(o->global_index_path + "/").parent_path().filename().string());

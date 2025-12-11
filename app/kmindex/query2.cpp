@@ -36,7 +36,7 @@ namespace kmq {
 
   kmq_options_t kmq_query2_cli(parser_t parser, kmq_query2_options_t options)
   {
-    auto cmd = parser->add_command("query2", "Query index");
+    auto cmd = parser->add_command("query2", "To be used instead of kmindex query when many sub-indexes are registered, i.e. hundreds or thousands.");
 
     auto is_kmq_index = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
       return std::make_tuple(fs::exists(fmt::format("{}/index.json", v)), bc::utils::format_error(p, v, fmt::format("'{}' is not an index.", v)));

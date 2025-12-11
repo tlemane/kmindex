@@ -36,7 +36,7 @@ namespace kmq {
 
   kmq_options_t kmq_query2_cli(parser_t parser, kmq_query2_options_t options)
   {
-    auto cmd = parser->add_command("query2", "Query index.");
+    auto cmd = parser->add_command("query2", "Query index");
 
     auto is_kmq_index = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
       return std::make_tuple(fs::exists(fmt::format("{}/index.json", v)), bc::utils::format_error(p, v, fmt::format("'{}' is not an index.", v)));
@@ -168,6 +168,7 @@ namespace kmq {
     for (auto& index_name : o->index_names)
     {
       pool.add_task([&o, &global, &index_name, &records, with_positions](int i){
+        unused(i);
         Timer timer;
         auto infos = global.get(index_name);
         spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
@@ -203,7 +204,6 @@ namespace kmq {
 
         kindex ki(infos, o->cache);
 
-        std::size_t nq = b.size();
         ki.solve_batch(b);
         b.free_smers();
 

@@ -33,7 +33,7 @@ namespace kmq {
     // }
     //
     padded_string json =
-        padded_string::load(fmt::format("{}/index.json", m_index_path));
+        padded_string::load(fmt::format("{}/index.json", index_path));
 
     ondemand::parser parser;
     ondemand::document data = parser.iterate(json);

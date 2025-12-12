@@ -194,7 +194,7 @@ namespace kmq {
       return;
     }
 
-    std::vector<std::uint64_t> perm_orders;
+    std::vector<std::size_t> perm_orders;
 
     auto block_size_bytes = o->block_size * 1024 * 1024;
     auto entry_per_block = bms::target_block_nb_rows(sub.nb_samples(), block_size_bytes);

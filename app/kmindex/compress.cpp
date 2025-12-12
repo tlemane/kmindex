@@ -123,7 +123,7 @@ namespace kmq {
     }
   }
 
-  void immutable_filling_columns_inplace(std::vector<std::size_t>& order, const std::size_t SAMPLES)
+  void immutable_filling_columns_inplace(std::vector<std::uint64_t>& order, const std::size_t SAMPLES)
   {
       const std::size_t COLUMNS = (SAMPLES + 7) / 8 * 8;
 

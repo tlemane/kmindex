@@ -17,10 +17,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 if (WITH_COMPRESSION)
   target_link_libraries(${PROJECT_NAME} PUBLIC
-  zstd_ext
-  bitmatrixshuffle
-)
-
+    compression_features
+  )
 endif()
 
 if (STATIC_BUILD)

@@ -39,6 +39,8 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
+include(DetectArchitecture)
+
 add_library(build_type_flags INTERFACE)
 target_compile_options(build_type_flags INTERFACE
   $<$<CONFIG:Debug>:-O -g>

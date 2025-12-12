@@ -31,9 +31,7 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
 
 if (WITH_COMPRESSION)
 target_link_libraries(${KMINDEX_LIB} PUBLIC
-  $<BUILD_INTERFACE:sdsl-lite>
-  $<BUILD_INTERFACE:zstd_ext>
-  $<BUILD_INTERFACE:block_compressor>
+  $<BUILD_INTERFACE:compression_features>
 )
 endif()
 

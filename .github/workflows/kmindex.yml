@@ -59,11 +59,11 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y zlib1g zlib1g-dev ${{ matrix.compiler }}  bzip2 libboost-all-dev
+          sudo apt-get install -y zlib1g zlib1g-dev ${{ matrix.compiler }}  bzip2 libboost-all-dev libbz2-dev
 
       - name: Install macOS dependencies
         if: contains(matrix.os, 'macos')
-        run: brew install zlib cmake boost
+        run: brew install zlib cmake boost bzip2
 
       - name: Configure
         shell: bash

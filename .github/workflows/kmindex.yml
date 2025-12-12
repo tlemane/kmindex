@@ -75,7 +75,7 @@ jobs:
             export CXX=$(which ${{ matrix.cxx }})
             cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DSTATIC_BUILD=ON
           else
-            cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON
+            cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DWITH_SERVER=OFF
           fi
 
 

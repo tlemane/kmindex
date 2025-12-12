@@ -34,7 +34,7 @@ namespace kmq {
     if (fs::is_symlink(m_path))
       m_path = fs::read_symlink(m_path).string();
 
-#if __APPLE__
+#ifdef __APPLE__
     m_bloom_size    = static_cast<std::size_t>(obj["bloom_size"].get_uint64());
     m_bw            = static_cast<std::size_t>(obj["bw"].get_uint64());
     m_index_size    = static_cast<std::size_t>(obj["index_size"].get_uint64());
@@ -63,8 +63,12 @@ namespace kmq {
     }
 
     m_sha1 = std::string(std::string_view(obj["sha1"]));
-    m_smer_size     = obj["smer_size"];
 
+#ifdef __APPLE__
+    m_smer_size     = static_cast<std::size_t>(obj["smer_size"].get_uint64());
+#else
+    m_smer_size     = obj["smer_size"];
+#endif
 
     m_hashw = std::make_shared<km::HashWindow>(fmt::format("{}/hash.info", m_path));
     m_repart = std::make_shared<km::Repartition>(fmt::format("{}/repartition_gatb/repartition.minimRepart", m_path));

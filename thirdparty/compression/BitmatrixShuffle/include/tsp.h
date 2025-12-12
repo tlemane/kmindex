@@ -21,10 +21,10 @@ namespace bms
     std::size_t build_double_ended_NN(const char* const MATRIX, DistanceMatrix& distanceMatrix, const std::size_t SUBSAMPLED_ROWS, const std::size_t OFFSET, std::vector<std::uint64_t>& order);
 
     //Distance computation between two columns
-    double columns_hamming_distance(const char* const MATRIX, const std::size_t NB_ROWS, const std::size_t COLUMN_A, const std::size_t COLUMN_B);
+    double columns_hamming_distance(const char* const MATRIX, const std::size_t NB_ROWS, const std::uint64_t COLUMN_A, const std::uint64_t COLUMN_B);
 
     //Get Nearest-Neighbor using VPTree
-    IndexDistance find_closest_vertex(VPTree<std::uint64_t>& VPTREE, const std::size_t VERTEX, const std::vector<bool>& ALREADY_ADDED);
+    IndexDistance find_closest_vertex(VPTree<std::uint64_t>& VPTREE, const std::uint64_t VERTEX, const std::vector<bool>& ALREADY_ADDED);
 
     //Hamming distance between two buffers
     std::size_t hamming_distance(const char* const BUFFER1, const char* const BUFFER2, const std::size_t LENGTH);

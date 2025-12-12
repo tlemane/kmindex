@@ -104,7 +104,7 @@ namespace kmq {
       return std::abs(a - b) < epsilon;
   }
 
-  bool compare_query_results(const query_result& a, const query_result& b, std::vector<std::size_t>& perms)
+  bool compare_query_results(const query_result& a, const query_result& b, std::vector<std::uint64_t>& perms)
   {
     if (perms.size() == 0)
     {
@@ -123,7 +123,7 @@ namespace kmq {
     }
   }
 
-  void immutable_filling_columns_inplace(std::vector<std::uint64_t>& order, const std::size_t SAMPLES)
+  void immutable_filling_columns_inplace(std::vector<std::size_t>& order, const std::size_t SAMPLES)
   {
       const std::size_t COLUMNS = (SAMPLES + 7) / 8 * 8;
 
@@ -158,7 +158,7 @@ namespace kmq {
           order[i] = i;
   }
 
-  void reorder_fof(const std::string& fof_path, const std::size_t SAMPLES, const std::vector<std::size_t>& order)
+  void reorder_fof(const std::string& fof_path, const std::size_t SAMPLES, const std::vector<std::uint64_t>& order)
   {
       std::vector<std::string> fof_lines;
       fof_lines.resize(SAMPLES);
@@ -194,7 +194,7 @@ namespace kmq {
       return;
     }
 
-    std::vector<std::size_t> perm_orders;
+    std::vector<std::uint64_t> perm_orders;
 
     auto block_size_bytes = o->block_size * 1024 * 1024;
     auto entry_per_block = bms::target_block_nb_rows(sub.nb_samples(), block_size_bytes);

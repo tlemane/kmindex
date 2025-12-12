@@ -288,8 +288,11 @@ namespace bms {
     IndexDistance find_closest_vertex(VPTree<std::uint64_t>& VPTREE, const std::uint64_t VERTEX, const std::vector<bool>& ALREADY_ADDED)
     {
         IndexDistance nn = {0, 2.0};
+#ifdef __APPLE__
+        VPTREE.get_unvisited_nearest_neighbor(VERTEX, ALREADY_ADDED, &nn.distance, reinterpret_cast<std::uint64_t*>(&nn.index));
+#else
         VPTREE.get_unvisited_nearest_neighbor(VERTEX, ALREADY_ADDED, &nn.distance, &nn.index);
-
+#endif
         return nn;
     }
 

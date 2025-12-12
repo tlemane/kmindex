@@ -1,11 +1,14 @@
 #include <cstring>
 #include <kmindex/threadpool.hpp>
 #include <kmindex/mer.hpp>
+#include <kmindex/exceptions.hpp>
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/index/kindex.hpp>
 #include <sys/mman.h>
 
+#ifdef KMINDEX_WITH_COMPRESSION
 #include <zstd/BlockDecompressorZSTD.h>
+#endif
 
 namespace kmq {
 
@@ -28,6 +31,7 @@ namespace kmq {
     std::memcpy(dest, m_mapped.begin() + (m_bytes * pos) + 49, m_bytes);
   }
 
+#ifdef KMINDEX_WITH_COMPRESSION
   compressed_partition::compressed_partition(const std::string& matrix_path, const std::string& config_path, std::size_t nb_samples, std::size_t width)
     : m_nb_samples(nb_samples), m_bytes(((nb_samples * width) + 7) / 8)
   {
@@ -42,6 +46,7 @@ namespace kmq {
   {
     std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
   }
+#endif
 
   kindex::kindex() {}
 
@@ -74,7 +79,11 @@ namespace kmq {
   {
     if (m_infos.is_compressed_index())
     {
+#ifdef KMINDEX_WITH_COMPRESSION
       m_partitions[p] = std::make_unique<compressed_partition>(m_infos.get_partition(p), m_infos.get_compression_config(), m_infos.nb_samples(), m_infos.bw());
+#else
+      throw kmq_error("kmindex is not compiled with compression support");
+#endif
     }
     else
     {

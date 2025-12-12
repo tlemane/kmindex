@@ -45,9 +45,11 @@ int main(int argc, char* argv[])
       case kmq::kmq_commands::kmq_merge:
         kmq::main_merge(options);
         break;
+#ifdef KMINDEX_WITH_COMPRESSION
       case kmq::kmq_commands::kmq_compress:
         kmq::main_compress(options);
         break;
+#endif
       case kmq::kmq_commands::kmq_sum_index:
         kmq::main_sum_index(options);
         break;

@@ -13,9 +13,16 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog
   semver
   atomic_queue
+)
+
+if (WITH_COMPRESSION)
+  target_link_libraries(${PROJECT_NAME} PUBLIC
   zstd_ext
   bitmatrixshuffle
 )
+
+endif()
+
 if (STATIC_BUILD)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--whole-archive

@@ -7,7 +7,9 @@
 #include <kmindex/spinlock.hpp>
 #include <mio/mmap.hpp>
 
+#ifdef KMINDEX_WITH_COMPRESSION
 #include <BlockDecompressor.h>
+#endif
 
 #include <iostream>
 
@@ -36,6 +38,7 @@ namespace kmq {
       std::size_t m_bytes {0};
   };
 
+#ifdef KMINDEX_WITH_COMPRESSION
   class compressed_partition : public partition_interface
   {
     public:
@@ -50,6 +53,7 @@ namespace kmq {
       std::size_t m_nb_samples {0};
       std::size_t m_bytes {0};
   };
+#endif
 
   class kindex
   {

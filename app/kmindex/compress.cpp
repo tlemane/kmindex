@@ -1,3 +1,5 @@
+#ifdef KMINDEX_WITH_COMPRESSION
+
 #include <iostream>
 
 #include "compress.hpp"
@@ -96,7 +98,7 @@ namespace kmq {
   {
       return (x | 0x7ULL) - (x & 0x7ULL);
   }
-  
+
   bool epsilon_equal(double a, double b, double epsilon = 1e-6)
   {
       return std::abs(a - b) < epsilon;
@@ -185,7 +187,7 @@ namespace kmq {
     index i(o->global_index_path);
 
     auto sub = i.get(o->index_name);
-    
+
     if (sub.is_compressed_index())
     {
       throw kmq_error(fmt::format("Index '{}' is already compressed.", o->index_name));
@@ -193,7 +195,7 @@ namespace kmq {
     }
 
     std::vector<std::uint64_t> perm_orders;
-    
+
     auto block_size_bytes = o->block_size * 1024 * 1024;
     auto entry_per_block = bms::target_block_nb_rows(sub.nb_samples(), block_size_bytes);
 
@@ -206,9 +208,9 @@ namespace kmq {
     }
 
     auto random_query = random_sequence(100);
-    
+
     spdlog::info("Index '{}' has {} partitions, {} samples.", o->index_name, sub.nb_partitions(), sub.nb_samples());
-  
+
     std::unique_ptr<query_result> before {nullptr};
     if (o->check)
     {
@@ -220,7 +222,7 @@ namespace kmq {
     spdlog::info("Compressing index '{}' using {}MB blocks ({} bit vectors per block).", o->index_name, o->block_size, entry_per_block);
 
     ThreadPool pool(o->nb_threads);
-    
+
     if (o->reorder)
     {
       Timer ptime;
@@ -277,9 +279,9 @@ namespace kmq {
     fs::remove(config_path);
 
     sub.set_compress(true);
-    
+
     spdlog::info("Index '{}' compressed. ({})", o->index_name, gtime.formatted());
-    
+
     bool valid = true;
 
     if (o->check)
@@ -295,7 +297,7 @@ namespace kmq {
         valid = false;
         fs::remove(sub.get_compression_config());
         spdlog::error("--check: query results do not match before and after compressing.");
-        
+
         if (o->delete_old)
         {
           spdlog::info("Uncompressed index will not be deleted (--delete).");
@@ -303,8 +305,8 @@ namespace kmq {
         spdlog::info("Uncompressed index remains valid.");
       }
     }
-    
-   
+
+
     if (o->reorder && valid)
     {
       auto fof_path = fmt::format("{}/kmtricks.fof", sub.get_directory());
@@ -329,3 +331,4 @@ namespace kmq {
     }
   }
 }
+#endif

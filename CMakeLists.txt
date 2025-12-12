@@ -12,6 +12,7 @@ option(WITH_APP "Compile kmindex cli" ON)
 option(WITH_SERVER "Compile kmindex-server" ON)
 option(WITH_TESTS "Compile tests" OFF)
 option(STATIC_BUILD "Static build" OFF)
+option(WITH_COMPRESSION "Enable compression features" ON)
 
 if (NOT MAX_KMER_SIZE)
   set(MAX_KMER_SIZE 256)
@@ -23,6 +24,9 @@ else()
 endif()
 
 add_compile_definitions(MAX_KMER_SIZE=${MAX_KMER_SIZE})
+if (WITH_COMPRESSION)
+  add_compile_definitions(KMINDEX_WITH_COMPRESSION)
+endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(FORCE_BUILD_FMT ON)

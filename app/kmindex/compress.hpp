@@ -1,6 +1,8 @@
 #ifndef COMPRESS_HPP_1756992492
 #define COMPRESS_HPP_1756992492
 
+#ifdef KMINDEX_WITH_COMPRESSION
+
 #include "common.hpp"
 
 namespace kmq {
@@ -15,7 +17,7 @@ namespace kmq {
 
     std::size_t sampling {20000};
     std::size_t column_blocks {1};
-    bool check {false}; 
+    bool check {false};
   };
 
   using kmq_compress_options_t = std::shared_ptr<struct kmq_compress_options>;
@@ -25,5 +27,6 @@ namespace kmq {
   void main_compress(kmq_options_t opt);
 }
 
+#endif
 
 #endif /* end of include guard: COMPRESS_HPP_1756992492 */

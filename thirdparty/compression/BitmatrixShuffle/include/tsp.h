@@ -10,7 +10,7 @@ namespace bms
 {
     struct
     {
-        std::size_t index;
+        std::uint64_t index;
         double distance;
     } typedef IndexDistance;
 

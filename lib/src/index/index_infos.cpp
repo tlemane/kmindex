@@ -34,6 +34,16 @@ namespace kmq {
     if (fs::is_symlink(m_path))
       m_path = fs::read_symlink(m_path).string();
 
+#if __APPLE__
+    m_bloom_size    = static_cast<std::size_t>(obj["bloom_size"].get_uint64());
+    m_bw            = static_cast<std::size_t>(obj["bw"].get_uint64());
+    m_index_size    = static_cast<std::size_t>(obj["index_size"].get_uint64());
+    std::string kmindex_ver  = std::string(std::string_view(obj["kmindex_version"]));
+    std::string kmtricks_ver = std::string(std::string_view(obj["kmtricks_version"]));
+    m_nb_partitions = static_cast<std::size_t>(obj["nb_partitions"].get_uint64());
+    m_minim_size    = static_cast<std::size_t>(obj["minim_size"].get_uint64());
+    m_nb_samples    = static_cast<std::size_t>(obj["nb_samples"].get_uint64());
+#else
     m_bloom_size    = obj["bloom_size"];
     m_bw            = obj["bw"];
     m_index_size    = obj["index_size"];
@@ -42,6 +52,7 @@ namespace kmq {
     m_nb_partitions = obj["nb_partitions"];
     m_minim_size    = obj["minim_size"];
     m_nb_samples    = obj["nb_samples"];
+#endif
 
     ondemand::array samples_arr = obj["samples"];
     m_samples.clear();

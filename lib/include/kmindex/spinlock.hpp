@@ -4,6 +4,15 @@
 #include <thread>
 #include <atomic>
 
+
+#if defined(__x86_64__) || defined(_M_X64)
+#  define CPU_PAUSE() asm volatile("pause")
+#elif defined(__aarch64__) || defined(__arm__)
+#  define CPU_PAUSE() asm volatile("yield")
+#else
+#  define CPU_PAUSE() asm volatile("" ::: "memory")
+#endif
+
 namespace kmq {
 
   class spinlock
@@ -20,7 +29,7 @@ namespace kmq {
           else
           {
             for (std::size_t i=0; i<iters; i++)
-              asm volatile("pause");
+              CPU_PAUSE();
           }
 
           std::size_t n {0};
@@ -29,7 +38,7 @@ namespace kmq {
           {
             if (n < iters)
             {
-              asm volatile("pause");
+              CPU_PAUSE();
               n++;
             }
             else

@@ -47,7 +47,7 @@ target_compile_options(build_type_flags INTERFACE
   $<$<CONFIG:Release>:-O3 -DNDEBUG>
   $<$<CONFIG:Profile>:-O3 -ggdb3 -DNDEBUG -fno-inline>
   $<$<CONFIG:Coverage>:-O0 -g --coverage>
-  $<IF:$<BOOL:${PORTABLE_BUILD}>,-march=${ARCH_FLAGS},-march=native>
+  $<IF:$<BOOL:${PORTABLE_BUILD}>, ${ARCH_FLAGS},-march=native>
 )
 
 add_library(warning_flags INTERFACE)

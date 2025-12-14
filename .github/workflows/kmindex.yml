@@ -73,9 +73,9 @@ jobs:
           if [[ "${{ matrix.os }}" == ubuntu* ]]; then
             export CC=$(which ${{ matrix.cc }})
             export CXX=$(which ${{ matrix.cxx }})
-            cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DSTATIC_BUILD=ON
+            cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DSTATIC_BUILD=ON -DPORTABLE_BUILD=ON
           else
-            cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DWITH_SERVER=OFF
+            cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DWITH_TESTS=ON -DFMT_HEADER_ONLY=ON -DSPDLOG_HEADER_ONLY=ON -DWITH_SERVER=OFF -DPORTABLE_BUILD=ON
           fi
 
 

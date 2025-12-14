@@ -1,10 +1,15 @@
-include(CheckIPOSupported)
-check_ipo_supported(RESULT ipo_support OUTPUT error)
-
-if (ipo_support)
-  message(STATUS "LTO enabled.")
+if(APPLE)
+  set(ipo_support FALSE)
+  message(STATUS "LTO disabled on macOS.")
 else()
-  message(STATUS "LTO not supported: <${error}>.")
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT ipo_support OUTPUT error)
+
+  if (ipo_support)
+    message(STATUS "LTO enabled.")
+  else()
+    message(STATUS "LTO not supported: <${error}>.")
+  endif()
 endif()
 
 if (WITH_APP)

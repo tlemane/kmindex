@@ -40,7 +40,7 @@
             rev = "0d3792fa5a242540582f16b4542311a473c0b7c3";
             submodules = true;
           };
-          nativeBuildInputs = kmindexBuildInputs;
+          nativeBuildInputs = kmindexBuildInputs ++ [kmPkg];
 
           configurePhase = ''
             cmake -S . -B build
@@ -63,7 +63,7 @@
       };
       defaultPackage = kmindex;
 
-      devShell = pkgs.mkShell {
+      devShell = pkgs.mkShellNoCC {
         name = "kmindex_dev_env";
         buildInputs = kmindexBuildInputs;
       };

@@ -22,8 +22,16 @@ namespace kmq {
 
   kmq_server_options_t kmq_server_cli(parser_t parser, kmq_server_options_t options)
   {
+    auto is_kmq_index = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
+      return std::make_tuple(
+        fs::exists(fmt::format("{}/index.json")), bc::utils::format_error(p, v, fmt::format("'{}' is not an index", v))
+      );
+    };
+
     parser->add_param("-i/--index", "Index path.")
        ->meta("STR")
+       ->checker(bc::check::is_dir)
+       ->checker(is_kmq_index)
        ->setter(options->index_path);
 
     parser->add_param("-a/--address", "Address to use (empty string to bind any address)\n" \

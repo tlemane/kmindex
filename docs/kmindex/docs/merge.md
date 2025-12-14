@@ -4,7 +4,7 @@ In addition to registering multiple indexes, compatible sub-indexes (i.e. sharin
 
 !!! tip "Options"
     ```
-    kmindex merge v0.5.2
+    kmindex merge v0.6.0
 
     DESCRIPTION
       Merge sub-indexes.
@@ -38,7 +38,7 @@ In addition to registering multiple indexes, compatible sub-indexes (i.e. sharin
                                Identifiers can be changed in 'kmtricks.fof' files in sub-index directories.
 
       [common]
-        -t --threads - Number of threads. {12}
+        -t --threads - Number of threads. {22}
         -h --help    - Show this message and exit. [⚑]
            --version - Show version and exit. [⚑]
         -v --verbose - Verbosity level [debug|info|warning|error]. {info}

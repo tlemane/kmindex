@@ -17,6 +17,7 @@ Given a databank $D = \{S_1, ..., S_n\}$, with each $S_i$ being any genomic data
 * [Index construction](construction.md)
 * [Index query](query.md)
 * [Index merge](merge.md)
+* [Index compression](compression.md)
 
 ## Server
 

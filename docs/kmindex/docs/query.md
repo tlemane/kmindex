@@ -6,7 +6,7 @@
 
 !!! tip "Options"
     ```
-    kmindex query v0.5.2
+    kmindex query v0.6.0
 
     DESCRIPTION
       Query index.
@@ -26,7 +26,7 @@
         -o --output       - Output directory. {output}
         -q --fastx        - Input fasta/q file (supports gz/bzip2) containing the sequence(s) to query.
         -s --single-query - Query identifier. All sequences are considered as a unique query.
-        -f --format       - Output format [json|matrix|json_vec] {json}
+        -f --format       - Output format [json|matrix|json_vec|jsonl|jsonl_vec] {json}
         -b --batch-size   - Size of query batches (0≈nb_seq/nb_thread). {0}
         -a --aggregate    - Aggregate results from batches into one file. [⚑]
            --fast         - Keep more pages in cache (see doc for details). [⚑]
@@ -82,6 +82,13 @@ The results are shared ratios between queries and each sample indexed in $D1$. S
         }
     }
     ```
+
+!!! abstract "JSONL (`--format jsonl`)"
+    ```json
+    {"index":"D1", "query":"1", "samples":{"S1": 1.0,"S2":0.0}}
+    {"index":"D1", "query":"2", "samples":{"S1": 1.0,"S2":0.0}}
+    ```
+
 !!! abstract "TSV (`--format matrix`)"
     ```tsv
     D1     S1   S2

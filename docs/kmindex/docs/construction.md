@@ -5,11 +5,11 @@
 `kmindex build` allows to construct an index $I$ from a set of FASTA/Q files (gzipped or not) and register it into a global index $G$. It supports both presence/absence and abundance indexing.
 
 !!! note
-    `kmindex build` is basically a wrapper around [kmtricks](https://github.com/tlemane/kmtricks), ensuring indexes are built in the right way. However, indexes built by `kmtricks` are usable by `kmindex` if built using `--mode hash:bf:bin` (presence/absence mode) or `--mode hash:bfc:bin` (abundance mode), and without `--cpr`. Other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)). To be queryable, indexes have to be registered into a global index (see `kmindex register`).
+    `kmindex build` is basically a wrapper around [kmtricks](https://github.com/tlemane/kmtricks), ensuring indexes are built in the right way. However, indexes built by `kmtricks` are usable by `kmindex` if built using `--mode hash:bf:bin` (presence/absence mode) or `--mode hash:bfc:bin` (abundance mode), and without `--cpr`. Other flags can be used as usual (see [kmtricks pipeline](https://github.com/tlemane/kmtricks/wiki/kmtricks-pipeline)). To be queryable, indexes have to be registered into a global index (see `kmindex register --help`).
 
 !!! tip "Options"
     ```
-    kmindex build v0.5.2
+    kmindex build v0.6.0
 
     DESCRIPTION
       Build index.
@@ -25,7 +25,7 @@
       [global]
         -i --index       - Global index path.
         -f --fof         - kmtricks input file.
-        -d --run-dir     - kmtricks runtime directory.
+        -d --run-dir     - kmtricks runtime directory. Use '@inplace' to build inside the global index directory
         -r --register-as - Index name.
            --from        - Use parameters from a pre-registered index.
            --km-path     - Path to kmtricks binary.
@@ -33,7 +33,7 @@
                              at the same location as the kmindex binary.
 
       [kmtricks parameters] - See kmtricks pipeline --help
-        -k --kmer-size     - Size of a k-mer. in [8, 31] {31}
+        -k --kmer-size     - Size of a k-mer. in [8, 255]) {31}
         -m --minim-size    - Size of minimizers. in [4, 15] {10}
            --hard-min      - Min abundance to keep a k-mer. {2}
            --nb-partitions - Number of partitions (0=auto). {0}
@@ -57,7 +57,7 @@
                          7 -> [64,max(uint32_t))
 
       [common]
-        -t --threads - Number of threads. {12}
+        -t --threads - Number of threads. {22}
         -h --help    - Show this message and exit. [⚑]
            --version - Show version and exit. [⚑]
         -v --verbose - Verbosity level [debug|info|warning|error]. {info}

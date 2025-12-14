@@ -64,16 +64,20 @@ namespace kmq {
 
           query_result_agg agg;
           for (auto&& r : bq.response())
-            agg.add(query_result(std::move(r), m_z, infos));
+            agg.add(query_result(std::move(r), m_z, infos, (m_format == format::json) ? false: true));
 
 
           std::ofstream nullstream; nullstream.setstate(std::ios_base::badbit);
 
           std::shared_ptr<json_formatter> jformat =
             std::static_pointer_cast<json_formatter>(
-                make_formatter(format::json, m_r, infos.bw()));
+                make_formatter(m_format, m_r, infos.bw()));
 
-          jformat->merge_format(infos, m_name, agg.results(), nullstream);
+          if (m_seq.size() == 1)
+            jformat->format(infos, agg.results()[0], nullstream);
+          else
+            jformat->merge_format(infos, m_name, agg.results(), nullstream);
+
           responses.push_back(jformat->get_json());
         }
 
@@ -144,8 +148,11 @@ namespace kmq {
         }
         else
         {
-          if (data["format"] == "json")
+          if (data["format"] == "json" || data["format"] == "json_vec")
+          {
             m_json = true;
+            m_format = str_to_format(data["format"]);
+          }
           else if (data["format"] == "tsv")
             m_json = false;
           else
@@ -199,6 +206,7 @@ namespace kmq {
       std::size_t m_z {0};
       double m_r {0.0};
       bool m_json {true};
+      enum format m_format;
   };
 
 }

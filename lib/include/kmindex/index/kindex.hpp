@@ -7,19 +7,29 @@
 #include <kmindex/spinlock.hpp>
 #include <mio/mmap.hpp>
 
+#ifdef KMINDEX_WITH_COMPRESSION
+#include <BlockDecompressor.h>
+#endif
 
 #include <iostream>
 
 namespace kmq {
 
-  class partition
+  class partition_interface
+  {
+    public:
+      virtual ~partition_interface() = default;
+      virtual void query(std::uint64_t pos, std::uint8_t* dest) = 0;
+  };
+
+  class partition : public partition_interface
   {
     public:
       partition(const std::string& matrix_path, std::size_t nb_samples, std::size_t width);
 
       ~partition();
 
-      void query(std::uint64_t pos, std::uint8_t* dest);
+      virtual void query(std::uint64_t pos, std::uint8_t* dest);
 
     private:
       int m_fd {0};
@@ -27,6 +37,23 @@ namespace kmq {
       std::size_t m_nb_samples {0};
       std::size_t m_bytes {0};
   };
+
+#ifdef KMINDEX_WITH_COMPRESSION
+  class compressed_partition : public partition_interface
+  {
+    public:
+      compressed_partition(const std::string& matrix_path, const std::string& config_path, std::size_t nb_samples, std::size_t width);
+
+      ~compressed_partition();
+
+      virtual void query(std::uint64_t pos, std::uint8_t* dest);
+
+    private:
+      std::unique_ptr<BlockDecompressor> m_ptr_bd;
+      std::size_t m_nb_samples {0};
+      std::size_t m_bytes {0};
+  };
+#endif
 
   class kindex
   {
@@ -49,7 +76,8 @@ namespace kmq {
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
           order.push_back(p);
 #ifndef __APPLE__
-        std::random_shuffle(std::begin(order), std::end(order));
+        static std::mt19937 g{std::random_device{}()};
+        std::shuffle(std::begin(order), std::end(order), g);
 #endif
         for (auto const& p : order)
           solve_one(bq, p);
@@ -77,7 +105,8 @@ namespace kmq {
         for (std::size_t p = 0; p < m_infos.nb_partitions(); p++)
           order.push_back(p);
 #ifndef __APPLE__
-        std::random_shuffle(std::begin(order), std::end(order));
+        static std::mt19937 g{std::random_device{}()};
+        std::shuffle(std::begin(order), std::end(order), g);
 #endif
         for (auto const& p : order)
           solve_one_cache(bq, p);
@@ -108,7 +137,7 @@ namespace kmq {
       index_infos& infos();
     private:
       index_infos m_infos;
-      std::vector<std::unique_ptr<partition>> m_partitions;
+      std::vector<std::unique_ptr<partition_interface>> m_partitions;
       std::vector<spinlock> m_mutexes;
       bool m_cache {false};
   };

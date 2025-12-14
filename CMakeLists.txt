@@ -1,15 +1,18 @@
 cmake_minimum_required(VERSION 3.24.0)
-project(kmindex VERSION 0.5.2 LANGUAGES C CXX)
+project(kmindex VERSION 0.6.0 LANGUAGES C CXX)
 
 set(PROJECT_DESCRIPTION "kmindex")
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(PORTABLE_BUILD "Generic x86_64 build" OFF)
 option(WITH_APP "Compile kmindex cli" ON)
 option(WITH_SERVER "Compile kmindex-server" ON)
 option(WITH_TESTS "Compile tests" OFF)
 option(STATIC_BUILD "Static build" OFF)
+option(WITH_COMPRESSION "Enable compression features" ON)
 
 if (NOT MAX_KMER_SIZE)
   set(MAX_KMER_SIZE 256)
@@ -21,6 +24,9 @@ else()
 endif()
 
 add_compile_definitions(MAX_KMER_SIZE=${MAX_KMER_SIZE})
+if (WITH_COMPRESSION)
+  add_compile_definitions(KMINDEX_WITH_COMPRESSION)
+endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(FORCE_BUILD_FMT ON)
@@ -32,6 +38,8 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
+
+include(DetectArchitecture)
 
 add_library(build_type_flags INTERFACE)
 target_compile_options(build_type_flags INTERFACE

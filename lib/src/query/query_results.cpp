@@ -41,13 +41,14 @@ namespace kmq {
     std::vector<uint8_t> kres(m_qr->block_size(), 255);
     std::vector<std::uint32_t> count(m_ratios.size(), 0);
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
 
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        for(std::size_t k = 0; k < m_qr->block_size(); ++k)
+        for(std::size_t k = 0; k < block_size; ++k)
         {
           kres[k] &= data[j+k];
         }
@@ -76,16 +77,17 @@ namespace kmq {
     std::vector<uint8_t> kres(m_qr->block_size(), 255);
     std::vector<std::uint32_t> count(m_ratios.size(), 0);
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
 
     for (auto& v : m_positions)
       v.reserve(m_nbk);
 
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        for(std::size_t k = 0; k < m_qr->block_size(); ++k)
+        for(std::size_t k = 0; k < block_size; ++k)
         {
           kres[k] &= data[j+k];
         }
@@ -116,18 +118,19 @@ namespace kmq {
     std::vector<std::uint32_t> kres_abs(m_counts.size(), std::numeric_limits<std::uint32_t>::max());
     std::fill(m_counts.begin(), m_counts.end(), std::numeric_limits<std::uint32_t>::min());
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
-
+    
     for (auto& v : m_positions)
       v.reserve(m_nbk);
 
     // for each k-mers
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
       // for each s-mers in the k-mer
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        auto s = nonstd::span<const std::uint8_t>(&data[j], m_qr->block_size());
+        auto s = nonstd::span<const std::uint8_t>(&data[j], block_size);
         for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_infos.bw())
         {
           kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_infos.bw()), kres_abs[k]);
@@ -138,6 +141,7 @@ namespace kmq {
       for (std::size_t s = 0; s < m_ratios.size(); ++s)
       {
         m_counts[s] += kres_abs[s];
+        m_ratios[s] += static_cast<bool>(kres_abs[s]);
         m_positions[s].push_back(kres_abs[s]);
       }
 
@@ -147,6 +151,7 @@ namespace kmq {
     for (std::size_t i = 0; i < m_ratios.size(); ++i)
     {
       m_counts[i] = m_counts[i] / m_nbk;
+      m_ratios[i] = m_ratios[i] / static_cast<double>(m_nbk);
     }
 
   }
@@ -158,15 +163,16 @@ namespace kmq {
     std::vector<std::uint32_t> kres_abs(m_counts.size(), std::numeric_limits<std::uint32_t>::max());
     std::fill(m_counts.begin(), m_counts.end(), std::numeric_limits<std::uint32_t>::min());
 
+    std::size_t block_size = m_qr->block_size();
     std::size_t block_size_z = m_qr->block_size() * m_z;
 
     // for each k-mers
-    for (std::size_t i = 0; i < m_nbk * m_qr->block_size(); i += m_qr->block_size())
+    for (std::size_t i = 0; i < m_nbk * block_size; i += block_size)
     {
       // for each s-mers in the k-mer
-      for (std::size_t j = i; j <= i + block_size_z; j += m_qr->block_size())
+      for (std::size_t j = i; j <= i + block_size_z; j += block_size)
       {
-        auto s = nonstd::span<const std::uint8_t>(&data[j], m_qr->block_size());
+        auto s = nonstd::span<const std::uint8_t>(&data[j], block_size);
         for(std::size_t k = 0, l = 0; k < m_counts.size(); ++k, l+=m_infos.bw())
         {
           kres_abs[k] = std::min(bitpacker::extract<std::uint32_t>(s, l, m_infos.bw()), kres_abs[k]);
@@ -177,6 +183,7 @@ namespace kmq {
       for (std::size_t s = 0; s < m_ratios.size(); ++s)
       {
         m_counts[s] += kres_abs[s];
+        m_ratios[s] += static_cast<bool>(kres_abs[s]);
       }
 
       std::fill(kres_abs.begin(), kres_abs.end(), std::numeric_limits<std::uint32_t>::max());
@@ -185,6 +192,7 @@ namespace kmq {
     for (std::size_t i = 0; i < m_ratios.size(); ++i)
     {
       m_counts[i] = m_counts[i] / m_nbk;
+      m_ratios[i] = m_ratios[i] / static_cast<double>(m_nbk);
     }
   }
 
@@ -248,7 +256,7 @@ namespace kmq {
     fs::create_directory(output_dir);
 
     std::ofstream out(
-      fmt::format("{}/{}.{}", output_dir, infos.name(), f == format::matrix ? "tsv" : "json"));
+      fmt::format("{}/{}.{}", output_dir, infos.name(), format_to_fext(f)));
 
     auto formatter = make_formatter(f, threshold, infos.bw());
 

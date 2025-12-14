@@ -6,8 +6,12 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
+
+    kmtricks = {
+      url = "github:tlemane/kmtricks";
+    };
   };
-  outputs = { self, nixpkgs, flake-utils, ... }: flake-utils.lib.eachSystem [
+  outputs = { self, nixpkgs, flake-utils, kmtricks, ... }: flake-utils.lib.eachSystem [
     "x86_64-linux"
   ] (system:
     let
@@ -15,29 +19,28 @@
         inherit system;
       };
 
+      kmPkg = kmtricks.defaultPackage.x86_64-linux;
       kmindexBuildInputs = [
-        pkgs.gcc12
-        pkgs.cmake
+        pkgs.gcc13
         pkgs.zlib
+        pkgs.cmake
         pkgs.gbenchmark
         pkgs.boost
         pkgs.bzip2
         pkgs.xxHash
         pkgs.nlohmann_json
-        pkgs.fmt_8
-        pkgs.gtest
-        pkgs.spdlog
+        pkgs.zstd
       ];
 
       kmindex = (with pkgs; stdenvNoCC.mkDerivation {
           pname = "kmindex";
-          version = "0.5.2";
+          version = "0.6.0";
           src = builtins.fetchGit {
             url = "https://github.com/tlemane/kmindex";
             rev = "0d3792fa5a242540582f16b4542311a473c0b7c3";
             submodules = true;
           };
-          nativeBuildInputs = kmindexBuildInputs;
+          nativeBuildInputs = kmindexBuildInputs ++ [kmPkg];
 
           configurePhase = ''
             cmake -S . -B build
@@ -60,7 +63,7 @@
       };
       defaultPackage = kmindex;
 
-      devShell = pkgs.mkShell {
+      devShell = pkgs.mkShellNoCC {
         name = "kmindex_dev_env";
         buildInputs = kmindexBuildInputs;
       };

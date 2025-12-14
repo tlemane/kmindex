@@ -15,6 +15,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   atomic_queue
 )
 
+if (WITH_COMPRESSION)
+  target_link_libraries(${PROJECT_NAME} PUBLIC
+    compression_features
+  )
+endif()
+
 if (STATIC_BUILD)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--whole-archive
@@ -40,8 +46,4 @@ endif()
 
 add_dependencies(${PROJECT_NAME} deps)
 
-install (TARGETS ${PROJECT_NAME}
-         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-         COMPONENT ${KMINDEX_LIB}_Runtime
-)
 

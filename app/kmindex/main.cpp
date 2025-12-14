@@ -33,6 +33,9 @@ int main(int argc, char* argv[])
       case kmq::kmq_commands::kmq_query:
         kmq::main_query(options);
         break;
+      case kmq::kmq_commands::kmq_query2:
+        kmq::main_query2(options);
+        break;
       case kmq::kmq_commands::kmq_build:
         kmq::main_build(options);
         break;
@@ -41,6 +44,17 @@ int main(int argc, char* argv[])
         break;
       case kmq::kmq_commands::kmq_merge:
         kmq::main_merge(options);
+        break;
+#ifdef KMINDEX_WITH_COMPRESSION
+      case kmq::kmq_commands::kmq_compress:
+        kmq::main_compress(options);
+        break;
+#endif
+      case kmq::kmq_commands::kmq_sum_index:
+        kmq::main_sum_index(options);
+        break;
+      case kmq::kmq_commands::kmq_sum_query:
+        kmq::main_sum_query(options);
         break;
     }
 

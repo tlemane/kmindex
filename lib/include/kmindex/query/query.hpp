@@ -11,14 +11,8 @@
 #endif
 
 #include <array>
-#include <kmtricks/hash.hpp>
-#include <kmtricks/repartition.hpp>
-#include <kmtricks/kmer.hpp>
-#define WITH_XXHASH
-#include <kmtricks/kmer_hash.hpp>
-
+#include <kmindex/index/common.hpp>
 #include <kmindex/utils.hpp>
-#include <kmindex/mer.hpp>
 #include <kmindex/spinlock.hpp>
 
 namespace kmq {
@@ -89,26 +83,6 @@ namespace kmq {
 
         loop_executor<MAX_KMER_SIZE>::exec<smer_functor>(m_smer_size, m_smers, seq, qid, m_smer_size, m_repart, m_hw, m_msize);
       }
-
-      template<std::size_t MK>
-      struct smer_functor
-      {
-        void operator()(std::vector<qpart_type>& smers,
-                        const std::string& seq,
-                        std::uint32_t qid,
-                        std::size_t smer_size,
-                        repart_type& repart,
-                        hw_type& hw,
-                        std::size_t msize)
-        {
-          smer_hasher<MK> sh(repart, hw, msize);
-
-          for (auto& mer : smer_iterator<MK>(seq, smer_size, sh))
-          {
-            smers[mer.p].emplace_back(mer, qid);
-          }
-        }
-      };
 
       qpart_type& partition(std::size_t p)
       {

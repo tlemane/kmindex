@@ -29,6 +29,12 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
   $<BUILD_INTERFACE:bitpack>
 )
 
+if (WITH_COMPRESSION)
+target_link_libraries(${KMINDEX_LIB} PUBLIC
+  $<BUILD_INTERFACE:compression_features>
+)
+endif()
+
 add_dependencies(${KMINDEX_LIB} deps)
 
 target_include_directories(${KMINDEX_LIB} PUBLIC

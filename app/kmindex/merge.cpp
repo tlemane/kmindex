@@ -69,7 +69,14 @@ namespace kmq {
     std::set<std::string> shash;
 
     for (auto& n : names)
+    {
       shash.insert(gindex.get(n).sha1());
+      if (gindex.get(n).is_compressed_index())
+      {
+        spdlog::error("'{}' is a compressed index. Cannot be merged.", n);
+        return false;
+      }
+    }
 
     if (shash.size() > 1)
       return false;

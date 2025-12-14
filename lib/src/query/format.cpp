@@ -11,8 +11,72 @@ namespace kmq {
       return format::matrix;
     else if (f == "json")
       return format::json;
-    return format::json_with_positions;
+    else if (f == "jsonl")
+      return format::jsonl;
+    else if (f == "json_vec")
+      return format::json_with_positions;
+    else if (f == "jsonl_vec")
+      return format::jsonl_with_positions;
+    else
+      return format::json;
   }
+
+  std::string format_to_fext(enum format f)
+  {
+    switch (f)
+    {
+      case format::matrix:
+        return "tsv";
+      case format::json:
+      case format::json_with_positions:
+        return "json";
+      case format::jsonl:
+      case format::jsonl_with_positions:
+        return "jsonl";
+      default:
+        return "json";
+    }
+  }
+
+  template<typename T>
+  void write_json_array_to_stream(std::ostream& os, const std::vector<T>& v) noexcept
+  {
+    os << '[';
+
+    for (std::size_t i = 0; i < v.size() - 1; i++)
+    {
+      if constexpr(std::is_same_v<T, std::uint8_t>)
+        os << static_cast<std::uint32_t>(v[i]) << ',';
+      else
+        os << v[i] << ',';
+    }
+    if constexpr(std::is_same_v<T, std::uint8_t>)
+      os << static_cast<std::uint32_t>(v.back());
+    else
+      os << v.back();
+
+    os << ']';
+  }
+
+  void write_json_string_to_stream(std::ostream& os, const std::string& s) noexcept
+  {
+    os << '"' << s << '"';
+  }
+
+  template<typename T>
+  void write_json_string_value_to_stream(std::ostream& os, const std::string& k, T v)
+  {
+    write_json_string_to_stream(os, k);
+    os << ':' << v;
+  }
+
+  void write_json_string_string_to_stream(std::ostream& os, const std::string& k, const std::string& v)
+  {
+    write_json_string_to_stream(os, k);
+    os << ":";
+    write_json_string_to_stream(os, v);
+  }
+
 
   query_formatter_base::query_formatter_base(double threshold)
     : m_threshold(threshold)
@@ -42,7 +106,8 @@ namespace kmq {
   }
 
   std::size_t query_formatter_base::aggregate_c(const std::vector<query_result>& queries,
-                                                std::vector<std::uint32_t>& global)
+                                                std::vector<std::uint32_t>& global,
+                                                std::vector<double>& ratios)
   {
     std::size_t nbq = 0;
 
@@ -56,7 +121,14 @@ namespace kmq {
                      std::begin(qr.counts()),
                      std::begin(global),
                      std::plus<std::uint32_t>{}
+      );
                      // [](auto& lhs, auto& rhs) { return std::min(lhs, rhs); }
+      std::transform(std::begin(ratios),
+                     std::end(ratios),
+                     std::begin(qr.ratios()),
+                     std::begin(ratios),
+                     std::plus<double>{}
+
       );
     }
 
@@ -123,6 +195,58 @@ namespace kmq {
     }
   }
 
+  jsonl_formatter::jsonl_formatter(double threshold)
+    : query_formatter_base(threshold)
+  {
+  }
+
+  jsonl_formatter::~jsonl_formatter()
+  {
+  }
+
+  void jsonl_formatter::format(const index_infos& infos,
+                              const query_result& response,
+                              std::ostream& os)
+  {
+    m_os = &os;
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = response.name();
+    std::map<std::string, double> samples;
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      if (response.ratios()[i] >= this->m_threshold)
+      {
+        samples[infos.samples()[i]] = response.ratios()[i];
+      }
+    }
+    jj["samples"] = std::move(samples);
+    (*m_os) << jj.dump() << "\n";
+
+    // os << '{';
+    // write_json_string_string_to_stream(os, "index", infos.name());
+    // os << ',';
+    // write_json_string_string_to_stream(os,"query", response.name());
+    //
+    // os << ',';
+    // write_json_string_to_stream(os, "sample");
+    // os << ":{";
+    //
+    // bool some = false;
+    // for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    // {
+    //   if (response.ratios()[i] >= this->m_threshold)
+    //   {
+    //     if (some)
+    //       os << ',';
+    //     write_json_string_value_to_stream(os, infos.samples()[i], response.ratios()[i]);
+    //     some = true;
+    //   }
+    // }
+    // os << "}\n";
+  }
+
   json_wp_formatter::json_wp_formatter(double threshold)
     : json_formatter(threshold)
   {
@@ -180,6 +304,98 @@ namespace kmq {
     }
   }
 
+  jsonl_wp_formatter::jsonl_wp_formatter(double threshold)
+    : jsonl_formatter(threshold)
+  {
+  }
+
+  void jsonl_wp_formatter::format(const index_infos& infos,
+                              const query_result& response,
+                              std::ostream& os)
+  {
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = response.name();
+
+    std::map<std::string, json> samples;
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      if (response.ratios()[i] >= this->m_threshold)
+      {
+        auto jjj = json({});
+        jjj["R"] = response.ratios()[i];
+        jjj["P"] = response.positions()[i];
+        samples[infos.samples()[i]] = std::move(jjj);
+      }
+    }
+    jj["samples"] = std::move(samples);
+    os << jj.dump() << "\n";
+
+    //os << '{';
+    //write_json_string_string_to_stream(os, "index", infos.name());
+    //os << ',';
+    //write_json_string_string_to_stream(os,"query", response.name());
+
+    //os << ',';
+    //write_json_string_to_stream(os, "sample");
+    //os << ":{";
+
+    //bool some = false;
+    //for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    //{
+    //  if (response.ratios()[i] >= this->m_threshold)
+    //  {
+    //    if (some)
+    //      os << ',';
+    //    write_json_string_to_stream(os, infos.samples()[i]);
+    //    os << ":{";
+    //    write_json_string_value_to_stream(os, "R", response.ratios()[i]);
+    //    os << ',';
+    //    write_json_string_to_stream(os, "P");
+    //    os << ':';
+    //    write_json_array_to_stream(os, response.positions()[i]);
+    //    os << '}';
+    //    some = true;
+    //  }
+    //}
+    //os << "}\n";
+
+  }
+
+  void jsonl_wp_formatter::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
+  {
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = name;
+
+    std::map<std::string, json> samples;
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::size_t nbk = this->aggregate(responses, global);
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      double v = global[i] / static_cast<double>(nbk);
+      if (v >= this->m_threshold)
+      {
+        auto jjj = json::array({});
+        for (auto& r : responses)
+        {
+          jjj.push_back(r.positions()[i]);
+        }
+        json sample;
+        sample["R"] = v;
+        sample["P"] = std::move(jjj);
+        samples[infos.samples()[i]] = std::move(sample);
+      }
+    }
+    jj["samples"] = std::move(samples);
+    os << jj.dump() << "\n";
+  }
+
   void json_formatter::merge_format(const index_infos& infos,
                                     const std::string& name,
                                     const std::vector<query_result>& responses,
@@ -200,6 +416,31 @@ namespace kmq {
       if (v >= this->m_threshold)
         j[infos.samples()[i]] = v;
     }
+  }
+
+  void jsonl_formatter::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
+  {
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = name;
+
+    std::map<std::string, double> samples;
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::size_t nbk = this->aggregate(responses, global);
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      double v = global[i] / static_cast<double>(nbk);
+      if (v >= this->m_threshold)
+      {
+        samples[infos.samples()[i]] = v;
+      }
+    }
+    jj["samples"] = std::move(samples);
+    os << jj.dump() << "\n";
   }
 
   const json& json_formatter::get_json() const
@@ -228,8 +469,8 @@ namespace kmq {
     this->write_headers(os, infos);
 
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
-
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     for (auto& c : global)
       c /= nbq;
@@ -254,7 +495,8 @@ namespace kmq {
     auto& j = m_json[infos.name()][response.name()];
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      j[infos.samples()[i]] = response.counts()[i];
+      if (response.ratios()[i] >= this->m_threshold)
+        j[infos.samples()[i]] = response.counts()[i];
     }
   }
 
@@ -268,14 +510,62 @@ namespace kmq {
 
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
 
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     auto& j = m_json[infos.name()][name];
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      j[infos.samples()[i]] = global[i] / nbq;
+      if ((ratios[i] / nbq) >= this->m_threshold)
+        j[infos.samples()[i]] = global[i] / nbq;
     }
+  }
+
+  jsonl_formatter_abs::jsonl_formatter_abs(double threshold)
+    : jsonl_formatter(threshold)
+  {
+
+  }
+
+  void jsonl_formatter_abs::format(const index_infos& infos,
+                                  const query_result& response,
+                                  std::ostream& os)
+  {
+    m_os = &os;
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = response.name();
+    std::map<std::string, std::uint32_t> samples;
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      samples[infos.samples()[i]] = response.counts()[i];
+    }
+    jj["samples"] = std::move(samples);
+    (*m_os) << jj.dump() << "\n";
+  }
+
+  void jsonl_formatter_abs::merge_format(const index_infos& infos,
+                                        const std::string& name,
+                                        const std::vector<query_result>& responses,
+                                        std::ostream& os)
+  {
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = name;
+
+    std::map<std::string, std::uint32_t> samples;
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      samples[infos.samples()[i]] = global[i] / nbq;
+    }
+    jj["samples"] = std::move(samples);
+    os << jj.dump() << "\n";
   }
 
   json_wp_formatter_abs::json_wp_formatter_abs(double threshold)
@@ -294,10 +584,14 @@ namespace kmq {
     auto& j = m_json[infos.name()][response.name()];
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      auto jj = json({});
-      jj["C"] = response.counts()[i];
-      jj["P"] = response.positions()[i];
-      j[infos.samples()[i]] = std::move(jj);
+      if (response.ratios()[i] >= this->m_threshold)
+      {
+        auto jj = json({});
+        jj["C"] = response.counts()[i];
+        jj["P"] = response.positions()[i];
+        jj["R"] = response.ratios()[i];
+        j[infos.samples()[i]] = std::move(jj);
+      }
     }
   }
 
@@ -311,39 +605,121 @@ namespace kmq {
 
     std::vector<std::uint32_t> global(infos.nb_samples(), 0);
 
-    std::size_t nbq = this->aggregate_c(responses, global);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
 
     auto& j = m_json[infos.name()][name];
 
     for (std::size_t i = 0; i < infos.nb_samples(); ++i)
     {
-      auto jj = json::array({});
-      for (auto& r : responses)
+      double v = ratios[i] / nbq;
+      if (v >= this->m_threshold)
       {
-        jj.push_back(r.positions()[i]);
+        auto jj = json::array({});
+        for (auto& r : responses)
+        {
+          jj.push_back(r.positions()[i]);
+        }
+
+        j[infos.samples()[i]]["C"] = global[i] / nbq;
+        j[infos.samples()[i]]["P"] = std::move(jj);
+        j[infos.samples()[i]]["R"] = v;
       }
 
-      j[infos.samples()[i]]["C"] = global[i] / nbq;
-      j[infos.samples()[i]]["P"] = std::move(jj);
     }
+  }
+
+  jsonl_wp_formatter_abs::jsonl_wp_formatter_abs(double threshold)
+    : jsonl_formatter(threshold)
+  {
+
+  }
+
+  void jsonl_wp_formatter_abs::format(const index_infos& infos,
+                                  const query_result& response,
+                                  std::ostream& os)
+  {
+    m_os = &os;
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = response.name();
+    std::map<std::string, json> samples;
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      auto jjj = json({});
+      jjj["C"] = response.counts()[i];
+      jjj["P"] = response.positions()[i];
+      samples[infos.samples()[i]] = std::move(jjj);
+    }
+    jj["samples"] = std::move(samples);
+    (*m_os) << jj.dump() << "\n";
+  }
+
+  void jsonl_wp_formatter_abs::merge_format(const index_infos& infos,
+                                    const std::string& name,
+                                    const std::vector<query_result>& responses,
+                                    std::ostream& os)
+  {
+    auto jj = json({});
+    jj["index"] = infos.name();
+    jj["query"] = name;
+
+    std::map<std::string, json> samples;
+    std::vector<std::uint32_t> global(infos.nb_samples(), 0);
+    std::vector<double> ratios(infos.nb_samples(), 0);
+    std::size_t nbq = this->aggregate_c(responses, global, ratios);
+
+    for (std::size_t i = 0; i < infos.nb_samples(); ++i)
+    {
+      auto jjj = json::array({});
+      for (auto& r : responses)
+      {
+        jjj.push_back(r.positions()[i]);
+      }
+      json sample;
+      sample["C"] = global[i] / nbq;
+      sample["P"] = std::move(jjj);
+      sample["R"] = ratios[i] / nbq;
+      samples[infos.samples()[i]] = std::move(sample);
+    }
+    jj["samples"] = std::move(samples);
+    os << jj.dump() << "\n";
   }
 
   query_formatter_t make_formatter(enum format f, double threshold, std::size_t bw)
   {
-    switch (f)
+    if (bw == 1)
     {
-      case format::matrix:
-        return bw == 1 ? std::make_shared<matrix_formatter>(threshold)
-                       : std::make_shared<matrix_formatter_abs>(threshold);
-      case format::json:
-        return bw == 1 ? std::make_shared<json_formatter>(threshold)
-                       : std::make_shared<json_formatter_abs>(threshold);
-      case format::json_with_positions:
-        if (bw == 1)
+      switch(f)
+      {
+        case format::matrix:
+          return std::make_shared<matrix_formatter>(threshold);
+        case format::json:
+          return std::make_shared<json_formatter>(threshold);
+        case format::jsonl:
+          return std::make_shared<jsonl_formatter>(threshold);
+        case format::jsonl_with_positions:
+          return std::make_shared<jsonl_wp_formatter>(threshold);
+        case format::json_with_positions:
           return std::make_shared<json_wp_formatter>(threshold);
-        else
+      }
+    }
+    else
+    {
+      switch(f)
+      {
+        case format::matrix:
+          return std::make_shared<matrix_formatter_abs>(threshold);
+        case format::json:
+          return std::make_shared<json_formatter_abs>(threshold);
+        case format::json_with_positions:
           return std::make_shared<json_wp_formatter_abs>(threshold);
-
+        case format::jsonl:
+          return std::make_shared<jsonl_formatter_abs>(threshold);
+        case format::jsonl_with_positions:
+          return std::make_shared<jsonl_wp_formatter_abs>(threshold);
+      }
     }
 
     return nullptr;

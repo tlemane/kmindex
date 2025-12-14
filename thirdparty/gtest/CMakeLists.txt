@@ -20,8 +20,8 @@ if (NOT FORCE_BUILD_GTEST AND NOT FORCE_BUILD_ALL)
 
 endif()
 
-set(GTEST_URL "https://github.com/google/googletest/archive/refs/tags/release-1.11.0.tar.gz")
-set(GTEST_HASH "e8a8df240b6938bb6384155d4c37d937")
+set(GTEST_URL "https://github.com/google/googletest/releases/download/v1.17.0/googletest-1.17.0.tar.gz")
+set(GTEST_HASH "b6f100bc2a5853a48046aa168ececf84")
 set(GTEST_DIR ${EXT_INSTALL_DIR}/gtest)
 
 include(ExternalProject)

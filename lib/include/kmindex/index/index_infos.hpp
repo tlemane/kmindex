@@ -15,10 +15,19 @@
 
 #include <nlohmann/json.hpp>
 #include <semver.hpp>
+#include <simdjson.h>
 
 using json = nlohmann::json;
 
 namespace kmq {
+
+  enum class register_mode {
+    symlink,
+    copy,
+    move,
+    move_or_copy,
+    inplace,
+  };
 
   class index_infos
   {
@@ -42,16 +51,30 @@ namespace kmq {
       semver::version m_kmver;
       semver::version m_kmtver;
 
+      bool m_is_compressed {false};
+      register_mode m_rmode {register_mode::symlink};
+
     public:
 
       index_infos() {}
-      index_infos(const std::string& name, const std::string& km_dir);
+      index_infos(const std::string& name, const std::string& km_dir, register_mode rm = register_mode::symlink);
       index_infos(const std::string& name, const json& jdata);
-
+      index_infos(const std::string& name, simdjson::ondemand::value jdata, std::string_view path);
 
       std::shared_ptr<km::HashWindow> get_hash_w() const;
       std::shared_ptr<km::Repartition> get_repartition() const;
       std::string get_partition(std::size_t partition) const;
+      std::string get_directory() const;
+      std::string get_sum_partition(std::size_t partition) const;
+      std::string get_compression_config() const;
+      void use_fof(const std::string& fof_path);
+      bool is_compressed_index() const;
+      void set_compress(bool v = true) { m_is_compressed = v; }
+
+      bool has_uncompressed_partitions() const;
+      bool has_compressed_partitions() const;
+
+      bool has_sum_index() const { return fs::exists(get_sum_partition(0)); }
 
       std::string name() const;
       std::size_t bloom_size() const;
@@ -74,6 +97,8 @@ namespace kmq {
 
       const semver::version& km_version() const;
       const semver::version& kmt_version() const;
+
+      register_mode rmode() const { return m_rmode; }
 
     private:
       void init();

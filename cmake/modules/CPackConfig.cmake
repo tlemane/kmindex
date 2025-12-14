@@ -13,9 +13,10 @@ INSTALL (TARGETS ${PROJECT_NAME}
          COMPONENT runtime
 )
 
-INSTALL (TARGETS ${PROJECT_NAME}-server
+if (WITH_SERVER)
+  INSTALL (TARGETS ${PROJECT_NAME}-server
          DESTINATION bin
          COMPONENT runtime
-)
-
+  )
+endif()
 include (CPack)

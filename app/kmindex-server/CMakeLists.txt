@@ -4,7 +4,10 @@ if (STATIC_BUILD)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
 
+
 find_package(Boost 1.70.0 REQUIRED COMPONENTS system)
+
+
 set(KMINDEX_SERVER "${PROJECT_NAME}-server")
 add_executable(${KMINDEX_SERVER} ${KMINDEX_SERVER_SOURCES})
 
@@ -47,8 +50,4 @@ endif()
 
 add_dependencies(${KMINDEX_SERVER} deps)
 
-install (TARGETS ${KMINDEX_SERVER}
-         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-         COMPONENT ${KMINDEX_LIB}_Runtime
-)
 

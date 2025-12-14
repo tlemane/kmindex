@@ -22,6 +22,7 @@ namespace kmq {
     kmq_build_cli(m_cli_parser, m_kmq_build_opt);
     kmq_register_cli(m_cli_parser, m_kmq_register_opt);
     kmq_query_cli(m_cli_parser, m_kmq_query_opt);
+    kmq_query2_cli(m_cli_parser, m_kmq_query2_opt);
     kmq_merge_cli(m_cli_parser, m_kmq_merge_opt);
     kmq_infos_cli(m_cli_parser, m_kmq_infos_opt);
 #ifdef KMINDEX_WITH_COMPRESSION
@@ -29,7 +30,6 @@ namespace kmq {
 #endif
     kmq_sum_index_cli(m_cli_parser, m_kmq_sum_index_opt);
     kmq_sum_query_cli(m_cli_parser, m_kmq_sum_query_opt);
-    kmq_query2_cli(m_cli_parser, m_kmq_query2_opt);
   }
 
   std::tuple<kmq_commands, kmq_options_t> kmq_cli::parse(int argc, char* argv[])

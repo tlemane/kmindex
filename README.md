@@ -4,7 +4,7 @@
 [![kmindex](https://img.shields.io/github/actions/workflow/status/tlemane/kmindex/kmindex.yml?label=Linux)](https://github.com/tlemane/kmindex/actions/workflows/kmindex.yml)
 [![release](https://img.shields.io/github/v/release/tlemane/kmindex)](https://github.com/tlemane/kmindex/releases)
 [![dockerhub](https://img.shields.io/docker/v/tlemane/kmindex?label=tlemane/kmindex&logo=docker)](https://hub.docker.com/r/tlemane/kmindex/)
-[![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)
+[![anaconda](https://img.shields.io/conda/p/bioconda/kmindex?logo=anaconda&label=bioconda%7Cplatform&color=green)](https://anaconda.org/bioconda/kmindex)
 
 *kmindex* is a tool for indexing and querying sequencing samples. It is built on top of [kmtricks](https://github.com/tlemane/kmtricks).
 

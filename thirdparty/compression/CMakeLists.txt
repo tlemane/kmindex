@@ -28,18 +28,15 @@ target_sources(bitmatrixshuffle PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/BitmatrixShuffle/src/tsp.cpp
 )
 
-message("AVX ${COMPILER_SUPPORTS_AVX}")
-message("AVX2 ${COMPILER_SUPPORTS_AVX2}")
-message("SSE2 ${COMPILER_SUPPORTS_SSE2}")
 if (ARCH_X86_64 AND COMPILER_SUPPORTS_SSE2)
     target_compile_options(bitmatrixshuffle PUBLIC -msse2)
 endif()
 
-if (ARCH_X86_64 AND COMPILER_SUPPORTS_AVX)
+if (ARCH_X86_64 AND COMPILER_SUPPORTS_AVX AND NOT PORTABLE_BUILD)
     target_compile_options(bitmatrixshuffle PUBLIC -mavx)
 endif()
 
-if (ARCH_X86_64 AND COMPILER_SUPPORTS_AVX2)
+if (ARCH_X86_64 AND COMPILER_SUPPORTS_AVX2 AND NOT PORTABLE_BUILD)
     target_compile_options(bitmatrixshuffle PUBLIC -mavx2)
 endif()
 

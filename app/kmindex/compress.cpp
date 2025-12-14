@@ -62,6 +62,12 @@ namespace kmq {
        })
        ->setter(options->column_blocks);
 
+    adv->add_param("-l/--cpr-level", "Compression level in [1,22])")
+       ->meta("INT")
+       ->def("6")
+       ->checker(bc::check::f::range(1, 22))
+       ->setter(options->cpr_level);
+
     add_common_options(cmd, options, true);
 
     return options;
@@ -204,7 +210,7 @@ namespace kmq {
       std::ofstream config_file(config_path, std::ios::out);
       config_file << "samples = " << sub.nb_samples() << "\n";
       config_file << "bitvectorsperblock = " << entry_per_block << "\n";
-      config_file << "preset = 6" << std::endl;
+      config_file << "preset = " << o->cpr_level << std::endl;
     }
 
     auto random_query = random_sequence(100);

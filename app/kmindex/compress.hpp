@@ -18,6 +18,7 @@ namespace kmq {
     std::size_t sampling {20000};
     std::size_t column_blocks {1};
     bool check {false};
+    int cpr_level {6};
   };
 
   using kmq_compress_options_t = std::shared_ptr<struct kmq_compress_options>;

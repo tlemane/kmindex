@@ -2,7 +2,6 @@
 
 [![License](http://img.shields.io/:license-affero-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
 [![kmindex](https://img.shields.io/github/actions/workflow/status/tlemane/kmindex/kmindex.yml?label=Linux)](https://github.com/tlemane/kmindex/actions/workflows/kmindex.yml)
-[![kmindex-osx](https://img.shields.io/github/actions/workflow/status/tlemane/kmindex/kmindex-osx.yml?label=macOS)](https://github.com/tlemane/kmindex/actions/workflows/kmindex-osx.yml)
 [![release](https://img.shields.io/github/v/release/tlemane/kmindex)](https://github.com/tlemane/kmindex/releases)
 [![dockerhub](https://img.shields.io/docker/v/tlemane/kmindex?label=tlemane/kmindex&logo=docker)](https://hub.docker.com/r/tlemane/kmindex/)
 [![anaconda](https://img.shields.io/conda/vn/tlemane/kmindex?color=green&label=tlemane%2Fkmindex&logo=anaconda)](https://anaconda.org/tlemane/kmindex)

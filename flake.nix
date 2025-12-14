@@ -6,8 +6,12 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
+
+    kmtricks = {
+      url = "github:tlemane/kmtricks";
+    };
   };
-  outputs = { self, nixpkgs, flake-utils, ... }: flake-utils.lib.eachSystem [
+  outputs = { self, nixpkgs, flake-utils, kmtricks, ... }: flake-utils.lib.eachSystem [
     "x86_64-linux"
   ] (system:
     let
@@ -15,19 +19,17 @@
         inherit system;
       };
 
+      kmPkg = kmtricks.defaultPackage.x86_64-linux;
       kmindexBuildInputs = [
-        pkgs.gcc12
-        pkgs.cmake
+        pkgs.gcc13
         pkgs.zlib
+        pkgs.cmake
         pkgs.gbenchmark
         pkgs.boost
         pkgs.bzip2
         pkgs.xxHash
         pkgs.nlohmann_json
-        pkgs.fmt_8
-        pkgs.gtest
         pkgs.zstd
-        pkgs.spdlog
       ];
 
       kmindex = (with pkgs; stdenvNoCC.mkDerivation {

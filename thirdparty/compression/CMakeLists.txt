@@ -1,4 +1,4 @@
-
+add_subdirectory(lz4)
 add_subdirectory(zstd)
 add_subdirectory(sdsl)
 
@@ -11,13 +11,16 @@ target_sources(blockcompressor PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/src/BlockDecompressor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/src/zstd/BlockCompressorZSTD.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/src/zstd/BlockDecompressorZSTD.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/src/lz4/BlockCompressorLZ4.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/src/lz4/BlockDecompressorLZ4.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/src/ConfigurationLiterate.cpp
 )
 target_include_directories(blockcompressor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/include
     ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/include/zstd
+    ${CMAKE_CURRENT_SOURCE_DIR}/BlockCompressor/include/lz4
 )
-target_link_libraries(blockcompressor PUBLIC zstd_ext sdsl-lite)
+target_link_libraries(blockcompressor PUBLIC zstd_ext lz4_ext sdsl-lite)
 
 add_library(bitmatrixshuffle)
 target_sources(bitmatrixshuffle PRIVATE
@@ -46,4 +49,4 @@ target_include_directories(bitmatrixshuffle PUBLIC
 target_link_libraries(bitmatrixshuffle PUBLIC blockcompressor simde)
 
 add_library(compression_features INTERFACE)
-target_link_libraries(compression_features INTERFACE blockcompressor bitmatrixshuffle zstd_ext)
+target_link_libraries(compression_features INTERFACE blockcompressor bitmatrixshuffle zstd_ext lz4_ext)

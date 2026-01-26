@@ -7,8 +7,14 @@ BlockDecompressor::BlockDecompressor(const ConfigurationLiterate& config, const 
     this->config = ConfigurationLiterate(config);
     this->header_size = header_size;
 
-    matrix.open(matrix_path, std::ifstream::binary);
-    
+    //Open file descriptor to mmap file
+    this->fd_matrix = open(matrix_path.c_str(), O_RDONLY);
+    this->file_size = lseek(fd_matrix, 0, SEEK_END);
+    this->matrix = (char*)mmap(nullptr, this->file_size, PROT_READ, MAP_PRIVATE, fd_matrix, 0);
+
+    //Tell system that data will be accessed sequentially
+    posix_madvise(this->matrix, this->file_size, POSIX_MADV_SEQUENTIAL);
+
     //Initialize variables according to configurations
     bit_vector_size = ((config.get_nb_samples() + 7) / 8);
     BLOCK_DECODED_SIZE = bit_vector_size * config.get_bit_vectors_per_block();
@@ -31,12 +37,8 @@ void BlockDecompressor::decode_block(std::size_t i)
 
     std::size_t block_encoded_size = pos_b - pos_a;
 
-    //If buffer current size cannot contain compressed block size, resize it
-    if(block_encoded_size > in_buffer.size())
-        in_buffer.resize(block_encoded_size);
-
-    matrix.seekg(pos_a + header_size); //Seek block location (+ header_size offset)
-    matrix.read(reinterpret_cast<char*>(in_buffer.data()), block_encoded_size); //Read block
+    //Set cursor to block starting location
+    in_buffer = matrix + pos_a + header_size;
 
     decoded_block_size = decompress_buffer(block_encoded_size);
     
@@ -80,10 +82,7 @@ void BlockDecompressor::decompress_all(const std::string& out_path)
     out_file.open(out_path, std::ofstream::binary);
 
     //Write out header
-    char * header = new char[header_size];
-    matrix.read(header, header_size);
-    out_file.write(header, header_size);
-    delete[] header;
+    out_file.write(matrix, header_size);
     
     //i < ef_size - 1 but as it is unsigned, avoid possible underflows if ef_pos is empty (but it should never occur)
     for(std::size_t i = 0; i + 1 < ef_size; ++i)
@@ -96,9 +95,4 @@ void BlockDecompressor::decompress_all(const std::string& out_path)
 void BlockDecompressor::unload()
 {
     read_once = false;
-}
-
-std::uint64_t BlockDecompressor::get_bit_vector_size() const
-{
-    return bit_vector_size;
 }

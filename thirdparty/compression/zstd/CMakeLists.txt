@@ -3,8 +3,6 @@ include(ExternalProject)
 add_library(zstd_ext INTERFACE)
 set(ZSTD_DIR ${EXT_INSTALL_DIR}/zstd)
 
-include(ExternalProject)
-
 ExternalProject_Add(ZSTD-external
     GIT_REPOSITORY https://github.com/facebook/zstd.git
     GIT_TAG v1.5.7

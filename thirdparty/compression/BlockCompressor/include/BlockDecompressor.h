@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <sdsl/bit_vectors.hpp>
+#include <sys/mman.h>
 
 //Class allowing decompression on fly / total decompression of compressed matrices
 //Instances are used for querying matrix lines or as decompressor 
@@ -51,6 +52,8 @@ class BlockDecompressor
         BlockDecompressor(const std::string& config_path, const std::string& matrix_path, const std::string& ef_path, std::size_t header_size = 0);
 
         BlockDecompressor(const ConfigurationLiterate& config, const std::string& matrix_path, const std::string& ef_path, std::size_t header_size = 0);
+
+        virtual ~BlockDecompressor();
 
         //Decodes the block containing the corresponding hash value and that return the corresponding bit vector address
         //Returns nullptr if hash is out of range

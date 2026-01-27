@@ -96,3 +96,9 @@ void BlockDecompressor::unload()
 {
     read_once = false;
 }
+
+BlockDecompressor::~BlockDecompressor()
+{
+    munmap(this->matrix, this->file_size);
+    close(this->fd_matrix);
+}

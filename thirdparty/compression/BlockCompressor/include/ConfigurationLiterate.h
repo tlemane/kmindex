@@ -18,9 +18,9 @@ class ConfigurationLiterate
         void read();
         void write() const;
 
-        std::size_t get_nb_samples() const;
-        std::size_t get_bit_vectors_per_block() const;
-        std::uint8_t get_preset_level() const;
+        inline std::size_t get_nb_samples() const { return nb_samples; }
+        inline std::size_t get_bit_vectors_per_block() const { return bit_vectors_per_block; }
+        inline std::uint8_t get_preset_level() const { return preset_level; }
 
         void set_nb_samples(std::size_t nb_samples);
         void set_bit_vectors_per_block(std::size_t bit_vectors_per_block);

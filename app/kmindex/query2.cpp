@@ -153,7 +153,6 @@ namespace kmq {
     if (!o->single.empty())
       spdlog::warn("--single-query: all query results are kept in memory");
 
-    ThreadPool pool(opt->nb_threads);
 
     klibpp::SeqStreamIn iss(o->input.c_str());
     std::vector<klibpp::KSeq> records;
@@ -165,22 +164,83 @@ namespace kmq {
     }
 
     bool with_positions = o->format == format::json_with_positions || o->format == format::jsonl_with_positions;
-    for (auto& index_name : o->index_names)
+
+    bool pp = o->index_names.size() < opt->nb_threads;
+
+    if (!pp)
     {
-      pool.add_task([&o, &global, &index_name, &records, with_positions](int i){
-        unused(i);
+      ThreadPool pool(opt->nb_threads);
+      for (auto& index_name : o->index_names)
+      {
+        pool.add_task([&o, &global, &index_name, &records, with_positions](int i){
+          unused(i);
+          Timer timer;
+          auto infos = global.get(index_name);
+          spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
+
+          batch_query b(infos.nb_samples(),
+              infos.nb_partitions(),
+              infos.smer_size(),
+              o->z,
+              infos.bw(),
+              infos.get_repartition(),
+              infos.get_hash_w(),
+              infos.minim_size()
+              );
+
+          for (auto& record : records)
+            b.add_query(record.name, record.seq);
+
+          if (o->uncompressed)
+          {
+            if (infos.has_uncompressed_partitions())
+            {
+              spdlog::info("Using uncompressed partitions for index '{}'.", index_name);
+              infos.set_compress(false);
+              auto fof_bak = fmt::format("{}/kmtricks.fof.bak", infos.get_directory());
+              if (fs::exists(fof_bak))
+                infos.use_fof(fof_bak);
+            }
+            else
+            {
+              spdlog::warn("Index '{}' has no uncompressed partitions, using compressed ones.", index_name);
+            }
+          }
+
+          kindex ki(infos, o->cache);
+
+          ki.solve_batch(b);
+          b.free_smers();
+
+          query_result_agg agg;
+          for (auto&& r : b.response())
+          {
+            agg.add(query_result(std::move(r), o->z, infos, with_positions));
+          }
+          agg.output(infos, o->output, o->format, "", o->sk_threshold);
+
+          spdlog::info("Index '{}' processed. ({})", infos.name(), timer.formatted());
+        });
+      }
+      pool.join_all();
+    }
+    else
+    {
+      for (auto& index_name : o->index_names)
+      {
         Timer timer;
+        ThreadPool pool(opt->nb_threads);
         auto infos = global.get(index_name);
         spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
 
         batch_query b(infos.nb_samples(),
-                      infos.nb_partitions(),
-                      infos.smer_size(),
-                      o->z,
-                      infos.bw(),
-                      infos.get_repartition(),
-                      infos.get_hash_w(),
-                      infos.minim_size()
+              infos.nb_partitions(),
+              infos.smer_size(),
+              o->z,
+              infos.bw(),
+              infos.get_repartition(),
+              infos.get_hash_w(),
+              infos.minim_size()
         );
 
         for (auto& record : records)
@@ -203,11 +263,20 @@ namespace kmq {
         }
 
         kindex ki(infos, o->cache);
-
-        ki.solve_batch(b);
-        b.free_smers();
-
         query_result_agg agg;
+
+        for (std::size_t p = 0; p < infos.nb_partitions(); ++p)
+        {
+          pool.add_task([&ki, &b, p, &index_name](int i){
+            spdlog::debug("'{}' query partition {}", index_name, p);
+            unused(i);
+            ki.solve_one(b, p);
+          });
+        }
+
+        pool.join_all();
+
+        b.free_smers();
         for (auto&& r : b.response())
         {
           agg.add(query_result(std::move(r), o->z, infos, with_positions));
@@ -215,9 +284,8 @@ namespace kmq {
         agg.output(infos, o->output, o->format, "", o->sk_threshold);
 
         spdlog::info("Index '{}' processed. ({})", infos.name(), timer.formatted());
-      });
+      }
     }
-    pool.join_all();
     spdlog::info("Done ({}).", gtime.formatted());
   }
 }

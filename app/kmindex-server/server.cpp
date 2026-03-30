@@ -24,7 +24,7 @@ namespace kmq {
   {
     auto is_kmq_index = [](const std::string& p, const std::string& v) -> bc::check::checker_ret_t {
       return std::make_tuple(
-        fs::exists(fmt::format("{}/index.json")), bc::utils::format_error(p, v, fmt::format("'{}' is not an index", v))
+        fs::exists(fmt::format("{}/index.json", v)), bc::utils::format_error(p, v, fmt::format("'{}' is not an index", v))
       );
     };
 

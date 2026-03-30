@@ -145,6 +145,7 @@ namespace kmq {
         if (!data.contains("format"))
         {
           m_json = true;
+          m_format = format::json;
         }
         else
         {

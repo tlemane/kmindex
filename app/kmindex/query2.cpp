@@ -183,8 +183,23 @@ namespace kmq {
                       infos.minim_size()
         );
 
+        std::size_t skip = 0;
         for (auto& record : records)
-          b.add_query(record.name, record.seq);
+        {
+          if (record.seq.size() >= infos.smer_size() + o->z)
+          {
+            b.add_query(record.name, record.seq);
+          }
+          else
+          {
+            skip++;
+          }
+        }
+
+        if (skip)
+        {
+          spdlog::warn("Ignoring {} queries (min query length is {} for index '{}')", skip, o->z + infos.smer_size(), infos.name());
+        }
 
         if (o->uncompressed)
         {

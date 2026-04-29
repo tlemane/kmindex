@@ -23,6 +23,7 @@ namespace kmq {
     std::size_t bw {2};
     bool no_check {false};
     bool cpr {false};
+    bool static_repart {false};
   };
 
   using kmq_build_options_t = std::shared_ptr<struct kmq_build_options>;

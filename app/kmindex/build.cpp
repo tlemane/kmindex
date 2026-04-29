@@ -81,6 +81,10 @@ namespace kmq {
       ->as_flag()
       ->setter(options->cpr);
 
+    kg->add_param("--static-repart", "Do not estimate repartition by sampling.")
+      ->as_flag()
+      ->setter(options->static_repart);
+
     auto bfm = cmd->add_group("presence/absence indexing", "");
     bfm->add_param("--bloom-size", "Bloom filter size.")
                ->def("")
@@ -178,6 +182,8 @@ namespace kmq {
     else
       fmt_cmd += "--mode hash:bf:bin ";
 
+    if (opt->static_repart)
+      fmt_cmd += "--static-repart ";
 
     if (!opt->from.empty())
       fmt_cmd += fmt::format("--repart-from {} ", opt->from);
@@ -236,6 +242,9 @@ namespace kmq {
       if (options->from.empty())
         throw kmq_error("--bloom-size or --nb-cell must be provided.");
     }
+
+    if (options->static_repart && !options->from.empty())
+      throw kmq_error("--static-repart and --from are mutually exclusive.");
 
     if (options->bloom_size && options->nb_cell)
       throw kmq_error("--bloom-size and --nb-cell are mutually exclusive. Use --bloom-size for presence/absence indexing OR --nb-cell for log abundance indexing.");

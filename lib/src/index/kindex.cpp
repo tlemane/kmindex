@@ -53,6 +53,11 @@ namespace kmq {
   kindex::kindex(const index_infos& i, bool cache)
     : m_infos(i), m_mutexes(i.nb_partitions()), m_cache(cache)
   {
+    if (i.is_compressed_index())
+    {
+      m_cache = false;
+    }
+
     m_partitions.resize(m_infos.nb_partitions());
 
     if (m_cache)

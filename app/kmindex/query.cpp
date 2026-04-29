@@ -319,6 +319,11 @@ namespace kmq {
         }
       }
 
+      if (infos.is_compressed_index() && o->cache)
+      {
+        spdlog::warn("Index '{}' is compressed, ignoring --fast.", index_name);
+      }
+
       spdlog::info("Starting '{}' query ({} samples)", infos.name(), infos.nb_samples());
 
       klibpp::SeqStreamIn iss(o->input.c_str());
@@ -327,7 +332,7 @@ namespace kmq {
       ThreadPool pool(opt->nb_threads);
 
       kindex ki(infos, o->cache);
-      //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
+     //smer_hasher sh(infos.get_repartition(), infos.get_hash_w(), infos.minim_size());
 
       std::atomic<std::size_t> batch_id = 0;
 

@@ -22,7 +22,7 @@ function kmindex_build ()
 
 function usage ()
 {
-  echo "kmindex build script - v0.5.3."
+  echo "kmindex build script - v0.6.1."
   echo "Usage: "
   echo "  ./install.sh [-r str] [-t int] [-j int] [-p str] [-k int] [-n] [-h]"
   echo "Options: "

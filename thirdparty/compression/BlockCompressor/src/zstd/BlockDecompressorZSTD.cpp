@@ -13,7 +13,7 @@ BlockDecompressorZSTD::BlockDecompressorZSTD(const ConfigurationLiterate& config
 
 std::size_t BlockDecompressorZSTD::decompress_buffer(std::size_t in_size)
 {
-    return ZSTD_decompressDCtx(context, out_buffer.data(), out_buffer.size(), in_buffer.data(), in_size);
+    return ZSTD_decompressDCtx(context, out_buffer.data(), out_buffer.size(), in_buffer, in_size);
 }
 
 BlockDecompressorZSTD::~BlockDecompressorZSTD()

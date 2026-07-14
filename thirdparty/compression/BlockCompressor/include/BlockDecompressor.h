@@ -4,9 +4,12 @@
 #include <cassert>
 #include <ConfigurationLiterate.h>
 #include <fstream>
+#include <fcntl.h>
+#include <unistd.h>
 #include <vector>
 #include <algorithm>
 #include <sdsl/bit_vectors.hpp>
+#include <sys/mman.h>
 
 //Class allowing decompression on fly / total decompression of compressed matrices
 //Instances are used for querying matrix lines or as decompressor 
@@ -17,7 +20,6 @@ class BlockDecompressor
         ConfigurationLiterate config; //Configuration class { preset_level, bit_vectors_per_block, nb_samples }
 
         //Buffers and block variables
-        std::vector<std::uint8_t> in_buffer; //Buffer to store block encoded data
         std::vector<std::uint8_t> out_buffer; //Buffer to store block decoded data
 
         bool read_once = false; //Flag is set as soon as a block has been decoded
@@ -28,7 +30,11 @@ class BlockDecompressor
         //std::uint64_t minimum_hash;
         
         //IO variables
-        std::ifstream matrix; //Input file stream of compressed matrix
+        int fd_matrix; //File descriptor of compressed matrix
+        char* matrix = nullptr; //mmapped buffer
+        char* in_buffer = nullptr; //Current position in matrix buffer
+        std::size_t file_size = 0; //Compressed matrix size in bytes
+
         std::ifstream ef_in; //Input file stream of serialized Elias-Fano
         std::size_t header_size;
 
@@ -47,6 +53,8 @@ class BlockDecompressor
 
         BlockDecompressor(const ConfigurationLiterate& config, const std::string& matrix_path, const std::string& ef_path, std::size_t header_size = 0);
 
+        virtual ~BlockDecompressor();
+
         //Decodes the block containing the corresponding hash value and that return the corresponding bit vector address
         //Returns nullptr if hash is out of range
         const std::uint8_t* get_bit_vector_from_hash(std::uint64_t hash);
@@ -60,7 +68,11 @@ class BlockDecompressor
         void unload();
 
         //Get size of bit vectors for loaded matrix
-        std::uint64_t get_bit_vector_size() const;
+        inline std::uint64_t get_bit_vector_size() const
+        {
+            return bit_vector_size;
+        }
+
 };
 
 #endif

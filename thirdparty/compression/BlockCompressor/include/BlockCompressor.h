@@ -52,7 +52,7 @@ class BlockCompressor
         
         public:
         BlockCompressor(const std::string& output, const std::string& output_ef, const std::string& config_path);
-        ~BlockCompressor();
+        virtual ~BlockCompressor();
         
         //Writes header from input file
         void write_header(std::ifstream& in_file, std::size_t header_size);

@@ -31,7 +31,7 @@ target_link_libraries(${KMINDEX_LIB} PUBLIC
 
 if (WITH_COMPRESSION)
 target_link_libraries(${KMINDEX_LIB} PUBLIC
-  $<BUILD_INTERFACE:compression_features>
+  $<BUILD_INTERFACE:kmcomp::kmcomp>
 )
 endif()
 

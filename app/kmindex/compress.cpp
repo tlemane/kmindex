@@ -8,8 +8,11 @@
 #include <kmindex/exceptions.hpp>
 #include <spdlog/spdlog.h>
 
-#include <bitmatrixshuffle.h>
-#include <zstd/BlockCompressorZSTD.h>
+#include <kmcomp/kmcomp.hpp>
+#include <block_compressor/block_compressor.hpp>
+#include <block_compressor/compressor_zstd.hpp>
+#include <block_compressor/config_zstd.hpp>
+#include <block_compressor/int_container.hpp>
 
 namespace kmq {
 
@@ -35,10 +38,10 @@ namespace kmq {
 
     auto adv = cmd->add_group("Reordering options", "");
 
-    cmd->add_param("-b/--block-size", "Size of uncompressed blocks, in megabytes.")
+    cmd->add_param("-b/--block-size", "Size of uncompressed blocks, in kilobytes.")
        ->meta("INT")
-       ->def("8")
-       ->checker(bc::check::f::range(1, 1024))
+       ->def("64")
+       ->checker(bc::check::f::range(1, 1 << 20)) //Min 1KB, max 1GB. Default 64KB
        ->setter(options->block_size);
 
     adv->add_param("-r/--reorder", "Reorder columns before compressing.")
@@ -47,11 +50,11 @@ namespace kmq {
 
     adv->add_param("-s/--sampling", "Number of rows to sample for reordering.")
        ->meta("INT")
-       ->def("20000")
+       ->def("10000")
        ->checker(bc::check::f::range(1000, 100000000))
        ->setter(options->sampling);
 
-    adv->add_param("-c/--column-per-block", "Reorder columns by group of N. Should be a multiple of 8 (0=all)")
+    adv->add_param("-c/--column-per-block", "Reorder columns by group of N. Should be a multiple of 8 (0=all).")
        ->meta("INT")
        ->def("0")
        ->checker(bc::check::f::range(0, 100000000))
@@ -62,11 +65,17 @@ namespace kmq {
        })
        ->setter(options->column_blocks);
 
-    adv->add_param("-l/--cpr-level", "Compression level in [1,22])")
+    adv->add_param("-l/--cpr-level", "Compression level in [0,22].")
        ->meta("INT")
-       ->def("6")
-       ->checker(bc::check::f::range(1, 22))
+       ->def("3")
+       ->checker(bc::check::f::range(0, 22))
        ->setter(options->cpr_level);
+
+    adv->add_param("-e/--epsilon", "Epsilon value for approximate nearest-neighbor search queries in [0.0,1000000.0].")
+       ->meta("FLOAT")
+       ->def("5.0")
+       ->checker(bc::check::f::range(0.0, 1000000.0))
+       ->setter(options->epsilon);
 
     add_common_options(cmd, options, true);
 
@@ -202,16 +211,26 @@ namespace kmq {
 
     std::vector<std::uint64_t> perm_orders;
 
-    auto block_size_bytes = o->block_size * 1024 * 1024;
-    auto entry_per_block = bms::target_block_nb_rows(sub.nb_samples(), block_size_bytes);
+    std::size_t block_size_bytes = o->block_size * 1024;
+    std::size_t nb_cols = (sub.nb_samples() + 7) / 8 * 8;
+    std::size_t row_length = nb_cols / 8;
+    std::size_t nb_rows = sub.bloom_size() / sub.nb_partitions();
+    std::size_t matrix_size = nb_rows * row_length + 49; //matrix size + header size
+    int preset_level = o->cpr_level;
 
     auto config_path = sub.get_compression_config() + ".tmp";
-    {
-      std::ofstream config_file(config_path, std::ios::out);
-      config_file << "samples = " << sub.nb_samples() << "\n";
-      config_file << "bitvectorsperblock = " << entry_per_block << "\n";
-      config_file << "preset = " << o->cpr_level << std::endl;
-    }
+  
+    block_compressor::ConfigZstd config;
+    config.set_preset(o->cpr_level);
+    config.set_bits_per_element(1, false);
+    config.set_elements_per_row(row_length*8, false);
+    config.set_header_size(49);
+    config.target_block_size(block_size_bytes);
+    config.export_config_file(config_path);
+
+    //Update block size according to parameters
+    block_size_bytes = config.get_block_size();
+    std::size_t nb_blocks = (matrix_size - 49 + block_size_bytes - 1) / block_size_bytes;
 
     auto random_query = random_sequence(100);
 
@@ -225,7 +244,7 @@ namespace kmq {
       spdlog::info("--check: query done.");
     }
 
-    spdlog::info("Compressing index '{}' using {}MB blocks ({} bit vectors per block).", o->index_name, o->block_size, entry_per_block);
+    spdlog::info("Compressing index '{}' using {}KB blocks ({} bit vectors per block).", o->index_name, block_size_bytes / 1024, block_size_bytes / row_length);
 
     ThreadPool pool(o->nb_threads);
 
@@ -235,7 +254,7 @@ namespace kmq {
       spdlog::info("Reordering columns using {} sampled rows and {} column blocks.", o->sampling, o->column_blocks);
       auto mpath = sub.get_partition(1);
       spdlog::info("Compute permutation from '{}'.", mpath);
-      bms::compute_order_from_matrix_columns(mpath, 49, sub.nb_samples(), sub.bloom_size() / sub.nb_partitions(), o->column_blocks, o->sampling, perm_orders);
+      kmcomp::compute_order_from_matrix_columns(mpath, 49, nb_cols, nb_rows, o->column_blocks, o->sampling, perm_orders, o->epsilon);
       immutable_filling_columns_inplace(perm_orders, sub.nb_samples());
       auto opath = fmt::format("{}/permutations.bin", sub.get_directory());
       std::ofstream ofs(opath, std::ios::out | std::ios::binary);
@@ -247,33 +266,69 @@ namespace kmq {
     {
       if (o->reorder)
       {
-        pool.add_task([i, &sub, &config_path, &perm_orders, block_size_bytes](int) {
+        pool.add_task([=, &sub, &perm_orders](int) {
           spdlog::debug("Compressing partition {}.", i);
           std::string part_path = sub.get_partition(i);
           std::string out = fmt::format("{}/matrices/blocks{}", sub.get_directory(), i);
           std::string out_ef = out + ".ef";
-          bms::reorder_matrix_columns_and_compress(part_path,
-                                                   out,
-                                                   out_ef,
-                                                   config_path,
-                                                   49,
-                                                   sub.nb_samples(),
-                                                   sub.bloom_size() / sub.nb_partitions(),
-                                                   perm_orders,
-                                                   block_size_bytes);
+
+          block_compressor::CompressorZstd compressor(preset_level);
+          block_compressor::IntContainerRaw<std::uint64_t> int_container;
+          int_container.reserve(nb_blocks + 1);
+          block_compressor::BlockCompressor bc(out, block_size_bytes, compressor, int_container);
+
+          kmcomp::picompress( part_path,
+                              49,
+                              nb_cols,
+                              nb_rows,
+                              perm_orders,
+                              bc);
+
+          bc.close();
+          int_container.serialize_file(out_ef);
           spdlog::debug("Partition {} compressed.", i);
         });
       }
       else
       {
-        pool.add_task([i, &sub, &config_path] (int) {
+        pool.add_task([=, &sub] (int) {
           spdlog::debug("Compressing partition {}.", i);
           std::string part_path = sub.get_partition(i);
           std::string out = fmt::format("{}/matrices/blocks{}", sub.get_directory(), i);
           std::string out_ef = out + ".ef";
-          BlockCompressorZSTD bc(out, out_ef, config_path);
-          bc.compress_file(sub.get_partition(i), 49);
+
+          //Init classes for compression
+          block_compressor::CompressorZstd compressor(preset_level);
+          block_compressor::IntContainerRaw<std::uint64_t> int_container;
+          int_container.reserve(nb_blocks + 1);
+          block_compressor::BlockCompressor bc(out, block_size_bytes, compressor, int_container);
+
+          //Map input matrix in memory (using mmap)
+          int fd = open(part_path.c_str(), O_RDONLY);
+
+          if(fd < 0)
+              throw kmq_error(fmt::format("Open syscall failed to read '{}'.", part_path));
+
+          const char* map = static_cast<const char*>(mmap(nullptr, matrix_size, PROT_READ, MAP_PRIVATE, fd, 0));
+
+          if(map == MAP_FAILED)
+          {
+              close(fd);
+              throw kmq_error(fmt::format("mmap failed on attempting to map '{}'.", part_path));
+          }
+
+          //Write header
+          bc.write_raw_data(map, 49);
+
+          //Compress all data (no memcpy)
+          bc.append_data(map+49, matrix_size-49);
+
+          munmap(const_cast<char*>(map), matrix_size);
+          close(fd);
+
           bc.close();
+          int_container.serialize_file(out_ef);
+
           spdlog::debug("Partition {} compressed.", i);
         });
       }

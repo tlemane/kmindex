@@ -1,6 +1,7 @@
 #ifndef THREADPOOL_HPP_DMXPPU0Y
 #define THREADPOOL_HPP_DMXPPU0Y
 
+#include <algorithm>
 #include <future>
 #include <iostream>
 #include <queue>
@@ -32,22 +33,24 @@ namespace kmq {
     void restart(size_type threads = 0);
 
     template <typename Callable>
-    void add_task(Callable&& f)
+    std::future<void> add_task(Callable&& f)
     {
       auto task = std::make_shared<std::packaged_task<void(int)>>(std::forward<Callable>(f));
+      std::future<void> fut = task->get_future();
       {
         std::unique_lock<std::mutex> lock(_queue_mutex);
         if (_stop) throw std::runtime_error("Push on stopped Pool.");
         _queue.emplace([task](int thread_id) { (*task)(thread_id); });
       }
       _condition.notify_one();
+      return fut;
     }
 
    private:
     void worker(int i);
 
    private:
-    size_type _n{std::thread::hardware_concurrency()};
+    size_type _n{std::max<size_type>(1, std::thread::hardware_concurrency())};
     std::vector<std::thread> _pool;
     std::queue<std::function<void(int)>> _queue;
     std::mutex _queue_mutex;

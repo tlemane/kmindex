@@ -13,7 +13,7 @@ namespace kmq {
         ->def(std::to_string(n))
         ->meta("INT")
         ->setter(options->nb_threads)
-        ->checker(bc::check::is_number);
+        ->checker(bc::check::f::range(1, 1000000));
     }
 
     cmd->add_param("-h/--help", "Show this message and exit.")

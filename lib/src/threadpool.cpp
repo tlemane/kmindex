@@ -4,7 +4,8 @@ namespace kmq {
 
   ThreadPool::ThreadPool(size_type threads)
   {
-    if (threads < _n) _n = threads;
+    // 0 means "default": a pool with no workers can never run its queue.
+    if (threads > 0 && threads < _n) _n = threads;
     for (size_t i = 0; i < _n; i++)
     {
       _pool.push_back(std::thread(&ThreadPool::worker, this, i));

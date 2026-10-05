@@ -20,12 +20,13 @@ namespace kmq {
       index(const std::string& index_path);
 
       void add_index(const std::string& name, const std::string& km_path, register_mode rm = register_mode::symlink);
-      void remove_index(const std::string& name);
+      void remove_index(const std::string& name, bool detach = true);
       bool has_index(const std::string& name);
 
       void merge(const index& other);
 
       void save() const;
+      void update();
 
       iterator begin();
       iterator end();

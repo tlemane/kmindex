@@ -219,7 +219,7 @@ namespace kmq {
     int preset_level = o->cpr_level;
 
     auto config_path = sub.get_compression_config() + ".tmp";
-  
+
     block_compressor::ConfigZstd config;
     config.set_preset(o->cpr_level);
     config.set_bits_per_element(1, false);
@@ -373,10 +373,10 @@ namespace kmq {
       auto fof_path = fmt::format("{}/kmtricks.fof", sub.get_directory());
       reorder_fof(fof_path, sub.nb_samples(), perm_orders);
       auto index_directory = sub.get_directory();
-      i.remove_index(o->index_name);
+      i.remove_index(o->index_name, false);
       i.add_index(o->index_name, index_directory);
       sub = i.get(o->index_name);
-      i.save();
+      i.update();
     }
 
     sub.set_compress(false); // required to get the right partition path for deletion

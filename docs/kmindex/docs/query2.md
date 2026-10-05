@@ -18,7 +18,7 @@
       kmindex query2 -i/--index <STR> -q/--fastx <STR> [-n/--names <STR>] [-z/--zvalue <INT>]
                      [-r/--threshold <FLOAT>] [-o/--output <STR>] [-f/--format <STR>]
                      [--memory-budget <INT>] [-t/--threads <INT>] [-v/--verbose <STR>] [--fast]
-                     [-h/--help] [--version]
+                     [--merge] [-h/--help] [--version]
 
     OPTIONS
       [global]
@@ -31,6 +31,7 @@
         -f --format        - Output format [json|matrix|json_vec|jsonl|jsonl_vec] {json}
            --fast          - Keep more pages in cache (see doc for details). [⚑]
            --memory-budget - Total memory budget for concurrent sub-index queries in MB (heap + mmap working set). 0 = no limit. {0}
+           --merge         - Write a single merged result file ({output}/merged.{ext}) instead of one file per sub-index. [⚑]
 
       [common]
         -t --threads - Number of threads. {1}
@@ -40,7 +41,7 @@
     ```
 
 !!! note "Differences with `kmindex query`"
-    *kmindex query2* has no `--batch-size`/`--batch-size-base`, no `--aggregate` and no `--single-query`. All query sequences are kept in memory and each sub-index is written to its own file in `--output`, named after the sub-index.
+    *kmindex query2* has no `--batch-size`/`--batch-size-base`, no `--aggregate` and no `--single-query`. All query sequences are kept in memory and each sub-index is written to its own file in `--output`, named after the sub-index (unless `--merge` is used, see below).
 
 ### Usage
 
@@ -48,7 +49,7 @@
 kmindex query2 --index ./G --fastx query.fasta --zvalue 3 --format matrix --threads 8
 ```
 
-Results are written to `output/<sub-index>.tsv` (one file per queried sub-index), with the same content as the corresponding *kmindex query* run. See [Output formats](query.md#output-formats).
+Results are written to `output/<sub-index>.tsv` (one file per queried sub-index, or a single `output/merged.tsv` with `--merge`), with the same content as the corresponding *kmindex query* run. See [Output formats](query.md#output-formats).
 
 #### Selecting sub-indexes
 
@@ -59,7 +60,7 @@ kmindex query2 -i ./G -q query.fasta -n D1,D2,D3     # inline list
 kmindex query2 -i ./G -q query.fasta -n @names.txt   # one name per line
 ```
 
-Querying a name that is not registered in the global index is an error.
+Querying a name that is not registered in the global index is an error. So is a missing or empty `@names` file — the file must exist and contain at least one name. Names must be single filename components: they cannot contain `/` or be `.`/`..`.
 
 #### Querying several global indexes (requires >= v0.7.0)
 
@@ -86,3 +87,18 @@ With `--memory-budget 0` (default), no limit is applied and all `--threads` quer
 
 !!! note
     The budget throttles concurrency, it never changes the results. A sub-index whose own estimated requirement exceeds the budget is not skipped, it runs alone, and a warning is emitted.
+
+#### Merging results into a single file (requires >= v0.7.0)
+
+`--merge` writes a single result file, `output/merged.{ext}`, instead of one file per sub-index. The content is the union of the per-index files — only the file layout changes, never the results:
+
+* **json / json_vec**: one document with a top-level key per sub-index. A sub-index with no hit still appears as `"<sub-index>": {}` (or `"<sub-index>": {"<query>": {}}` when queries were run but all their hits were filtered by `--threshold`), matching the per-index output.
+* **jsonl / jsonl_vec**: the per-index files concatenated — one line per `(index, query)` pair.
+* **matrix**: the per-index blocks concatenated, each retaining its own header line.
+
+```bash
+kmindex query2 --index ./G1,./G2 --fastx query.fasta --format matrix --merge
+# writes output/merged.tsv
+```
+
+Sub-indexes are emitted in a deterministic order: the `--names` order when an explicit list is given, lexicographic sub-index name order otherwise. The merged file is assembled after all sub-index queries complete, using per-index fragments staged under `output/.staging` (removed on success); while assembling, roughly the final file size is needed as extra disk space. The file is written through a temporary name and renamed only once complete, so a failed run never leaves a partial `merged.*` — it exits with a non-zero status instead.

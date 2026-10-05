@@ -13,7 +13,11 @@
 #include <algorithm>
 #include <cassert>
 #include <condition_variable>
+#include <future>
+#include <iomanip>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -163,6 +167,9 @@ namespace kmq {
        ->checker(bc::check::f::range(0, 100000000))
        ->setter(options->memory_budget);
 
+    cmd->add_param("--merge", "Write a single merged result file ({output}/merged.{ext}) instead of one file per sub-index.")
+       ->as_flag()
+       ->setter(options->merge);
 
     add_common_options(cmd, options, true, 1);
 
@@ -199,20 +206,45 @@ namespace kmq {
     }
     else
     {
-      if (o->index_names[0][0] == '@')
+      if (!o->index_names[0].empty() && o->index_names[0][0] == '@')
       {
-        std::ifstream fs(o->index_names[0].substr(1));
+        const std::string names_path = o->index_names[0].substr(1);
+        if (names_path.empty())
+          throw kmq_error("Empty file path after '@' in --names");
+        std::ifstream names_stream(names_path);
+        if (!names_stream)
+          throw kmq_io_error(fmt::format("Cannot open names file '{}'", names_path));
         o->index_names.clear();
-        for (std::string line; std::getline(fs, line);)
+        for (std::string line; std::getline(names_stream, line);)
         {
-          o->index_names.push_back(line);
+          if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+          if (!line.empty())
+            o->index_names.push_back(line);
         }
+        if (o->index_names.empty())
+          throw kmq_error(fmt::format("No sub-index names in '{}'", names_path));
       }
-      spdlog::info("Sub-indexes to query: [{}]", fmt::join(o->index_names, ","));
+    }
+    spdlog::info("Sub-indexes to query: [{}]", fmt::join(o->index_names, ","));
+
+    // Duplicate names would query the same sub-index twice and emit duplicate
+    // keys in --merge json output; drop them while preserving the requested order.
+    {
+      std::unordered_set<std::string> seen;
+      o->index_names.erase(
+        std::remove_if(o->index_names.begin(), o->index_names.end(),
+                       [&seen](const std::string& n) { return !seen.insert(n).second; }),
+        o->index_names.end());
     }
 
     for (const auto& name : o->index_names)
     {
+      // Names become output file names; reject anything that is not exactly
+      // one filename component.
+      if (name.empty() || name.find('\0') != std::string::npos ||
+          !fs::path(name).parent_path().empty() || name == "." || name == "..")
+        throw kmq_error(fmt::format("Invalid sub-index name: '{}'", name));
       if (!global.has_index(name))
         throw kmq_error(fmt::format("{} subindex does not exist!", name));
     }
@@ -232,6 +264,14 @@ namespace kmq {
     }
 
     bool with_positions = o->format == format::json_with_positions || o->format == format::jsonl_with_positions;
+    const bool json_family = o->format == format::json || o->format == format::json_with_positions;
+    const std::string staging_dir = fmt::format("{}/.staging", o->output);
+
+    if (o->merge)
+    {
+      fs::create_directory(o->output);
+      fs::create_directory(staging_dir);
+    }
 
     std::size_t budget_bytes = o->memory_budget * 1024 * 1024;
     if (budget_bytes > 0)
@@ -291,6 +331,17 @@ namespace kmq {
     std::sort(indexed_mem.begin(), indexed_mem.end(),
               [](const auto& a, const auto& b) { return a.second > b.second; });
 
+    // Internal staged-file names use the selection ordinal, not the sub-index
+    // name: two distinct names may collide on case-insensitive or
+    // unicode-normalizing filesystems.
+    std::unordered_map<std::string, std::size_t> staged_ids;
+    for (std::size_t i = 0; i < o->index_names.size(); ++i)
+      staged_ids[o->index_names[i]] = i;
+    const std::string fext = format_to_fext(o->format);
+
+    std::vector<std::future<void>> task_futures;
+    task_futures.reserve(indexed_mem.size());
+
     for (auto& [index_name, mem] : indexed_mem)
     {
       std::size_t acquire_bytes = (budget_bytes > 0 && mem > budget_bytes) ? budget_bytes : mem;
@@ -298,7 +349,8 @@ namespace kmq {
         spdlog::warn("Index '{}' memory requirement {:.2f}MB exceeds budget {}MB — will run alone",
                      index_name, mem / (1024.0 * 1024.0), o->memory_budget);
 
-      pool.add_task([&o, &global, index_name, &records, with_positions, &sem, acquire_bytes](int i){
+      const std::string staged_name = fmt::format("{}.{}", staged_ids.at(index_name), fext);
+      task_futures.push_back(pool.add_task([&o, &global, index_name, staged_name, &records, with_positions, json_family, &staging_dir, &sem, acquire_bytes](int i){
         unused(i);
         sem.acquire(acquire_bytes);
         sem_guard g{sem, acquire_bytes};
@@ -360,12 +412,100 @@ namespace kmq {
         {
           agg.add(query_result(std::move(r), o->z, infos, with_positions));
         }
-        agg.output(infos, o->output, o->format, "", o->sk_threshold);
+
+        if (!o->merge)
+        {
+          agg.output(infos, o->output, o->format, "", o->sk_threshold);
+        }
+        else if (json_family)
+        {
+          // Accumulate into the formatter's json document, then stage a
+          // "\"name\":{...}" fragment per sub-index for the final merge pass.
+          // The nullstream swallows the destructor's m_json dump.
+          std::ofstream nullstream; nullstream.setstate(std::ios_base::badbit);
+          auto formatter = make_formatter(o->format, o->sk_threshold, infos.bw());
+          for (auto& r : agg.results())
+            formatter->format(infos, r, nullstream);
+          const json& piece = std::static_pointer_cast<json_formatter>(formatter)->get_json();
+          std::ofstream out(fmt::format("{}/{}", staging_dir, staged_name));
+          if (!out)
+            throw kmq_io_error(
+              fmt::format("Cannot open staged result file for sub-index '{}'", infos.name()));
+          out.exceptions(std::ios::failbit | std::ios::badbit);
+          out << json(infos.name()).dump() << ":";
+          if (piece.contains(infos.name()))
+            out << std::setw(4) << piece[infos.name()];
+          else
+            out << "{}";
+          out << "\n";
+          out.close();
+        }
+        else
+        {
+          agg.output(infos, staging_dir, o->format, "", o->sk_threshold, staged_name);
+        }
 
         spdlog::info("Index '{}' processed. ({})", infos.name(), timer.formatted());
-      });
+      }));
     }
     pool.join_all();
+
+    // Worker exceptions are stored in the task futures; rethrow the first one
+    // here so a failed sub-index aborts the command instead of producing
+    // silently incomplete output.
+    for (auto& fut : task_futures)
+      fut.get();
+
+    if (o->merge)
+    {
+      // Emit one merged file. json formats get a key-union document
+      // ("index":{...} fragments joined under a single root object), streamed
+      // formats (jsonl, tsv) are concatenated; each preserves index order.
+      // The result is written to a hidden temp file and renamed once complete
+      // so a failed merge never leaves a partial merged.* behind.
+      const std::string merged_path = fmt::format("{}/merged.{}", o->output, fext);
+      const std::string tmp_path = fmt::format("{}/.merged.{}.tmp", o->output, fext);
+      {
+        std::ofstream merged(tmp_path);
+        if (!merged)
+          throw kmq_io_error(fmt::format("Cannot open '{}' for writing", tmp_path));
+        merged.exceptions(std::ios::failbit | std::ios::badbit);
+        if (json_family)
+          merged << "{";
+        bool first = true;
+        for (std::size_t i = 0; i < o->index_names.size(); ++i)
+        {
+          const std::string staged = fmt::format("{}/{}.{}", staging_dir, i, fext);
+          std::ifstream in(staged);
+          if (!in)
+            throw kmq_io_error(
+              fmt::format("Missing result for sub-index '{}' (expected staged file {})", o->index_names[i], staged));
+          if (json_family)
+          {
+            if (!first)
+              merged << ",";
+            first = false;
+          }
+          // A valid but empty staged file (e.g. jsonl with no hits) inserts
+          // nothing; without this guard the empty transfer would set failbit.
+          if (in.peek() != std::ifstream::traits_type::eof())
+            merged << in.rdbuf();
+          if (in.bad())
+            throw kmq_io_error(fmt::format("Error reading staged file {}", staged));
+        }
+        if (json_family)
+          merged << "}" << std::endl;
+        merged.close();
+      }
+      std::error_code ec;
+      fs::rename(tmp_path, merged_path, ec);
+      if (ec)
+        throw kmq_io_error(fmt::format("Cannot write '{}': {}", merged_path, ec.message()));
+      fs::remove_all(staging_dir, ec);
+      if (ec)
+        spdlog::warn("Could not remove staging directory '{}': {}", staging_dir, ec.message());
+    }
+
     spdlog::info("Done ({}).", gtime.formatted());
   }
 }

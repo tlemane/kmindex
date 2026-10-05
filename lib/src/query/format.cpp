@@ -211,7 +211,17 @@ namespace kmq {
 
   json_formatter::~json_formatter()
   {
-    (*m_os) << m_json.dump(4);
+    if (m_os && m_os->good())
+      (*m_os) << m_json.dump(4);
+  }
+
+  void json_formatter::write_headers(std::ostream& ss, const index_infos& infos)
+  {
+    // Called even when there are no results: records the output stream and
+    // pre-creates the index object so the destructor always emits a valid
+    // document ("{"name":{}}" rather than an empty file).
+    m_os = &ss;
+    m_json[infos.name()] = json({});
   }
 
   void json_formatter::format(const index_infos& infos,

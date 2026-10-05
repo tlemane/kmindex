@@ -27,3 +27,12 @@ add_test(
   COMMAND ${CMAKE_SOURCE_DIR}/tests/app/run_test_query2_multi.sh ${CMAKE_BINARY_DIR}/app/kmindex/kmindex .
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/data
 )
+
+add_test(
+  NAME kmindex:query2_merge
+  COMMAND ${CMAKE_SOURCE_DIR}/tests/app/run_test_query2_merge.sh ${CMAKE_BINARY_DIR}/app/kmindex/kmindex .
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/data
+)
+# Bounds the --threads 0 regression check (and any future hang) so a
+# stuck query2 fails the test instead of blocking CI forever.
+set_tests_properties(kmindex:query2_merge PROPERTIES TIMEOUT 180)

@@ -71,7 +71,8 @@ namespace kmq {
                   const std::string& output_dir,
                   enum format f,
                   const std::string& qname,
-                  double threshold);
+                  double threshold,
+                  const std::string& filename = "");
 
     private:
       std::mutex m_mutex;

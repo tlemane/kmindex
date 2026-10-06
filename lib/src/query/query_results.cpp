@@ -1,6 +1,7 @@
 #include <kmindex/query/query_results.hpp>
 #include <kmindex/index/index_infos.hpp>
 #include <kmindex/query/format.hpp>
+#include <kmindex/exceptions.hpp>
 
 #include <bitpacker/bitpacker.hpp>
 #include <nonstd/span.hpp>
@@ -251,28 +252,41 @@ namespace kmq {
                                 const std::string& output_dir,
                                 enum format f,
                                 const std::string& qname,
-                                double threshold)
+                                double threshold,
+                                const std::string& filename)
   {
     fs::create_directory(output_dir);
 
-    std::ofstream out(
-      fmt::format("{}/{}.{}", output_dir, infos.name(), format_to_fext(f)));
+    const std::string path =
+      filename.empty()
+        ? fmt::format("{}/{}.{}", output_dir, infos.name(), format_to_fext(f))
+        : fmt::format("{}/{}", output_dir, filename);
+    std::ofstream out(path);
+    if (!out)
+      throw kmq_io_error(fmt::format("Cannot open '{}' for writing", path));
 
-    auto formatter = make_formatter(f, threshold, infos.bw());
+    {
+      auto formatter = make_formatter(f, threshold, infos.bw());
 
-    if (qname.size() > 0)
-    {
-      formatter->merge_format(infos, qname, m_results, out);
-    }
-    else
-    {
-      formatter->write_headers(out, infos);
-      for (auto& r : m_results)
+      if (qname.size() > 0)
       {
-        formatter->format(infos, r, out);
+        formatter->merge_format(infos, qname, m_results, out);
       }
+      else
+      {
+        formatter->write_headers(out, infos);
+        for (auto& r : m_results)
+        {
+          formatter->format(infos, r, out);
+        }
+      }
+      // The json formatters emit their accumulated document from their
+      // destructor; they must go out of scope before the close check below
+      // so a failed final write is still reported.
     }
-
+    out.close();
+    if (!out)
+      throw kmq_io_error(fmt::format("Failed writing '{}'", path));
   }
 
 }

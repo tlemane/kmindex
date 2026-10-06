@@ -95,6 +95,10 @@ namespace kmq {
       ~json_formatter();
 
     public:
+      virtual void write_headers(std::ostream& ss,
+                                 const index_infos& infos) override;
+
+    public:
       virtual void format(const index_infos& infos,
                           const query_result& response,
                           std::ostream& os) override;
@@ -107,7 +111,7 @@ namespace kmq {
       const json& get_json() const;
 
     protected:
-      std::ostream* m_os;
+      std::ostream* m_os {nullptr};
       json m_json;
   };
 
@@ -128,7 +132,7 @@ namespace kmq {
                                 std::ostream& os) override;
     
     protected:
-        std::ostream* m_os;
+        std::ostream* m_os {nullptr};
   };
 
   class json_wp_formatter : public json_formatter

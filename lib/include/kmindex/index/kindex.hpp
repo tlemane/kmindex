@@ -8,7 +8,10 @@
 #include <mio/mmap.hpp>
 
 #ifdef KMINDEX_WITH_COMPRESSION
-#include <BlockDecompressor.h>
+#include <block_compressor/block_decompressor.hpp>
+#include <block_compressor/config.hpp>
+#include <block_compressor/decompressor.hpp>
+#include <block_compressor/int_container.hpp>
 #endif
 
 #include <iostream>
@@ -49,7 +52,9 @@ namespace kmq {
       virtual void query(std::uint64_t pos, std::uint8_t* dest);
 
     private:
-      std::unique_ptr<BlockDecompressor> m_ptr_bd;
+      std::unique_ptr<block_compressor::BlockDecompressor> m_ptr_bd;
+      std::unique_ptr<block_compressor::Decompressor> m_ptr_decompressor;
+      std::unique_ptr<block_compressor::IntContainer<std::uint64_t>> m_ptr_int_container;
       std::size_t m_nb_samples {0};
       std::size_t m_bytes {0};
   };

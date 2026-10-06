@@ -25,7 +25,7 @@
 #include <atomic_queue/atomic_queue.h>
 
 #ifdef KMINDEX_WITH_COMPRESSION
-  #include <ConfigurationLiterate.h>
+  #include <block_compressor/config.hpp>
 #endif
 
 namespace kmq {
@@ -317,9 +317,9 @@ namespace kmq {
 #ifdef KMINDEX_WITH_COMPRESSION
       if (infos.is_compressed_index())
       {
-        auto cfg = ConfigurationLiterate(infos.get_compression_config(), true);
-        std::size_t bpb = cfg.get_bit_vectors_per_block();
-        std::size_t cpr_block_size = (bpb * ns) / 8;
+        block_compressor::Config cfg(infos.get_compression_config());
+        std::uint64_t bpb = cfg.get_rows_per_block();
+        std::uint64_t cpr_block_size = (bpb * ns) / 8;
         phase1 += cpr_block_size;
       }
 #endif

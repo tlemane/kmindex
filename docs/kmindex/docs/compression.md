@@ -8,7 +8,7 @@ It works by dividing an index into blocks, which are then compressed using [`Blo
 
 !!! tip "Options"
     ```
-    kmindex compress v0.7.0
+    kmindex compress v0.7.1
 
     DESCRIPTION
       Compress index.
@@ -16,8 +16,8 @@ It works by dividing an index into blocks, which are then compressed using [`Blo
     USAGE
       kmindex compress -i/--global-index <STR> -n/--name <STR> [-b/--block-size <INT>] [-s/--sampling <INT>]
                        [-c/--column-per-block <INT>] [-l/--cpr-level <INT>]
-                       [-t/--threads <INT>] [-v/--verbose <STR>] [-d/--delete] [--check]
-                       [-r/--reorder] [-h/--help] [--version]
+                       [-e/--epsilon <FLOAT>] [-t/--threads <INT>] [-v/--verbose <STR>]
+                       [-d/--delete] [--check] [-r/--reorder] [-h/--help] [--version]
 
     OPTIONS
       [global]
@@ -27,11 +27,12 @@ It works by dividing an index into blocks, which are then compressed using [`Blo
            --check        - Check query results after compressing. [⚑]
 
       [Reordering options]
-        -b --block-size       - Size of uncompressed blocks, in megabytes. {8}
+        -b --block-size       - Size of uncompressed blocks, in kilobytes. {64}
         -r --reorder          - Reorder columns before compressing. [⚑]
-        -s --sampling         - Number of rows to sample for reordering. {20000}
-        -c --column-per-block - Reorder columns by group of N. Should be a multiple of 8 (0=all) {0}
-        -l --cpr-level        - Compression level in [1,22]) {6}
+        -s --sampling         - Number of rows to sample for reordering. {10000}
+        -c --column-per-block - Reorder columns by group of N. Should be a multiple of 8 (0=all). {0}
+        -l --cpr-level        - Compression level in [0,22]. {3}
+        -e --epsilon          - Epsilon value for approximate nearest-neighbor search queries in [0.0,1000000.0]. {5.0}
 
       [common]
         -t --threads - Number of threads. {22}

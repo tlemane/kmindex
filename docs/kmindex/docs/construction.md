@@ -9,7 +9,7 @@
 
 !!! tip "Options"
     ```
-    kmindex build v0.7.0
+    kmindex build v0.7.1
 
     DESCRIPTION
       Build index.

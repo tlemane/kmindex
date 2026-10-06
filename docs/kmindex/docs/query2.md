@@ -9,7 +9,7 @@
 
 !!! tip "Options"
     ```
-    kmindex query2 v0.7.0
+    kmindex query2 v0.7.1
 
     DESCRIPTION
       To be used instead of kmindex query when many sub-indexes are registered, i.e. hundreds or thousands.
@@ -88,7 +88,7 @@ With `--memory-budget 0` (default), no limit is applied and all `--threads` quer
 !!! note
     The budget throttles concurrency, it never changes the results. A sub-index whose own estimated requirement exceeds the budget is not skipped, it runs alone, and a warning is emitted.
 
-#### Merging results into a single file (requires >= v0.7.0)
+#### Merging results into a single file (requires >= v0.7.1)
 
 `--merge` writes a single result file, `output/merged.{ext}`, instead of one file per sub-index. The content is the union of the per-index files — only the file layout changes, never the results:
 

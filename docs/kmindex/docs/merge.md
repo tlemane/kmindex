@@ -4,7 +4,7 @@ In addition to registering multiple indexes, compatible sub-indexes (i.e. sharin
 
 !!! tip "Options"
     ```
-    kmindex merge v0.7.0
+    kmindex merge v0.7.1
 
     DESCRIPTION
       Merge sub-indexes.

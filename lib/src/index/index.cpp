@@ -69,14 +69,40 @@ namespace kmq {
     }
   }
 
-  void index::remove_index(const std::string& name)
+  void index::remove_index(const std::string& name, bool detach)
   {
     if (m_indexes.count(name))
     {
       m_indexes.erase(name);
       std::string p = fmt::format("{}/{}", m_index_path, name);
-      ::unlink(p.c_str());
+      if (detach) {
+        ::unlink(p.c_str());
+      }
     }
+  }
+
+  void index::update() {
+    nlohmann::json data;
+    data["path"] = m_index_path;
+    data["index"] = json({});
+
+    for (auto& [name, i] : m_indexes) {
+      data["index"][name]["nb_samples"] = i.nb_samples();
+      data["index"][name]["index_size"] = i.index_size();
+      data["index"][name]["bloom_size"] = i.bloom_size();
+      data["index"][name]["nb_partitions"] = i.nb_partitions();
+      data["index"][name]["smer_size"]  = i.smer_size();
+      data["index"][name]["minim_size"] = i.minim_size();
+      data["index"][name]["samples"] = i.samples();
+      data["index"][name]["sha1"] = i.sha1();
+      data["index"][name]["bw"] = i.bw();
+      data["index"][name]["kmindex_version"] = i.km_version().to_string();
+      data["index"][name]["kmtricks_version"] = i.kmt_version().to_string();
+    }
+
+    std::ofstream out(fmt::format("{}/index.json", m_index_path), std::ios::out);
+
+    out << std::setw(4) << data << std::endl;
   }
 
   void index::save() const

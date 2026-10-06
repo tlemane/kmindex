@@ -7,7 +7,9 @@
 #include <sys/mman.h>
 
 #ifdef KMINDEX_WITH_COMPRESSION
-#include <zstd/BlockDecompressorZSTD.h>
+#include <block_compressor/config_zstd.hpp>
+#include <block_compressor/decompressor_zstd.hpp>
+#include <block_compressor/int_container.hpp>
 #endif
 
 namespace kmq {
@@ -35,7 +37,12 @@ namespace kmq {
   compressed_partition::compressed_partition(const std::string& matrix_path, const std::string& config_path, std::size_t nb_samples, std::size_t width)
     : m_nb_samples(nb_samples), m_bytes(((nb_samples * width) + 7) / 8)
   {
-    m_ptr_bd = std::make_unique<BlockDecompressorZSTD>(config_path, matrix_path, matrix_path + ".ef");
+    block_compressor::ConfigZstd config(config_path);
+
+    m_ptr_decompressor = std::make_unique<block_compressor::DecompressorZstd>();
+    m_ptr_int_container = std::make_unique<block_compressor::IntContainerRaw<std::uint64_t>>();
+    m_ptr_int_container->deserialize_file(matrix_path + ".ef");
+    m_ptr_bd = std::make_unique<block_compressor::BlockDecompressor>(matrix_path, config.get_block_size(), *m_ptr_decompressor, *m_ptr_int_container, 49);
   }
 
   compressed_partition::~compressed_partition()
@@ -44,7 +51,7 @@ namespace kmq {
 
   void compressed_partition::query(std::uint64_t pos, std::uint8_t* dest)
   {
-    std::memcpy(dest, m_ptr_bd->get_bit_vector_from_hash(pos), m_bytes);
+    std::memcpy(dest, m_ptr_bd->get_row(pos, m_bytes), m_bytes);
   }
 #endif
 

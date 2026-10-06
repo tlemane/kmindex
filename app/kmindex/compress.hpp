@@ -12,13 +12,14 @@ namespace kmq {
     std::string index_name;
 
     bool reorder {false};
-    std::size_t block_size {8}; // in MB
+    std::size_t block_size {64}; // in KB
     bool delete_old {false};
 
-    std::size_t sampling {20000};
-    std::size_t column_blocks {1};
+    std::size_t sampling {10000};
+    std::size_t column_blocks {0};
     bool check {false};
-    int cpr_level {6};
+    int cpr_level {3};
+    double epsilon {5.0};
   };
 
   using kmq_compress_options_t = std::shared_ptr<struct kmq_compress_options>;

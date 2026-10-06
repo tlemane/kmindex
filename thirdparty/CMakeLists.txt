@@ -86,6 +86,6 @@ add_library(deps INTERFACE)
 add_dependencies(deps KSEQPP SWS mio_mmap xxhash zlib bcli_lib fmt kmtricks)
 
 if (WITH_COMPRESSION)
-  add_subdirectory(compression EXCLUDE_FROM_ALL)
-add_dependencies(deps compression_features)
+  add_subdirectory(kmcomp)
+  add_dependencies(deps kmcomp)
 endif()

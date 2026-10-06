@@ -17,7 +17,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 if (WITH_COMPRESSION)
   target_link_libraries(${PROJECT_NAME} PUBLIC
-    compression_features
+    $<BUILD_INTERFACE:kmcomp::kmcomp>
   )
 endif()
 
